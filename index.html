@@ -2666,6 +2666,51 @@ table.ng-table td b{color:var(--ink)}
 @keyframes ngshimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
 @media (prefers-reduced-motion: reduce){.ng-skel::after{animation:none}}
 .ng-sat-on{background:var(--forest)!important;color:#F2F5EF!important}
+
+/* ================================================================
+   LISTING GRIDS — FACEBOOK MARKETPLACE STYLE (founder request)
+   Property (Real Estate) browse and Marketplace (Buy & Sell)
+   browse show two columns at phone width — four listings on
+   screen at a time (2 rows × 2 columns) — instead of one
+   full-width card at a time. Map view, video feed, filters,
+   sorting, card content and tap-to-open behaviour are unchanged;
+   only the browse layout and the compact half-width card sizing
+   change. Wider screens keep their existing 3- / 4-column steps.
+   ================================================================ */
+/* --- Property browse: two-column grid from the smallest width --- */
+.re-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.re-card{min-width:0}
+.re-list>.re-empty,.re-list>.empty-state{grid-column:1/-1}
+/* Compact half-width property cards on phones */
+@media (max-width:639px){
+  .re-card .ph img{height:132px}
+  .re-card .ph .noimg{height:132px}
+  .re-card .cb{padding:11px 12px 12px !important}
+  .re-card .c-price{font-size:16.5px}
+  .re-card .c-ppa{font-size:11px;line-height:1.4}
+  .re-card .c-title{font-size:13.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .re-card .c-meta{font-size:11.5px;gap:5px;margin-top:6px}
+  .re-card .c-meta span{padding:3px 7px}
+  .re-card-cta{margin-top:10px;padding-top:9px;font-size:12.5px}
+  .re-team{left:8px;bottom:8px;font-size:9.5px;padding:4px 7px}
+  .re-sponsored{left:8px;top:8px}
+  .re-gal-nav{right:8px;bottom:8px}
+}
+/* Small tablets: same two columns, slightly taller photos */
+@media (min-width:640px) and (max-width:859px){
+  .re-list{gap:14px}
+  .re-card .ph img{height:176px}
+  .re-card .ph .noimg{height:176px}
+}
+/* Desktop keeps its existing three-column step */
+@media (min-width:860px){
+  .re-list{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+/* --- Marketplace browse: same two-column grid on phones --- */
+@media (max-width:639px){
+  #view-marketplace .mp-grid,.mp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.mp-grid>.re-empty,.mp-grid>.empty-state{grid-column:1/-1}
 </style>
 </head>
 <body>
@@ -10526,7 +10571,7 @@ function rePostReviewHTML(s){
     { ok:true, label:'Exact address stays private — only locality and landmark are public' }
   ];
   return '<p class="mp-step-sub">This is exactly how buyers will see it once the founder approves. Your submission is saved immediately and waits in My Properties as Pending Review — it never goes public on a timer.</p>'
-    + '<div class="re-list" style="margin-top:0"><article class="re-card"><span class="ph" style="display:block">'
+    + '<div class="re-list" style="margin-top:0;grid-template-columns:1fr;max-width:560px"><article class="re-card"><span class="ph" style="display:block">'
     + (s.media.length && s.media[0].url ? '<img src="' + mkEsc(s.media.filter(function(m){ return m.cover; })[0] ? (s.media.filter(function(m){ return m.cover; })[0].url) : s.media[0].url) + '" alt=""/>' : '<span class="noimg">No photos yet</span>')
     + '</span><span class="cb" style="display:block"><span class="c-price">' + reFmtINR(reParseMoney(s.price) || 0) + '</span>'
     + '<div class="c-title">' + mkEsc(s.title || 'Untitled property') + '</div>'
