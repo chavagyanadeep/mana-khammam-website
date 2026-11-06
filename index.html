@@ -292,6 +292,20 @@ img{display:block;max-width:100%}
 }
 .mp-save.on{color:var(--accent)}
 .mp-save:active{transform:scale(.9)}
+/* WhatsApp share — card icon button, detail pill, video-feed action */
+.wa-card{position:absolute;z-index:3;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.94);display:grid;place-items:center;color:#1DA851;box-shadow:0 2px 7px rgba(23,32,29,.18);text-decoration:none}
+.wa-card svg{width:17px;height:17px}
+.wa-card:active{transform:scale(.9)}
+.wa-card.wa-inline{position:static;flex:none;margin-left:10px}
+.news-wa-wrap{position:relative}
+.news-row-wrap{display:flex;align-items:center;border-top:1px solid var(--line)}
+.news-row-wrap .news-row{flex:1;min-width:0}
+.wa-share-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;padding:12px 16px;border-radius:999px;background:#E7F5EC;border:1px solid #BEE3CB;color:#13652F;font-weight:700;font-size:14.5px;text-decoration:none}
+.wa-share-btn svg{width:19px;height:19px;flex:none}
+.wa-share-btn:active{transform:scale(.98)}
+.nr-actions button.wa-act{color:#13652F}
+.ng-vacts a.wa-feed{display:flex;align-items:center;justify-content:center;gap:6px;flex:1 1 auto;font-size:12.5px;font-weight:700;padding:9px 10px;border-radius:10px;background:#E7F5EC;color:#13652F;border:1px solid #BEE3CB;text-decoration:none}
+.ng-vacts a.wa-feed svg{width:15px;height:15px}
 .mp-card .c-price{font-weight:800;font-size:16.5px;margin-top:8px}
 .mp-card .c-title{font-weight:600;font-size:13px;line-height:1.3;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mp-card .c-meta{font-size:11.5px;color:var(--muted);margin-top:2px}
@@ -5095,6 +5109,36 @@ var NR_ICONS = {
   check:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 10 18 19.5 6.5"/></svg>',
   play:'<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>'
 };
+/* ---- WhatsApp sharing (every public card + detail view) ----
+   A share carries only what is already public on the card — title,
+   price/type, locality and the public deep link on mana-khammam.com.
+   It never includes a seller's phone number or any private contact:
+   contact stays chat-only inside the app. No sign-in is needed —
+   these are plain wa.me links with the message pre-filled. */
+var WA_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>';
+var WA_SITE = 'https://mana-khammam.com/';
+function waShareHref(text){ return 'https://wa.me/?text=' + encodeURIComponent(text); }
+function waCardAnchor(href, style){
+  return '<a class="wa-card" href="' + href + '" target="_blank" rel="noopener" aria-label="Share on WhatsApp" title="Share on WhatsApp"' + (style ? ' style="' + style + '"' : '') + '>' + WA_ICON + '</a>';
+}
+function waDetailBtn(href){
+  return '<a class="wa-share-btn" href="' + href + '" target="_blank" rel="noopener">' + WA_ICON + '<span>Share on WhatsApp</span></a>';
+}
+function waStoryText(a){
+  var loc = storyText(a, 'en') || storyText(a, 'te');
+  if(!loc) return 'Mana Khammam News\n' + WA_SITE;
+  var line = clampWords(loc.summary || '', 28);
+  return loc.headline + (line ? '\n' + line : '') + '\nRead it on Mana Khammam: ' + WA_SITE + '#/story/' + (a.slug || a.id);
+}
+function waStoryHref(a){ return waShareHref(waStoryText(a)); }
+function waPropText(p){
+  return p.title + '\n' + reFmtINR(p.price) + ' · ' + reTypeLabel(p.property_type) + ' in ' + p.locality + ', Khammam\nSee it on Mana Khammam: ' + WA_SITE + '#/property/' + p.id;
+}
+function waPropHref(p){ return waShareHref(waPropText(p)); }
+function waItemText(l){
+  return l.title + '\n' + mpFmt(l.price) + ' · ' + mpCatLabel(l.category) + ' · ' + l.locality + ', Khammam\nSee it on Mana Khammam: ' + WA_SITE + '#/market/' + l.id;
+}
+function waItemHref(l){ return waShareHref(waItemText(l)); }
 function newsList(){
   return NEWS_ARTICLES.filter(function(a){ return a && (!a.status || a.status==='published'); })
     .slice().sort(function(x,y){ return new Date(y.publishedAt) - new Date(x.publishedAt); });
@@ -5155,7 +5199,8 @@ function nrCardHTML(a, interactive, displayIdx){
         + '<button class="btn-solid" data-nr-read-te style="flex:none;padding:10px 18px">Read in Telugu</button>'
         + '</div></div>'
         + '<div class="nr-meta"><span>'+newsTimeLabel(a.publishedAt)+'</span><span class="dot"></span><span>'+mkEsc(a.publisher||'Mana Khammam Newsroom')+'</span>'
-        + '<span class="count">Story '+shown+' of '+total+'</span></div>';
+        + '<span class="count">Story '+shown+' of '+total+'</span></div>'
+        + '<div style="padding:12px 16px 2px">' + waDetailBtn(waStoryHref(a)) + '</div>';
       return html;
     }
     html += '<div class="nr-nolang"><div class="nl-box">'
@@ -5164,7 +5209,8 @@ function nrCardHTML(a, interactive, displayIdx){
       + '<button class="btn-solid" data-nr-read-en style="flex:none;padding:10px 18px">Read in English</button>'
       + '</div></div>'
       + '<div class="nr-meta"><span>'+newsTimeLabel(a.publishedAt)+'</span><span class="dot"></span><span>'+mkEsc(a.publisher||'Mana Khammam Newsroom')+'</span>'
-      + '<span class="count">Story '+shown+' of '+total+'</span></div>';
+      + '<span class="count">Story '+shown+' of '+total+'</span></div>'
+      + '<div style="padding:12px 16px 2px">' + waDetailBtn(waStoryHref(a)) + '</div>';
     return html;
   }
   html += '<div class="nr-body"><h2>'+mkEsc(loc.headline)+'</h2><p>'+mkEsc(clampWords(loc.summary, 60))+'</p></div>'
@@ -5176,6 +5222,7 @@ function nrCardHTML(a, interactive, displayIdx){
     html += '<div class="nr-actions">'
       + '<button data-nr-act="bookmark" class="'+(marked?'on':'')+'" aria-pressed="'+marked+'">'+(marked?NR_ICONS.bookmarkOn:NR_ICONS.bookmark)+'<span>Bookmark</span></button>'
       + '<button data-nr-act="share" class="share-act">'+NR_ICONS.share+'<span>Share</span></button>'
+      + '<button data-nr-act="whatsapp" class="wa-act">'+WA_ICON+'<span>WhatsApp</span></button>'
       + (loc.body ? '<button data-nr-act="full">'+NR_ICONS.full+'<span>Read Full Story</span></button>' : '')
       + '<button data-nr-act="report">'+NR_ICONS.flag+'<span>Report Issue</span></button>'
       + '</div>';
@@ -5371,6 +5418,7 @@ function nrBindCardActions(a){
         nrRender();
       }
       else if(act === 'share'){ shareStory(a); }
+      else if(act === 'whatsapp'){ window.open(waStoryHref(a), '_blank', 'noopener'); }
       else if(act === 'full'){ openNrFull(a); }
       else if(act === 'report'){ openReport(a); }
     });
@@ -5379,7 +5427,7 @@ function nrBindCardActions(a){
 function shareStory(a){
   var loc = storyText(a, NR.lang) || storyText(a, 'en');
   if(!loc) return;
-  var text = loc.headline + '\n\n' + clampWords(loc.summary, 60) + '\n\n— Mana Khammam News\nStory link: #/story/' + (a.slug || a.id);
+  var text = loc.headline + '\n\n' + clampWords(loc.summary, 60) + '\n\n— Mana Khammam News\nRead it here: https://mana-khammam.com/#/story/' + (a.slug || a.id);
   if(navigator.share){
     navigator.share({title: loc.headline, text: text}).catch(function(){});
   } else if(navigator.clipboard && navigator.clipboard.writeText){
@@ -5404,7 +5452,8 @@ function openNrFull(a){
     + '<h2>'+mkEsc(loc.headline)+'</h2>'
     + '<div class="fm">'+newsTimeLabel(a.publishedAt)+' · '+mkEsc(a.publisher||'Mana Khammam Newsroom')+(a.source ? ' · Source: '+mkEsc(a.source) : '')+'</div>'
     + (items.length ? '<img src="'+mkEsc(items[0].src)+'" alt="'+mkEsc(items[0].alt)+'"/>' + (items[0].credit ? '<div class="fm">Photo: '+mkEsc(items[0].credit)+'</div>' : '') : '')
-    + paras;
+    + paras
+    + '<div style="margin-top:20px">' + waDetailBtn(waStoryHref(a)) + '</div>';
   nrEl.fullBody.scrollTop = 0;
   nrEl.full.classList.add('open'); nrEl.full.setAttribute('aria-hidden','false');
 }
@@ -5486,16 +5535,18 @@ function renderHomeNews(){
   }
   var lead = L[0], leadLoc = lead.en || lead.te || {};
   var leadItems = mediaItems(lead);
-  var html = '<button class="news-lead" data-news-open="0">'
+  var html = '<div class="news-wa-wrap"><button class="news-lead" data-news-open="0">'
     + (leadItems.length ? '<span class="ph"><img src="'+mkEsc(leadItems[0].poster||leadItems[0].src)+'" alt="'+mkEsc(leadItems[0].alt)+'"/></span>' : '')
     + (lead.breaking ? '<span class="sample-tag" style="background:#9A6B2F;color:#FFF;margin-top:12px">Breaking News</span>' : '')
     + '<h3>'+mkEsc(leadLoc.headline)+'</h3>'
-    + '<span class="news-meta"><span>'+mkEsc(lead.publisher||'Mana Khammam Newsroom')+'</span><span class="dot"></span><span>'+newsTimeLabel(lead.publishedAt)+'</span></span></button>';
+    + '<span class="news-meta"><span>'+mkEsc(lead.publisher||'Mana Khammam Newsroom')+'</span><span class="dot"></span><span>'+newsTimeLabel(lead.publishedAt)+'</span></span></button>'
+    + waCardAnchor(waStoryHref(lead), 'top:10px;right:10px') + '</div>';
   html += L.slice(1,3).map(function(a,i){
     var loc = a.en || a.te || {}, items = mediaItems(a);
-    return '<button class="news-row" data-news-open="'+(i+1)+'"><span style="flex:1;min-width:0"><h4>'+mkEsc(loc.headline)+'</h4>'
+    return '<div class="news-row-wrap"><button class="news-row" style="border-top:0" data-news-open="'+(i+1)+'"><span style="flex:1;min-width:0"><h4>'+mkEsc(loc.headline)+'</h4>'
       + '<span class="news-meta"><span>'+newsTimeLabel(a.publishedAt)+'</span></span></span>'
-      + (items.length ? '<img src="'+mkEsc(items[0].poster||items[0].src)+'" alt="'+mkEsc(items[0].alt)+'"/>' : '') + '</button>';
+      + (items.length ? '<img src="'+mkEsc(items[0].poster||items[0].src)+'" alt="'+mkEsc(items[0].alt)+'"/>' : '') + '</button>'
+      + '<a class="wa-card wa-inline" href="' + waStoryHref(a) + '" target="_blank" rel="noopener" aria-label="Share on WhatsApp" title="Share on WhatsApp">' + WA_ICON + '</a></div>';
   }).join('');
   body.innerHTML = html;
   body.querySelectorAll('[data-news-open]').forEach(function(b){
@@ -7165,7 +7216,7 @@ function mpCardHTML(l){
     + (saved
       ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.6L7 20z"/></svg>'
       : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.6L7 20z"/></svg>')
-    + '</button></div>';
+    + '</button>' + waCardAnchor(waItemHref(l), 'top:47px;right:7px') + '</div>';
 }
 function mpBindCards(root){
   root.querySelectorAll('[data-mp-open]').forEach(function(b){
@@ -7336,6 +7387,7 @@ function mpRenderDetail(){
     + '<button data-mp-dact="share">' + NR_ICONS.share + '<span>Share</span></button>'
     + '<button data-mp-dact="report">' + NR_ICONS.flag + '<span>Report</span></button>'
     + '</div>'
+    + waDetailBtn(waItemHref(l))
     + '<div class="mp-safety"><b>Meet safely.</b> Chat here first, meet in a busy public place in Khammam, inspect the item before paying, and never share your phone number or pay in advance. Mana Khammam connects neighbours — it does not guarantee any transaction.</div>'
     + (MP.detailSellerListings.length
         ? '<div class="sec-head" style="margin:22px 0 10px"><h2 style="font-size:17px">More from this seller</h2></div><div class="mp-grid" style="margin-top:0">' + MP.detailSellerListings.map(mpCardHTML).join('') + '</div>'
@@ -7384,7 +7436,7 @@ function mpCloseDetail(){
   MP.detail = null;
 }
 function mpShareListing(l){
-  var text = l.title + ' — ' + mpFmt(l.price) + ' · ' + l.locality + ', Khammam\nOn Mana Khammam Marketplace: #/market/' + l.id;
+  var text = waItemText(l);
   if(navigator.share){ navigator.share({ title:l.title, text:text }).catch(function(){}); }
   else if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(function(){ showToast('<b>Listing copied.</b> Paste it anywhere to share.'); }, function(){ showToast('Sharing is not available in this browser.'); });
@@ -9329,6 +9381,7 @@ function reCardHTML(p){
     + '<button class="mp-save' + (RE.savedIds[p.id] ? ' on' : '') + '" data-re-save="' + p.id + '" aria-label="Save property" style="z-index:2">' + (RE.savedIds[p.id] ? NR_ICONS.bookmarkOn : NR_ICONS.bookmark) + '</button>'
     + '<button class="mp-save" data-re-cmp="' + p.id + '" aria-label="Add to compare" style="right:47px;z-index:2;color:' + (inCompare ? 'var(--accent)' : 'var(--ink)') + '">'
     + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M8 7h13M8 12h13M8 17h13"/><path d="M3.5 7h.01M3.5 12h.01M3.5 17h.01" stroke-width="3"/></svg></button>'
+    + waCardAnchor(waPropHref(p), 'right:87px;z-index:2')
     + '</article>';
 }
 function reBindCards(root){
@@ -9429,6 +9482,7 @@ function reMapCardHTML(p){
     + '<span class="rc-view">View on map &amp; details <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>'
     + '</span></button>'
     + '<button class="mp-save' + (RE.savedIds[p.id] ? ' on' : '') + '" data-re-save="' + p.id + '" aria-label="Save property">' + (RE.savedIds[p.id] ? NR_ICONS.bookmarkOn : NR_ICONS.bookmark) + '</button>'
+    + waCardAnchor(waPropHref(p), 'right:47px;z-index:2')
     + '</article>';
 }
 function reMapSideHTML(shown, items){
@@ -9906,6 +9960,7 @@ function reRenderDetail(){
     + '<button data-re-dact="tools"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="2.5" width="16" height="19" rx="2.5"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01" stroke-width="2.4"/></svg><span>Tools</span></button>'
     + '<button data-re-dact="report">' + NR_ICONS.flag + '<span>Report</span></button>'
     + '</div>'
+    + waDetailBtn(waPropHref(p))
     + '<div id="reCompleteness"></div>'
     + (RE.detailSellerProps && RE.detailSellerProps.length
         ? '<div class="sec-head" style="margin:22px 0 10px"><h2 style="font-size:17px">More from this seller</h2></div><div class="re-list" style="margin-top:0">' + RE.detailSellerProps.map(reCardHTML).join('') + '</div>'
@@ -10017,7 +10072,7 @@ function reCloseDetail(){
   RE.detail = null;
 }
 function reShareProperty(p){
-  var text = p.title + ' — ' + reFmtINR(p.price) + ' · ' + p.locality + ', Khammam\nOn Mana Khammam Real Estate: #/property/' + p.id;
+  var text = waPropText(p);
   if(navigator.share){ navigator.share({ title:p.title, text:text }).catch(function(){}); }
   else if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(text).then(function(){ showToast('<b>Property copied.</b> Paste it anywhere to share.'); }, function(){ showToast('Sharing is not available in this browser.'); });
@@ -21358,6 +21413,7 @@ function ngFeedCardHTML(p, m){
     + ((typeof pnIsApprovedSeller === 'function' && pnIsApprovedSeller()) ? '<button type="button" data-ng-feed-share="' + p.id + '">Share &amp; Grow</button>' : '')
     + '<button type="button" data-ng-feed-map="' + p.id + '">View on Map</button>'
     + '<button type="button" data-ng-feed-open="' + p.id + '">Full details</button>'
+    + '<a class="wa-feed" href="' + waPropHref(p) + '" target="_blank" rel="noopener">' + WA_ICON + '<span>WhatsApp</span></a>'
     + '<button type="button" class="primary" data-ng-feed-visit="' + p.id + '">Request a visit</button>'
     + '</div></article>';
 }
@@ -21377,6 +21433,7 @@ function ngReelCardHTML(p){
     + '<button type="button" data-ng-feed-save="' + p.id + '" class="' + (RE.savedIds[p.id] ? 'on' : '') + '">' + (RE.savedIds[p.id] ? 'Saved' : 'Save') + '</button>'
     + '<button type="button" data-ng-feed-map="' + p.id + '">View on Map</button>'
     + '<button type="button" data-ng-feed-open="' + p.id + '">Full details</button>'
+    + '<a class="wa-feed" href="' + waPropHref(p) + '" target="_blank" rel="noopener">' + WA_ICON + '<span>WhatsApp</span></a>'
     + '<button type="button" class="primary" data-ng-feed-visit="' + p.id + '">Request a visit</button>'
     + '</div></article>';
 }
