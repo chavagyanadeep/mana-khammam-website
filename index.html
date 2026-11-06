@@ -3208,7 +3208,7 @@ table.ng-table td b{color:var(--ink)}
         <div style="margin-bottom:14px"><span class="f-status" id="fsStatus"><i></i><span id="fsStatusText">Not connected</span></span></div>
         <div class="f-field">
           <label for="fsUrl">Supabase Project URL</label>
-          <input class="f-input" id="fsUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://your-project.supabase.co" />
+          <input class="f-input" id="fsUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://gpcdvuunxeqishwynrsn.supabase.co" />
         </div>
         <div class="f-field">
           <label for="fsKey">Supabase anon key (public)</label>
@@ -5450,11 +5450,12 @@ renderServices(); renderExplore(); renderHomeNews();
 <script>
 /* =====================================================================
    SUPABASE BACKEND — config, live news feed, founder dashboard.
-   The app ships with NO backend values baked in. The founder pastes the
-   Project URL + anon public key in the hidden Founder Settings screen;
-   both are
-   stored on this device only, and the live system activates the moment
-   they are saved and reachable. Security is enforced by Postgres Row
+   The app ships with the project's public defaults baked in (Project URL
+   + anon public key below), so the live system activates for every
+   visitor with no per-device setup. The founder can still paste
+   different values in the hidden Founder Settings screen; those are
+   stored on this device only and take precedence over the defaults.
+   Security is enforced by Postgres Row
    Level Security in the database — never by hiding UI. The secret admin
    key is never used, requested or stored anywhere in this app.
    Bookmarks stay in-session, exactly as before (a founder decision that
@@ -5470,6 +5471,8 @@ var MK = {
 };
 var MK_PAGE_SIZE = 10;
 var MK_LS_URL = 'mk_sb_url', MK_LS_KEY = 'mk_sb_anon_key';
+var MK_DEFAULT_URL = 'https://gpcdvuunxeqishwynrsn.supabase.co';
+var MK_DEFAULT_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdwY2R2dXVueGVxaXNod3lucnNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NDQ2MTIsImV4cCI6MjEwODAyMDYxMn0.P4E_yfYmg4QDWE4LgB_lGZN93tzYLasSyXghCrdn98M';
 
 function mkEsc(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
@@ -5478,8 +5481,8 @@ function mkEsc(s){
 }
 function mkCfgRead(){
   try{
-    return { url:(localStorage.getItem(MK_LS_URL) || '').trim(), key:(localStorage.getItem(MK_LS_KEY) || '').trim() };
-  }catch(e){ return { url:'', key:'' }; }
+    return { url:(localStorage.getItem(MK_LS_URL) || MK_DEFAULT_URL).trim(), key:(localStorage.getItem(MK_LS_KEY) || MK_DEFAULT_KEY).trim() };
+  }catch(e){ return { url:MK_DEFAULT_URL, key:MK_DEFAULT_KEY }; }
 }
 function mkCfgWrite(url, key){
   try{ localStorage.setItem(MK_LS_URL, url); localStorage.setItem(MK_LS_KEY, key); }catch(e){}
@@ -5748,9 +5751,11 @@ document.getElementById('fsSave').addEventListener('click', function(){
 });
 document.getElementById('fsClear').addEventListener('click', function(){
   mkCfgClear();
-  MK.client = null; MK.cfgUrl = ''; MK.cfgKey = ''; MK.session = null; MK.user = null; MK.isFounder = false;
-  document.getElementById('fsUrl').value = ''; document.getElementById('fsKey').value = '';
-  mkSetStatus('not'); mkFsMsg('', 'Saved values cleared from this device. The news stream is back to its unconnected state.');
+  MK.session = null; MK.user = null; MK.isFounder = false; MK.authHooked = false;
+  document.getElementById('fsUrl').value = MK_DEFAULT_URL; document.getElementById('fsKey').value = MK_DEFAULT_KEY;
+  mkActivate(MK_DEFAULT_URL, MK_DEFAULT_KEY, true).then(function(ok){
+    mkFsMsg('', ok ? 'Saved values cleared from this device. The site default backend is active again.' : 'Saved values cleared from this device. The site default backend did not answer — it will retry on the next visit.');
+  });
 });
 
 /* ---------- Founder Dashboard: auth + founder gate ---------- */
