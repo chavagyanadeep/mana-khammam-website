@@ -904,6 +904,14 @@ textarea.f-input.tall{min-height:120px}
 .au-otp input{width:100%;min-width:0;height:56px;text-align:center;font-size:24px;font-weight:700;font-family:inherit;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);outline:none;padding:0}
 .au-otp input:focus{border-color:var(--accent)}
 .au-otp input.err{border-color:#B3261E}
+.au-verified{display:flex;align-items:center;gap:11px;background:var(--green-tint);border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);border-radius:13px;padding:12px 13px;margin-bottom:15px}
+.au-verified .au-vtick{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.au-verified .au-vmail{min-width:0;flex:1}
+.au-verified .au-vmail .k{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--accent-deep)}
+.au-verified .au-vmail .v{font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.au-setrow{display:flex;align-items:baseline;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line);font-size:14.5px}
+.au-setrow .k{color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;flex:none;width:86px}
+.au-setrow .v{font-weight:700;color:var(--ink)}
 .au-resend{text-align:center;margin-top:14px;font-size:13.5px;color:var(--muted)}
 .au-resend button{background:none;border:none;font-family:inherit;font-size:13.5px;font-weight:700;color:var(--accent-deep);cursor:pointer;padding:0}
 .au-resend button:disabled{color:var(--muted);font-weight:500;cursor:default}
@@ -19391,7 +19399,9 @@ function deRouteHash(){
    Journey (founder directive §1–§6): Welcome → Continue with Email →
    OTP (Supabase Auth signInWithOtp + verifyOtp, server-side,
    single-use, expiring — no custom OTP tables, no custom crypto) →
-   Create Password (auth.updateUser) → Account Ready. Sign-in uses
+   Create Account (verified email carried forward and shown read-only;
+   only username + password are asked, saved via auth.updateUser) →
+   Account Ready (locality only). Sign-in uses
    email + password; recovery uses resetPasswordForEmail.
    V1 is EMAIL OTP ONLY: phone/SMS signup is cancelled for launch, so
    no public screen offers it and AU.method is pinned to 'email'.
@@ -19409,7 +19419,7 @@ function deRouteHash(){
    ===================================================================== */
 var AU = {
   ret:'profile', why:'', step:'welcome', flow:'signup',
-  method:'email', identifier:'', phoneE164:'',
+  method:'email', identifier:'', phoneE164:'', username:'',
   attempts:0, lockedUntil:0, resendAt:0, timer:null,
   pendingAfter:null, legalFrom:'profile', profile:null
 };
@@ -19714,16 +19724,29 @@ function auVerifyOtp(){
   });
 }
 
-/* ---------- STEP: create password (signup only, inside the verified setup session) ---------- */
+/* ---------- STEP: create account (signup only, inside the verified setup session) ----------
+   Carry-forward rule: the email was already entered and verified with the
+   OTP, so it is shown here as a read-only "verified" row — never as an
+   input, never typed again. This step asks ONLY for what has not been
+   given yet: a username and a password. */
+function auVerifiedEmailHTML(){
+  var u = auSessionUser();
+  var mail = AU.identifier || (u ? (u.email || '') : '');
+  if(!mail) return '';
+  return '<div class="au-verified"><span class="au-vtick"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>'
+    + '<span class="au-vmail"><span class="k">Email · Verified</span><span class="v" style="display:block">' + mkEsc(mail) + '</span></span></div>';
+}
 function auStepPassword(body){
   body.innerHTML = auBrandHTML()
-    + '<div class="f-card" style="margin-top:16px"><h3>Create your password</h3>'
-    + '<p>Your identity is verified. Set a password for faster sign-in next time. It is stored only as a one-way hash by the sign-in provider — never in plain text, never in this app.</p>'
+    + '<div class="f-card" style="margin-top:16px"><h3>Create your account</h3>'
+    + '<p>Your email is already verified — you do not need to enter it again. Just choose a username and a password to finish. The password is stored only as a one-way hash by the sign-in provider — never in plain text, never in this app.</p>'
+    + auVerifiedEmailHTML()
+    + '<div class="f-field"><label for="auUserName">Username</label><input class="f-input" id="auUserName" type="text" autocomplete="username" maxlength="60" placeholder="e.g. Demo User" /><div class="au-meter-txt">This is the name buyers and sellers will see — your email is never shown to them.</div></div>'
     + '<div class="f-field"><label for="auPw1">Create password</label><div class="au-passwrap"><input class="f-input" id="auPw1" type="password" autocomplete="new-password" placeholder="At least 10 characters" /><button type="button" class="au-eye" id="auPwEye1">Show</button></div>'
     + '<div class="au-meter" id="auPwMeter"><i></i></div><div class="au-meter-txt" id="auPwMeterTxt">Tip: a passphrase like “coffee-morning-walk” is long, strong and easy to remember.</div></div>'
     + '<div class="f-field"><label for="auPw2">Confirm password</label><div class="au-passwrap"><input class="f-input" id="auPw2" type="password" autocomplete="new-password" placeholder="Type it again" /><button type="button" class="au-eye" id="auPwEye2">Show</button></div></div>'
     + '<div class="f-err" id="auPwErr"></div>'
-    + '<button class="btn-solid" id="auPwBtn" style="width:100%;margin-top:6px">Create password &amp; finish</button>'
+    + '<button class="btn-solid" id="auPwBtn" style="width:100%;margin-top:6px">Create account</button>'
     + '</div>';
   function wireEye(btnId, inputId){
     auEl(btnId).addEventListener('click', function(){
@@ -19743,36 +19766,44 @@ function auStepPassword(body){
       ? 'Strength: ' + AU_PW_LABELS[s] + (s < 2 ? ' — add length to make it stronger.' : '')
       : 'Tip: a passphrase like “coffee-morning-walk” is long, strong and easy to remember.';
   });
+  var nameInput = auEl('auUserName'); if(nameInput) nameInput.focus();
   auEl('auPwBtn').addEventListener('click', function(){
+    var name = (auEl('auUserName').value || '').trim();
     var pw1 = auEl('auPw1').value, pw2 = auEl('auPw2').value;
+    if(name.length < 2){ auErr('auPwErr', 'Choose a username (at least 2 characters) — this is the name buyers and sellers will see.'); auEl('auUserName').classList.add('err'); return; }
     var problem = auPasswordProblem(pw1);
     if(problem){ auErr('auPwErr', problem); auEl('auPw1').classList.add('err'); return; }
     if(pw1 !== pw2){ auErr('auPwErr', 'The two passwords do not match.'); auEl('auPw2').classList.add('err'); return; }
     auErr('auPwErr', '');
-    var btn = this; auBusy(btn, true, 'Saving password…');
+    var btn = this; auBusy(btn, true, 'Creating your account…');
     auClient().auth.updateUser({ password: pw1 }).then(function(r){
-      auBusy(btn, false, 'Create password & finish');
+      auBusy(btn, false, 'Create account');
       if(r.error){ auErr('auPwErr', 'The password could not be saved (' + (r.error.message || 'provider error') + '). Your verified session is still active — try again.'); return; }
+      /* Carry the username forward — the finish step shows it, never re-asks it. */
+      AU.username = name;
       AU.step = 'done'; auRender();
     }).catch(function(){
-      auBusy(btn, false, 'Create password & finish');
+      auBusy(btn, false, 'Create account');
       auErr('auPwErr', 'Could not reach the sign-in service. Your verified session is still active — try again.');
     });
   });
 }
 
-/* ---------- STEP: profile finish (display name + locality) ---------- */
+/* ---------- STEP: profile finish (locality only — email + username carried forward) ---------- */
 function auLocalities(){
   try{ if(typeof MP_LOCALITIES !== 'undefined' && MP_LOCALITIES.length) return MP_LOCALITIES; }catch(e){}
   return AU_LOCALITIES_FALLBACK;
 }
 function auStepDone(body){
   var u = auSessionUser();
+  /* Carry-forward: email and username were already given and are shown
+     read-only here — the only new thing this step asks for is locality. */
   body.innerHTML = auBrandHTML()
     + '<div class="f-card" style="margin-top:16px"><h3>Account ready</h3>'
-    + '<p>Signed in as <b>' + mkEsc(u ? (u.email || u.phone || '') : '') + '</b>. Buyers and sellers will only ever see your display name and locality — never your email or phone number.</p>'
-    + '<div class="f-field"><label for="auDoneName">Display name</label><input class="f-input" id="auDoneName" type="text" maxlength="60" placeholder="e.g. Demo User" /></div>'
-    + '<div class="f-field"><label for="auDoneLoc">Your locality in Khammam</label><select class="mp-select" id="auDoneLoc">'
+    + '<p>Everything you entered is saved below — nothing to type again. Buyers and sellers will only ever see your username and locality — never your email.</p>'
+    + auVerifiedEmailHTML()
+    + (AU.username ? '<div class="au-setrow"><span class="k">Username</span><span class="v">' + mkEsc(AU.username) + '</span></div>' : '')
+    + '<div class="f-field" style="margin-top:14px"><label for="auDoneLoc">Your locality in Khammam</label><select class="mp-select" id="auDoneLoc">'
     + auLocalities().map(function(l){ return '<option>' + mkEsc(l) + '</option>'; }).join('') + '</select></div>'
     + '<div class="f-err" id="auDoneErr"></div>'
     + '<button class="btn-solid" id="auDoneBtn" style="width:100%;margin-top:6px">Save &amp; continue</button>'
@@ -19780,13 +19811,13 @@ function auStepDone(body){
     + '</div>';
   auEl('auDoneSkip').addEventListener('click', function(){ auAfterAuth('Your account is ready.'); });
   auEl('auDoneBtn').addEventListener('click', function(){
-    var name = auEl('auDoneName').value.trim();
-    if(name.length < 2){ auErr('auDoneErr', 'Enter a display name (at least 2 characters) — or skip for now.'); return; }
     var btn = this; auBusy(btn, true, 'Saving…');
-    auClient().from('profiles').upsert({ id:u.id, display_name:name, locality:auEl('auDoneLoc').value }, { onConflict:'id' }).then(function(r){
+    var row = { id:u.id, locality:auEl('auDoneLoc').value };
+    if(AU.username) row.display_name = AU.username;
+    auClient().from('profiles').upsert(row, { onConflict:'id' }).then(function(r){
       auBusy(btn, false, 'Save & continue');
       if(r.error){ auErr('auDoneErr', 'Profile could not be saved (' + (r.error.message || '') + '). You can set it later in Profile → Account & privacy.'); return; }
-      auAfterAuth('Your account is ready, ' + name.split(' ')[0] + '.');
+      auAfterAuth(AU.username ? 'Your account is ready, ' + AU.username.split(' ')[0] + '.' : 'Your account is ready.');
     }).catch(function(){ auBusy(btn, false, 'Save & continue'); auErr('auDoneErr', 'Profile save could not reach the backend.'); });
   });
 }
