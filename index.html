@@ -4122,7 +4122,7 @@ table.ng-table td b{color:var(--ink)}
       <div id="reMineBody"></div>
     </section>
 
-    <!-- POST PROPERTY (guided 7-step form) -->
+    <!-- POST PROPERTY (4-step form, same pattern as the Marketplace sell flow) -->
     <section class="mp-panel" id="rePanel-post">
       <div id="rePostBody"></div>
     </section>
@@ -9603,8 +9603,8 @@ function reShowTab(tab, authWhy){
   if(tab === 'browse') reLoadBrowse();
   else if(tab === 'inbox') reLoadInbox();
   else if(tab === 'saved') reLoadSaved();
-  else if(tab === 'mine'){ if(typeof pnGateMine === 'function') pnGateMine(); else reLoadMine(); }
-  else if(tab === 'post'){ if(typeof pnGatePost === 'function') pnGatePost(); else reRenderPost(); }
+  else if(tab === 'mine') reLoadMine();
+  else if(tab === 'post') reRenderPost();
   else if(tab === 'notifs') reLoadNotifs();
   else if(tab === 'queue') reLoadQueue();
   else if(tab === 'field') reLoadFieldTasks();
@@ -11264,7 +11264,7 @@ function reReportSubmit(){
     showToast('<b>Report sent.</b> The founder reviews property reports in the moderation queue. Never pay an advance to someone you have not met and verified.');
   });
 }
-/* ---------- POST PROPERTY — guided 7-step form ---------- */
+/* ---------- POST PROPERTY — 4-step form, same pattern as the Marketplace sell flow ---------- */
 var RE_AMENITIES = ['24×7 water supply','Power backup','Car parking','Bike parking','Lift','Security','Gated community','Borewell','Municipal water','Main road access','Near bus stop','Near market'];
 function rePostDefaults(){
   return {
@@ -11278,52 +11278,102 @@ function rePostDefaults(){
     media:[], tourUrl:'', reelUrl:'', details:{}, amenities:[], busy:false
   };
 }
-/* Step 1's role + Instagram questions, or — when the founder has
-   already approved this account with the answers on record — the
-   recorded answers themselves. Approved sellers are never re-asked. */
-/* Listing asks ONE seller question: agent or owner. It never asks
-   for an Instagram profile — the only Instagram item in this form is
-   the property's own optional Reel/video link in the Photos step.
-   (Instagram profile questions live in the seller application flow,
-   where the founder reviews the handle for approval.) Approved
-   sellers with a recorded role are not re-asked. */
-function rePostRoleHTML(s){
-  if(s.roleLocked){
-    var role = s.listingRole === 'owner' ? 'Owner' : 'Agent';
-    return '<div class="pn-answers" role="note"><div class="pn-ans-row"><span class="k">Listing as</span><span class="v">' + role + '</span></div></div>'
-      + '<p class="f-note" style="margin-top:8px">Recorded on your approved seller profile — the founder already approved this account, so this question is not asked again.</p>';
-  }
-  return reField('Are you listing as an agent or an owner? (required)', reSeg('rpRole', [['agent','Agent'],['owner','Owner']], s.listingRole), 'rpRole')
-    + '<p class="f-note" style="margin-top:-4px">Your role is recorded on your seller profile. Approval by the founder unlocks the same seller features for agents and owners.</p>';
-}
-function rePostApplyProfile(sp){
-  var s = RE.post; if(!s || !sp) return;
-  if(sp.seller_type === 'agent' || sp.seller_type === 'owner'){ s.listingRole = sp.seller_type; s.sellerType = sp.seller_type; }
-  if(sp.agent_status === 'approved' && (sp.seller_type === 'agent' || sp.seller_type === 'owner')) s.roleLocked = true;
-  if(sp.registration_number) s.regNumber = sp.registration_number;
-}
+/* Property posting follows the exact same pattern as the Marketplace
+   (Buy & Sell) sell flow: four steps — Photos, Details, Price & locality,
+   Review & submit. Any signed-in user can post; the listing is saved
+   immediately as a draft, and on submit it waits in My Properties as
+   Pending Review until the founder approves the listing itself. There
+   is no seller-application or agent-approval step in posting. */
 function reRenderPost(){
   var body = document.getElementById('rePostBody');
   if(!reClient()){ body.innerHTML = reNotConnectedHTML(); return; }
   if(!RE.user){ body.innerHTML = reSignInPromptHTML('Sign in to post a property. Your listing is saved the moment you submit it, appears in My Properties as Pending Review, and goes public only after the founder approves it.'); reBindNavButtons(body); return; }
-  if(!RE.post){
-    RE.post = rePostDefaults();
-    if(RE.profile) RE.post.sellerName = RE.profile.display_name || '';
-    reLoadSellerProfile(RE.user.id).then(function(sp){
-      if(sp && RE.post && !RE.post.propId){ rePostApplyProfile(sp); if(RE.post.step === 1) reRenderPostStep(); }
-    });
-  } else if(!RE.post._profileApplied){
-    RE.post._profileApplied = true;
-    reLoadSellerProfile(RE.user.id).then(function(sp){
-      if(sp && RE.post){ rePostApplyProfile(sp); if(RE.post.step === 1) reRenderPostStep(); }
-    });
-  }
+  if(!RE.post) RE.post = rePostDefaults();
   reRenderPostStep();
 }
-function rePostStepsBar(){
-  var labels = ['Seller','Basics','Size','Address','Photos','Details','Review'];
-  return '<div class="re-stepper">' + labels.map(function(_, i){ return '<i class="' + (i < RE.post.step ? 'on' : '') + '"></i>'; }).join('') + '</div>'
-    + '<h3 class="mp-step-title">Step ' + RE.post.step + ' of 7 — ' + labels[RE.post.step - 1] + '</h3>';
+function reRenderPostStep(){
+  var body = document.getElementById('rePostBody');
+  var s = RE.post; if(!s) return;
+  var stepsBar = '<div class="mp-steps">' + [1,2,3,4].map(function(n){ return '<i class="' + (n <= s.step ? 'on' : '') + '"></i>'; }).join('') + '</div>';
+  var nav = '<div class="f-row" style="margin-top:16px">'
+    + (s.step > 1 ? '<button class="btn-ghost" id="rpBack">Back</button>' : '<button class="btn-ghost" id="rpCancel">Cancel</button>')
+    + (s.step < 4 ? '<button class="btn-solid" id="rpNext">Continue</button>' : '')
+    + '</div>';
+  var inner = '';
+  if(s.step === 1){
+    inner = '<h3 class="mp-step-title">Photos</h3><p class="mp-step-sub">Add clear photos — the first one marked Cover is what buyers see first. Real photos of your actual property only. Photos are re-encoded before upload, which strips camera GPS data.</p>'
+      + '<div class="re-media-grid" id="rpMediaGrid">' + s.media.map(function(m, i){
+          return '<div class="re-media-item">'
+            + (m.kind === 'video' ? '<div style="height:92px;display:grid;place-items:center;color:var(--muted);font-size:12px;font-weight:700">▶ Video</div>' : '<img src="' + mkEsc(m.url) + '" alt=""/>')
+            + '<span class="kindtag">' + (m.kind === 'floorplan' ? 'Floor plan' : m.kind === 'video' ? 'Video' : 'Photo') + '</span>'
+            + '<button class="rm" data-rp-media-rm="' + i + '" aria-label="Remove">×</button>'
+            + (m.cover ? '' : '<button class="mk-cover" data-rp-media-cover="' + i + '">Set cover</button>')
+            + '<input class="cap" data-rp-media-cap="' + i + '" type="text" value="' + mkEsc(m.caption || '') + '" placeholder="Caption (e.g. Kitchen)"/>'
+            + '<div style="display:flex;background:var(--surface)">'
+            + '<button style="flex:1;font-size:10.5px;font-weight:700;padding:4px 0" data-rp-media-kind="' + i + '">' + (m.kind === 'floorplan' ? 'Make photo' : m.kind === 'video' ? 'Video' : 'Make floor plan') + '</button>'
+            + '<button style="flex:1;font-size:10.5px;font-weight:700;padding:4px 0" data-rp-media-move="' + i + '">Move →</button>'
+            + '</div></div>';
+        }).join('')
+      + '<button class="mp-add-photo" id="rpAddMedia" style="height:auto;min-height:92px">+ Add photos, a video<br/>or a floor plan</button></div>'
+      + '<input type="file" id="rpMediaFile" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" multiple style="display:none"/>'
+      + '<p class="f-note" id="rpMediaNote">Images up to 8 MB, one video up to 50 MB. Photos upload when you save or submit. Only upload media you own or are authorised to use.</p>'
+      + '<div class="f-err" id="rpErr"></div>';
+  } else if(s.step === 2){
+    var sq = reToSqft(parseFloat(s.areaValue), s.areaUnit);
+    inner = '<h3 class="mp-step-title">Details</h3><p class="mp-step-sub">Describe the property honestly — facts, not hype. Listings with misleading details are rejected in review.</p>'
+      + reField('Property title', reTextInput('rpTitle', s.title, 'e.g. 3 BHK Independent House'), 'rpTitle')
+      + reField('Property type', reSelect('rpType', RE_TYPES.slice(1), s.ptype), 'rpType')
+      + '<div class="re-tools-grid">'
+      + reField('Area value', reTextInput('rpAreaVal', s.areaValue, 'e.g. 200', ' inputmode="decimal"'), 'rpAreaVal')
+      + reField('Unit', reSelect('rpAreaUnit', Object.keys(RE_UNITS).map(function(u){ return [u, RE_UNITS[u]]; }), s.areaUnit), 'rpAreaUnit')
+      + '</div>'
+      + reField('This area is the', reSelect('rpAreaMeasure', Object.keys(RE_MEASURES).map(function(m){ return [m, RE_MEASURES[m]]; }), s.areaMeasure), 'rpAreaMeasure')
+      + '<p class="f-note" id="rpConvLine">' + (isFinite(sq) && sq > 0 ? '= ' + reFmtNum(sq) + ' sq ft' : 'Enter the area to see the sq ft conversion.') + '</p>'
+      + (RE_HOME_TYPES[s.ptype] ? reField('Bedrooms (BHK)', reSelect('rpBhk', [['','Not applicable'],['1','1 BHK'],['1.5','1.5 BHK'],['2','2 BHK'],['2.5','2.5 BHK'],['3','3 BHK'],['3.5','3.5 BHK'],['4','4 BHK'],['4.5','4.5 BHK'],['5','5 BHK'],['6','6 BHK']], s.bhk), 'rpBhk') : '')
+      + reField('Facing', reSelect('rpFacing', [['','Not specified'],['East','East'],['West','West'],['North','North'],['South','South'],['North-East','North-East'],['North-West','North-West'],['South-East','South-East'],['South-West','South-West']], s.facing), 'rpFacing')
+      + reField('Listing', reSeg('rpKind', [['new','New construction'],['resale','Resale']], s.kind))
+      + reField('Availability', reSelect('rpAvail', [['ready_to_move','Ready to move'],['under_construction','Under construction'],['available','Available (land / commercial)']], s.availability), 'rpAvail')
+      + reField('Description', '<textarea class="f-input" id="rpDesc" placeholder="What makes this property worth a visit? Layout, light, water, road, neighbourhood — facts, not hype.">' + mkEsc(s.desc) + '</textarea>', 'rpDesc')
+      + '<div class="f-err" id="rpErr"></div>';
+  } else if(s.step === 3){
+    inner = '<h3 class="mp-step-title">Price &amp; locality</h3><p class="mp-step-sub">Set your asking price in rupees. Only your general locality is ever shown — never your address.</p>'
+      + reField('Asking price (₹)', reTextInput('rpPrice', s.price, 'e.g. 4500000', ' inputmode="numeric"'), 'rpPrice')
+      + reField('Price type', reSeg('rpNeg', [['no','Fixed price'],['yes','Negotiable']], s.negotiable ? 'yes' : 'no'))
+      + reField('Locality', reSelect('rpLocality', MP_LOCALITIES.map(function(l){ return [l, l]; }), s.locality), 'rpLocality')
+      + reField('Landmark (optional, public)', reTextInput('rpLandmark', s.landmark, 'e.g. Near Wyra Road circle'), 'rpLandmark')
+      + '<div class="f-err" id="rpErr"></div>';
+  } else {
+    var sq2 = reToSqft(parseFloat(s.areaValue), s.areaUnit);
+    var photos = s.media.filter(function(m){ return m.kind === 'photo'; }).length;
+    var coverM = s.media.filter(function(m){ return m.cover; })[0] || s.media[0];
+    var checks = [
+      { ok:photos > 0, label:photos ? photos + ' photo(s) ready' : 'Add at least one photo' },
+      { ok:!!(s.title && s.title.trim().length >= 4), label:'Title added' },
+      { ok:reParseMoney(s.price) > 0, label:'Price added — ' + (reParseMoney(s.price) ? reFmtINR(reParseMoney(s.price)) : 'missing') },
+      { ok:isFinite(sq2) && sq2 > 0, label:'Area added — ' + (isFinite(sq2) && sq2 > 0 ? reFmtNum(parseFloat(s.areaValue)) + ' ' + RE_UNITS[s.areaUnit] + ' (' + RE_MEASURES[s.areaMeasure] + ') = ' + reFmtNum(sq2) + ' sq ft' : 'missing') },
+      { ok:!!s.locality, label:'Locality: ' + s.locality + ', Khammam' },
+      { ok:true, label:'Buyers see only the locality and landmark — your phone number and email are never published' }
+    ];
+    inner = '<h3 class="mp-step-title">Review &amp; submit</h3><p class="mp-step-sub">This is exactly what buyers will see after approval. Submitting saves the property immediately — it waits in My Properties as <b>Pending Review</b> and stays hidden from buyers until the founder approves it. There is no automatic approval.</p>'
+      + '<div class="re-list" style="margin-top:0;grid-template-columns:1fr;max-width:560px"><article class="re-card"><span class="ph" style="display:block">'
+      + (coverM && coverM.url ? '<img src="' + mkEsc(coverM.url) + '" alt=""/>' : '<span class="noimg">No photos yet</span>')
+      + '</span><span class="cb" style="display:block"><span class="c-price">' + reFmtINR(reParseMoney(s.price) || 0) + '</span>'
+      + '<div class="c-title">' + mkEsc(s.title || 'Untitled property') + '</div>'
+      + '<div class="c-meta"><span>' + mkEsc(s.locality) + ', Khammam</span><span class="dot"></span><span>' + mkEsc(reTypeLabel(s.ptype)) + '</span></div></span></article></div>'
+      + '<div style="margin-top:14px">' + checks.map(function(c){
+          return '<div class="re-checkline"><span class="ck ' + (c.ok ? 'ok' : 'no') + '">' + (c.ok
+            ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>'
+            : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M12 5v10M12 18.5v.01" stroke-width="3"/></svg>')
+            + '</span><span>' + mkEsc(c.label) + '</span></div>';
+        }).join('') + '</div>'
+      + '<div class="mp-safety" style="margin-top:14px">Contact method: in-app chat only. Mana Khammam will never ask you to share your phone number publicly.</div>'
+      + '<div class="f-err" id="rpErr"></div>'
+      + '<div class="f-row" style="margin-top:14px"><button class="btn-ghost" id="rpDraft">Save draft</button>'
+      + '<button class="btn-solid" id="rpSubmit">' + (s.status === 'rejected' ? 'Resubmit for review' : s.propId ? 'Save &amp; submit' : 'Submit for review') + '</button></div>'
+      + (s.propId ? '<p class="f-note" style="margin-top:10px">Editing property ' + s.propId.slice(0, 8) + '… · Status: ' + mkEsc(s.status || 'draft') + '. Changing the price, title, type, area or locality of a live property sends it back through founder review.</p>' : '');
+  }
+  body.innerHTML = stepsBar + inner + nav;
+  reBindPostStep();
 }
 function reField(label, inner, id){
   return '<div class="f-field">' + (label ? '<label' + (id ? ' for="' + id + '"' : '') + '>' + label + '</label>' : '') + inner + '</div>';
@@ -11341,335 +11391,47 @@ function reSeg(id, options, val){
     return '<button type="button" data-re-seg="' + mkEsc(o[0]) + '" class="' + (String(val) === String(o[0]) ? 'on' : '') + '">' + mkEsc(o[1]) + '</button>';
   }).join('') + '</div>';
 }
-function reRenderPostStep(){
-  var body = document.getElementById('rePostBody');
-  var s = RE.post; if(!s) return;
-  var h = rePostStepsBar();
-  if(s.step === 1){
-    h += '<p class="mp-step-sub">This is the identity buyers see. Your phone number and email are never published — all contact happens in the private property chat.</p>'
-      + reField('Your display name', reTextInput('rpName', s.sellerName || (RE.profile || {}).display_name || '', 'e.g. Demo User'), 'rpName')
-      + rePostRoleHTML(s)
-      + reField('Registration number (optional)', reTextInput('rpReg', s.regNumber, 'e.g. TS RERA agent/project number, if you have one'), 'rpReg')
-      + '<p class="f-note">A registration number is shown as “provided by the seller” unless the Mana team records a manual check against it. It never makes a listing “verified”, and it does not prove clear title.</p>'
-      + '<div class="mp-safety">Contact method: in-app chat only. Mana Khammam will never ask you to share your phone number publicly.</div>';
-  } else if(s.step === 2){
-    h += '<p class="mp-step-sub">Prices are in rupees. Use a natural title — “3 BHK Independent House”, not a marketing slogan.</p>'
-      + reField('Property title', reTextInput('rpTitle', s.title, 'e.g. 3 BHK Independent House'), 'rpTitle')
-      + reField('Property type', reSelect('rpType', RE_TYPES.slice(1), s.ptype), 'rpType')
-      + '<div class="re-tools-grid">'
-      + reField('Asking price (₹)', reTextInput('rpPrice', s.price, 'e.g. 4500000', ' inputmode="numeric"'), 'rpPrice')
-      + reField('Price negotiable?', reSeg('rpNeg', [['no','Fixed'],['yes','Negotiable']], s.negotiable ? 'yes' : 'no'))
-      + '</div>'
-      + reField('Listing', reSeg('rpKind', [['new','New construction'],['resale','Resale']], s.kind))
-      + reField('Availability', reSelect('rpAvail', [['ready_to_move','Ready to move'],['under_construction','Under construction'],['available','Available (land / commercial)']], s.availability), 'rpAvail')
-      + reField('Description', '<textarea class="f-input" id="rpDesc" placeholder="What makes this property worth a visit? Layout, light, water, road, neighbourhood — facts, not hype.">' + mkEsc(s.desc) + '</textarea>', 'rpDesc')
-      + '<div class="ng-studio" id="ngStudio"><h4>Listing Studio — optional suggestions</h4>'
-      + '<p class="ng-sub2">Draft help built only from what you have typed on this form, using fixed templates. Every suggestion is labelled, nothing is saved or published until you tap Apply yourself, and the form works fully without it. Suggestions never invent a price, a measurement, an approval, a RERA number or an amenity. Telugu drafts: <b>Not yet</b> — they arrive only with reviewed translations.</p>'
-      + '<div class="dash-acts"><button type="button" id="ngStudioGo">Get suggestions from my entries</button></div>'
-      + '<div id="ngStudioOut"></div></div>';
-  } else if(s.step === 3){
-    var sq = reToSqft(parseFloat(s.areaValue), s.areaUnit);
-    h += '<p class="mp-step-sub">Enter the size exactly as it appears in your documents. We store your original value and unit, plus a normalised sq ft figure for search — the meaning (carpet / built-up / plot) is never changed silently.</p>'
-      + '<div class="re-tools-grid">'
-      + reField('Area value', reTextInput('rpAreaVal', s.areaValue, 'e.g. 200', ' inputmode="decimal"'), 'rpAreaVal')
-      + reField('Unit', reSelect('rpAreaUnit', Object.keys(RE_UNITS).map(function(u){ return [u, RE_UNITS[u]]; }), s.areaUnit), 'rpAreaUnit')
-      + '</div>'
-      + reField('This area is the', reSelect('rpAreaMeasure', Object.keys(RE_MEASURES).map(function(m){ return [m, RE_MEASURES[m]]; }), s.areaMeasure), 'rpAreaMeasure')
-      + '<p class="f-note" id="rpConvLine">' + (isFinite(sq) && sq > 0 ? '= ' + reFmtNum(sq) + ' sq ft' : 'Enter the area to see the sq ft conversion.') + '</p>'
-      + (RE_HOME_TYPES[s.ptype] ? reField('Bedrooms (BHK)', reSelect('rpBhk', [['','Not applicable'],['1','1 BHK'],['1.5','1.5 BHK'],['2','2 BHK'],['2.5','2.5 BHK'],['3','3 BHK'],['3.5','3.5 BHK'],['4','4 BHK'],['4.5','4.5 BHK'],['5','5 BHK'],['6','6 BHK']], s.bhk), 'rpBhk') : '')
-      + reField('Facing', reSelect('rpFacing', [['','Not specified'],['East','East'],['West','West'],['North','North'],['South','South'],['North-East','North-East'],['North-West','North-West'],['South-East','South-East'],['South-West','South-West']], s.facing), 'rpFacing');
-  } else if(s.step === 4){
-    h += '<p class="mp-step-sub">Buyers see only the locality and landmark. The exact address stays private — visible only to you and the founder — and you share it in chat when a visit is arranged.</p>'
-      + '<div class="re-tools-grid">'
-      + reField('State', reTextInput('rpState', s.state, 'Telangana'), 'rpState')
-      + reField('District', reTextInput('rpDistrict', s.district, 'Khammam'), 'rpDistrict')
-      + reField('City', reTextInput('rpCity', s.city, 'Khammam'), 'rpCity')
-      + reField('Locality', reSelect('rpLocality', MP_LOCALITIES.map(function(l){ return [l, l]; }), s.locality), 'rpLocality')
-      + reField('Landmark (public)', reTextInput('rpLandmark', s.landmark, 'e.g. Near Wyra Road circle'), 'rpLandmark')
-      + reField('PIN code', reTextInput('rpPin', s.pincode, 'e.g. 507001', ' inputmode="numeric"'), 'rpPin')
-      + '</div>'
-      + reField('Exact address (private)', '<textarea class="f-input" id="rpExact" placeholder="House number, street — stored privately for the founder and for visit coordination. Never published.">' + mkEsc(s.exactAddress) + '</textarea>', 'rpExact')
-      + reField('Map location', reSeg('rpConsent', [['none','Keep private'],['approximate','Share approximate area']], s.consent))
-      + '<div id="rpLatLng" style="display:' + (s.consent === 'approximate' ? 'block' : 'none') + '">'
-      + '<div class="re-tools-grid">'
-      + reField('Latitude (optional)', reTextInput('rpLat', s.lat, 'e.g. 17.2473', ' inputmode="decimal"'), 'rpLat')
-      + reField('Longitude (optional)', reTextInput('rpLng', s.lng, 'e.g. 80.1514', ' inputmode="decimal"'), 'rpLng')
-      + '</div><p class="f-note">Drop a pin in any maps app on the property’s street and paste the coordinates. Only the approximate area is ever shown.</p>'
-      + '<div class="rp-picker"><div class="rp-picker-head">Or pick the approximate location on the map</div>'
-      + '<input class="mp-search" id="rpPickerSearch" type="search" placeholder="Search a place, road or locality in Khammam" aria-label="Search for the property location" autocomplete="off"/>'
-      + '<div id="rpPickerMap" class="rp-picker-map" aria-label="Location picker map"></div>'
-      + '<p class="f-note" id="rpPickerNote">Drag the pin to the property’s street, or tap the map to move it. Only the approximate area is ever shown to buyers — never the exact address.</p>'
-      + '<label class="rp-confirm"><input type="checkbox" id="rpLocConfirm"' + (s.locConfirmed ? ' checked' : '') + '/><span>I confirm this pin shows the property’s approximate location.</span></label></div></div>';
-  } else if(s.step === 5){
-    h += '<p class="mp-step-sub">Photos of the actual property only. Photos are re-encoded before upload, which strips camera GPS data. Mark one photo as the cover, add captions like “Living Room” or “Exterior”, and add a floor plan if you have one.</p>'
-      + '<div class="re-media-grid" id="rpMediaGrid">' + s.media.map(function(m, i){
-          return '<div class="re-media-item">'
-            + (m.kind === 'video' ? '<div style="height:92px;display:grid;place-items:center;color:var(--muted);font-size:12px;font-weight:700">▶ Video</div>' : '<img src="' + mkEsc(m.url) + '" alt=""/>')
-            + '<span class="kindtag">' + (m.kind === 'floorplan' ? 'Floor plan' : m.kind === 'video' ? 'Video' : 'Photo') + '</span>'
-            + '<button class="rm" data-rp-media-rm="' + i + '" aria-label="Remove">×</button>'
-            + (m.cover ? '' : '<button class="mk-cover" data-rp-media-cover="' + i + '">Set cover</button>')
-            + '<input class="cap" data-rp-media-cap="' + i + '" type="text" value="' + mkEsc(m.caption || '') + '" placeholder="Caption (e.g. Kitchen)"/>'
-            + '<div style="display:flex;background:var(--surface)">'
-            + '<button style="flex:1;font-size:10.5px;font-weight:700;padding:4px 0" data-rp-media-kind="' + i + '">' + (m.kind === 'floorplan' ? 'Make photo' : m.kind === 'video' ? 'Video' : 'Make floor plan') + '</button>'
-            + '<button style="flex:1;font-size:10.5px;font-weight:700;padding:4px 0" data-rp-media-move="' + i + '">Move →</button>'
-            + '</div></div>';
-        }).join('')
-      + '<button class="mp-add-photo" id="rpAddMedia" style="height:auto;min-height:92px">+ Add photos, a video<br/>or a floor plan</button></div>'
-      + '<input type="file" id="rpMediaFile" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" multiple style="display:none"/>'
-      + '<p class="f-note" id="rpMediaNote">Images up to 8 MB, one video up to 50 MB. Only upload media you own or are authorised to use.</p>'
-      + reField('Authorized Instagram Reel link (optional)', reTextInput('rpReel', s.reelUrl, 'Paste a link to YOUR OWN Reel of this property'), 'rpReel')
-      + '<p class="f-note">Link-out only: the Reel stays on Instagram under your account. Mana Khammam never copies, scrapes or republishes it, and only instagram.com links are accepted. Only link a Reel you created or are authorized to share.</p>'
-      + reField('360° tour link (optional)', reTextInput('rpTour', s.tourUrl, 'Link to a real 360° tour of this property, if you captured one'), 'rpTour')
-      + '<p class="f-note">A 360° tour must be genuine footage of this property. Nothing 3D is generated from ordinary photos.</p>';
-  } else if(s.step === 6){
-    h += rePostStep6HTML(s);
-  } else if(s.step === 7){
-    h += rePostReviewHTML(s);
-  }
-  h += '<div class="f-err" id="rpErr"></div>'
-    + '<div class="dash-acts" style="margin-top:14px">'
-    + (s.step > 1 ? '<button id="rpBack">Back</button>' : '')
-    + '<button id="rpDraft">Save draft</button>'
-    + (s.step < 7 ? '<button class="primary" id="rpNext">Continue</button>' : '<button class="primary" id="rpSubmit">Submit for Review</button>')
-    + '</div>'
-    + (s.propId ? '<p class="f-note" style="margin-top:10px">Editing property ' + s.propId.slice(0, 8) + '… · Status: ' + mkEsc(s.status || 'draft') + '. Changing the price, title, type, area or locality of a live property sends it back through founder review.</p>' : '');
-  body.innerHTML = h;
-  reBindPostStep();
-}
-function rePostStep6HTML(s){
-  var d = s.details, t = s.ptype;
-  var h = '<p class="mp-step-sub">Only the questions that make sense for a ' + mkEsc(reTypeLabel(t).toLowerCase()) + '. Everything here is shown to buyers exactly as you state it.</p>';
-  function num(id, label, val, ph){ return reField(label, reTextInput(id, val != null ? val : '', ph || ''), id); }
-  function txt(id, label, val, ph){ return reField(label, reTextInput(id, val != null ? val : '', ph || ''), id); }
-  function sel(id, label, opts, val){ return reField(label, reSelect(id, opts, val || ''), id); }
-  if(RE_HOME_TYPES[t]){
-    h += '<div class="re-tools-grid">'
-      + num('rdBathrooms', 'Bathrooms', d.bathrooms)
-      + num('rdBalconies', 'Balconies', d.balconies)
-      + num('rdFloor', 'Floor number', d.floor)
-      + num('rdTotalFloors', 'Total floors', d.total_floors)
-      + num('rdAge', 'Age (years)', d.age_years)
-      + txt('rdParking', 'Parking', d.parking, 'e.g. Covered car + bike')
-      + '</div>'
-      + sel('rdFurnishing', 'Furnishing', [['','Not specified'],['furnished','Furnished'],['semi_furnished','Semi-furnished'],['unfurnished','Unfurnished']], d.furnishing)
-      + '<div class="re-chiprow">'
-      + '<label class="chip" style="cursor:pointer"><input type="checkbox" id="rdLift" ' + (d.lift ? 'checked' : '') + '/> Lift</label>'
-      + '<label class="chip" style="cursor:pointer"><input type="checkbox" id="rdGated" ' + (d.gated_community ? 'checked' : '') + '/> Gated community</label>'
-      + '</div>';
-  } else if(t === 'residential_plot' || t === 'commercial_land'){
-    h += txt('rdDimensions', 'Plot dimensions', d.dimensions, 'e.g. 30 × 60 ft')
-      + '<div class="re-tools-grid">'
-      + num('rdRoad', 'Road width (ft)', d.road_width_ft)
-      + sel('rdBoundary', 'Boundary wall', [['','Not specified'],['yes','Yes'],['no','No']], d.boundary === true ? 'yes' : d.boundary === false ? 'no' : '')
-      + '</div>'
-      + txt('rdLayout', 'Layout approval', d.layout_approval, 'e.g. DTCP / RERA layout approval, as applicable');
-  } else if(t === 'agricultural_land'){
-    h += txt('rdIrrigation', 'Irrigation / water source', d.irrigation, 'e.g. Borewell + canal')
-      + txt('rdCurrentUse', 'Current agricultural use', d.current_use, 'e.g. Paddy, cotton, fallow')
-      + sel('rdLandType', 'Land type', [['','Not specified'],['wet','Wet land'],['dry','Dry land'],['orchard','Orchard'],['other','Other']], d.land_type)
-      + '<div class="re-tools-grid">'
-      + num('rdRoad', 'Road width (ft)', d.road_width_ft)
-      + sel('rdBoundary', 'Boundary', [['','Not specified'],['yes','Fenced / walled'],['no','Open']], d.boundary === true ? 'yes' : d.boundary === false ? 'no' : '')
-      + '</div>'
-      + txt('rdLandIds', 'Land identifiers (optional)', d.land_identifiers, 'Survey / patta numbers, as in your documents')
-      + '<p class="f-note">Identifiers are shown as seller-stated information. Buyers must verify land records themselves — Mana Khammam does not verify title.</p>';
-  } else if(RE_COMM_TYPES[t]){
-    h += '<div class="re-tools-grid">'
-      + num('rdFrontage', 'Frontage (ft)', d.frontage_ft)
-      + num('rdRoad', 'Road width (ft)', d.road_width_ft)
-      + '</div>'
-      + txt('rdCurrentUse', 'Permitted / current use', d.current_use, 'e.g. Retail shop, clinic, office')
-      + txt('rdAccess', 'Access', d.access, 'e.g. Main road facing, separate entrance')
-      + txt('rdParking', 'Parking', d.parking, 'e.g. Front parking for 4 cars');
-  } else {
-    h += txt('rdCurrentUse', 'Current use / notes', d.current_use, 'Anything a buyer should know');
-  }
-  h += '<div class="re-tools-grid">'
-    + txt('rdWater', 'Water supply', d.water, 'e.g. Municipal + borewell')
-    + txt('rdElec', 'Electricity', d.electricity, 'e.g. 3-phase connection')
-    + '</div>'
-    + txt('rdNearby', 'Nearby landmarks', d.nearby_landmarks, 'Schools, hospitals, bus stops you actually know — distances approximate')
-    + '<div class="f-field"><label>Amenities</label><div class="re-chiprow">'
-    + RE_AMENITIES.map(function(a, i){
-        return '<label class="chip" style="cursor:pointer"><input type="checkbox" data-rp-amen="' + i + '" ' + (s.amenities.indexOf(a) >= 0 ? 'checked' : '') + '/> ' + mkEsc(a) + '</label>';
-      }).join('') + '</div></div>';
-  return h;
-}
-function rePostReviewHTML(s){
-  var sq = reToSqft(parseFloat(s.areaValue), s.areaUnit);
-  var photos = s.media.filter(function(m){ return m.kind === 'photo'; }).length;
-  var checks = [
-    { ok:!!(s.title && s.title.trim().length >= 4), label:'Title added' },
-    { ok:reParseMoney(s.price) > 0, label:'Price added — ' + (reParseMoney(s.price) ? reFmtINR(reParseMoney(s.price)) : 'missing') },
-    { ok:isFinite(sq) && sq > 0, label:'Area added — ' + (isFinite(sq) && sq > 0 ? reFmtNum(parseFloat(s.areaValue)) + ' ' + RE_UNITS[s.areaUnit] + ' (' + RE_MEASURES[s.areaMeasure] + ') = ' + reFmtNum(sq) + ' sq ft' : 'missing') },
-    { ok:photos > 0, label:photos ? photos + ' photo(s) ready' : 'Add at least one photo' },
-    { ok:s.media.some(function(m){ return m.kind === 'floorplan'; }), label:'Floor plan ' + (s.media.some(function(m){ return m.kind === 'floorplan'; }) ? 'included' : 'not included (optional)') },
-    { ok:!!s.locality, label:'Locality: ' + s.locality + ', Khammam' },
-    { ok:true, label:'Exact address stays private — only locality and landmark are public' }
-  ];
-  return '<p class="mp-step-sub">This is exactly how buyers will see it once the founder approves. Your submission is saved immediately and waits in My Properties as Pending Review — it never goes public on a timer.</p>'
-    + '<div class="re-list" style="margin-top:0;grid-template-columns:1fr;max-width:560px"><article class="re-card"><span class="ph" style="display:block">'
-    + (s.media.length && s.media[0].url ? '<img src="' + mkEsc(s.media.filter(function(m){ return m.cover; })[0] ? (s.media.filter(function(m){ return m.cover; })[0].url) : s.media[0].url) + '" alt=""/>' : '<span class="noimg">No photos yet</span>')
-    + '</span><span class="cb" style="display:block"><span class="c-price">' + reFmtINR(reParseMoney(s.price) || 0) + '</span>'
-    + '<div class="c-title">' + mkEsc(s.title || 'Untitled property') + '</div>'
-    + '<div class="c-meta"><span>' + mkEsc(s.locality) + ', Khammam</span><span class="dot"></span><span>' + mkEsc(reTypeLabel(s.ptype)) + '</span></div></span></article></div>'
-    + '<div style="margin-top:14px">' + checks.map(function(c){
-        return '<div class="re-checkline"><span class="ck ' + (c.ok ? 'ok' : 'no') + '">' + (c.ok
-          ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>'
-          : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M12 5v10M12 18.5v.01" stroke-width="3"/></svg>')
-          + '</span><span>' + mkEsc(c.label) + '</span></div>';
-      }).join('') + '</div>';
-}
 function rePostCollect(){
   var s = RE.post; if(!s) return;
   var g = function(id){ var el = document.getElementById(id); return el ? el.value : null; };
   var seg = function(id){ var el = document.querySelector('#' + id + ' button.on'); return el ? el.getAttribute('data-re-seg') : null; };
   if(s.step === 1){
-    var n = g('rpName'); if(n != null) s.sellerName = n;
-    if(!s.roleLocked){
-      var rl = seg('rpRole'); if(rl){ s.listingRole = rl; s.sellerType = rl; }
-    }
-    var rg = g('rpReg'); if(rg != null) s.regNumber = rg;
-  } else if(s.step === 2){
-    s.title = g('rpTitle') != null ? g('rpTitle') : s.title;
-    s.ptype = g('rpType') || s.ptype;
-    s.price = g('rpPrice') != null ? g('rpPrice') : s.price;
-    s.negotiable = seg('rpNeg') === 'yes';
-    s.kind = seg('rpKind') || s.kind;
-    s.availability = g('rpAvail') || s.availability;
-    s.desc = g('rpDesc') != null ? g('rpDesc') : s.desc;
-  } else if(s.step === 3){
-    s.areaValue = g('rpAreaVal') != null ? g('rpAreaVal') : s.areaValue;
-    s.areaUnit = g('rpAreaUnit') || s.areaUnit;
-    s.areaMeasure = g('rpAreaMeasure') || s.areaMeasure;
-    var b = g('rpBhk'); if(b != null) s.bhk = b;
-    s.details.facing = g('rpFacing') != null ? g('rpFacing') : s.details.facing;
-    s.facing = s.details.facing || '';
-  } else if(s.step === 4){
-    s.state = g('rpState') || s.state; s.district = g('rpDistrict') || s.district; s.city = g('rpCity') || s.city;
-    s.locality = g('rpLocality') || s.locality; s.landmark = g('rpLandmark') != null ? g('rpLandmark') : s.landmark;
-    s.pincode = g('rpPin') != null ? g('rpPin') : s.pincode;
-    s.exactAddress = g('rpExact') != null ? g('rpExact') : s.exactAddress;
-    s.consent = seg('rpConsent') || s.consent;
-    s.lat = g('rpLat') != null ? g('rpLat') : s.lat;
-    s.lng = g('rpLng') != null ? g('rpLng') : s.lng;
-    var cf = document.getElementById('rpLocConfirm'); if(cf) s.locConfirmed = cf.checked;
-  } else if(s.step === 5){
-    s.tourUrl = g('rpTour') != null ? g('rpTour') : s.tourUrl;
-    var rl = g('rpReel'); if(rl != null) s.reelUrl = rl;
-    if(s.reelUrl && /instagram\.com/.test(s.reelUrl) && /^https:\/\//.test(s.reelUrl)) s.details.reel_url = s.reelUrl;
-    else delete s.details.reel_url;
     document.querySelectorAll('[data-rp-media-cap]').forEach(function(inp){
       var m = s.media[+inp.getAttribute('data-rp-media-cap')];
       if(m) m.caption = inp.value;
     });
-  } else if(s.step === 6){
-    var d = s.details;
-    var put = function(id, key, num){
-      var el = document.getElementById(id); if(!el) return;
-      var v = el.value.trim();
-      if(v === ''){ delete d[key]; return; }
-      d[key] = num ? (isNaN(parseFloat(v)) ? v : parseFloat(v)) : v;
-    };
-    put('rdBathrooms', 'bathrooms', true); put('rdBalconies', 'balconies', true);
-    put('rdFloor', 'floor', true); put('rdTotalFloors', 'total_floors', true);
-    put('rdAge', 'age_years', true); put('rdParking', 'parking');
-    put('rdFurnishing', 'furnishing'); put('rdDimensions', 'dimensions');
-    put('rdRoad', 'road_width_ft', true); put('rdLayout', 'layout_approval');
-    put('rdIrrigation', 'irrigation'); put('rdCurrentUse', 'current_use');
-    put('rdLandType', 'land_type'); put('rdLandIds', 'land_identifiers');
-    put('rdFrontage', 'frontage_ft', true); put('rdAccess', 'access');
-    put('rdWater', 'water'); put('rdElec', 'electricity'); put('rdNearby', 'nearby_landmarks');
-    var bEl = document.getElementById('rdBoundary');
-    if(bEl){ if(bEl.value === 'yes') d.boundary = true; else if(bEl.value === 'no') d.boundary = false; else delete d.boundary; }
-    var lift = document.getElementById('rdLift'); if(lift) d.lift = lift.checked;
-    var gated = document.getElementById('rdGated'); if(gated) d.gated_community = gated.checked;
-    s.amenities = [];
-    document.querySelectorAll('[data-rp-amen]').forEach(function(cb){
-      if(cb.checked) s.amenities.push(RE_AMENITIES[+cb.getAttribute('data-rp-amen')]);
-    });
+  } else if(s.step === 2){
+    s.title = g('rpTitle') != null ? g('rpTitle') : s.title;
+    s.ptype = g('rpType') || s.ptype;
+    s.areaValue = g('rpAreaVal') != null ? g('rpAreaVal') : s.areaValue;
+    s.areaUnit = g('rpAreaUnit') || s.areaUnit;
+    s.areaMeasure = g('rpAreaMeasure') || s.areaMeasure;
+    var b = g('rpBhk'); if(b != null) s.bhk = b;
+    var f = g('rpFacing'); if(f != null){ s.details.facing = f; s.facing = f; }
+    s.kind = seg('rpKind') || s.kind;
+    s.availability = g('rpAvail') || s.availability;
+    s.desc = g('rpDesc') != null ? g('rpDesc') : s.desc;
+  } else if(s.step === 3){
+    s.price = g('rpPrice') != null ? g('rpPrice') : s.price;
+    s.negotiable = seg('rpNeg') === 'yes';
+    s.locality = g('rpLocality') || s.locality;
+    s.landmark = g('rpLandmark') != null ? g('rpLandmark') : s.landmark;
   }
 }
 function rePostValidateStep(){
   var s = RE.post;
-  if(s.step === 1){
-    if((s.sellerName || '').trim().length < 2) return 'Enter your display name — buyers see this, never your phone or email.';
-    if(!s.roleLocked){
-      if(!s.listingRole) return 'Choose whether you are listing as an agent or an owner — this answer is required.';
-    }
-    return '';
-  }
   if(s.step === 2){
     if((s.title || '').trim().length < 4) return 'Give the property a title (at least 4 characters).';
-    if(!(reParseMoney(s.price) > 0)) return 'Enter the asking price in rupees.';
+    var v = parseFloat(s.areaValue);
+    if(!(isFinite(v) && v > 0)) return 'Enter the property area exactly as in your documents.';
     return '';
   }
   if(s.step === 3){
-    var v = parseFloat(s.areaValue);
-    return (isFinite(v) && v > 0) ? '' : 'Enter the property area exactly as in your documents.';
-  }
-  if(s.step === 4){
+    if(!(reParseMoney(s.price) > 0)) return 'Enter the asking price in rupees.';
     if(!s.locality) return 'Choose the locality.';
-    if(s.consent === 'approximate'){
-      var la = parseFloat(s.lat), ln = parseFloat(s.lng);
-      if(!isFinite(la) || !isFinite(ln)) return 'Add the approximate location — pick it on the map or paste the coordinates.';
-      if(!s.locConfirmed) return 'Tick the confirmation that the pin shows the property’s approximate location.';
-    }
     return '';
   }
-  if(s.step === 5) return s.media.some(function(m){ return m.kind === 'photo'; }) ? '' : 'Add at least one photo of the property.';
   return '';
-}
-function rpInitPicker(){
-  var el = document.getElementById('rpPickerMap');
-  var note = document.getElementById('rpPickerNote');
-  if(!el) return;
-  if(!gmCfgRead().key){
-    el.style.display = 'none';
-    if(note) note.textContent = 'The interactive map picker is unavailable because Google Maps is not set up yet. Paste the approximate coordinates above instead, then tick the confirmation.';
-    return;
-  }
-  gmLoad().then(function(ok){
-    var el2 = document.getElementById('rpPickerMap');
-    if(!el2) return;
-    if(!ok){
-      el2.style.display = 'none';
-      var n2 = document.getElementById('rpPickerNote');
-      if(n2) n2.textContent = 'Google Maps failed to load. Paste the approximate coordinates above instead, then tick the confirmation.';
-      return;
-    }
-    var s = RE.post; if(!s) return;
-    var lat = parseFloat(s.lat), lng = parseFloat(s.lng);
-    var has = isFinite(lat) && isFinite(lng);
-    var pos = has ? { lat:lat, lng:lng } : GM_KHAMMAM;
-    var map = new google.maps.Map(el2, { center:pos, zoom:(has ? 15 : 12), mapId:(gmCfgRead().mapId || 'DEMO_MAP_ID'), streetViewControl:false, fullscreenControl:false, mapTypeControl:false });
-    var pin = document.createElement('div'); pin.className = 'gmap-pill rp-pin'; pin.textContent = 'Property';
-    var mk = new google.maps.marker.AdvancedMarkerElement({ map:map, position:pos, content:pin, gmpDraggable:true, title:'Drag to the property’s approximate location' });
-    function sync(la, ln){
-      var a = document.getElementById('rpLat'), o = document.getElementById('rpLng');
-      if(a) a.value = la.toFixed(6);
-      if(o) o.value = ln.toFixed(6);
-      if(RE.post){ RE.post.lat = a ? a.value : ''; RE.post.lng = o ? o.value : ''; }
-    }
-    mk.addListener('dragend', function(){
-      var p = mk.position; if(!p) return;
-      sync(typeof p.lat === 'function' ? p.lat() : p.lat, typeof p.lng === 'function' ? p.lng() : p.lng);
-    });
-    map.addListener('click', function(e){ if(e.latLng){ mk.position = e.latLng; sync(e.latLng.lat(), e.latLng.lng()); } });
-    var inp = document.getElementById('rpPickerSearch');
-    if(inp && google.maps.places){
-      try{
-        var ac = new google.maps.places.Autocomplete(inp, { componentRestrictions:{ country:'in' }, fields:['geometry'] });
-        ac.addListener('place_changed', function(){
-          var pl = ac.getPlace();
-          if(pl && pl.geometry && pl.geometry.location){
-            var la = pl.geometry.location.lat(), ln = pl.geometry.location.lng();
-            map.panTo({ lat:la, lng:ln }); map.setZoom(15); mk.position = { lat:la, lng:ln }; sync(la, ln);
-          }
-        });
-      }catch(e){}
-    }
-  });
 }
 function reBindPostStep(){
   var s = RE.post; if(!s) return;
@@ -11678,15 +11440,8 @@ function reBindPostStep(){
       var segEl = b.parentElement;
       segEl.querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
       b.classList.add('on');
-      if(segEl.id === 'rpConsent'){
-        var ll = document.getElementById('rpLatLng');
-        if(ll) ll.style.display = b.getAttribute('data-re-seg') === 'approximate' ? 'block' : 'none';
-        if(b.getAttribute('data-re-seg') === 'approximate') setTimeout(rpInitPicker, 60);
-      }
-      if(segEl.id === 'rpSellerType' || segEl.id === 'rpRole' || segEl.id === 'rpNeg' || segEl.id === 'rpKind') rePostCollectSoft();
     });
   });
-  function rePostCollectSoft(){ /* segment state is read at Continue/Save time */ }
   var av = document.getElementById('rpAreaVal');
   if(av) av.addEventListener('input', function(){
     var u = document.getElementById('rpAreaUnit').value;
@@ -11695,8 +11450,12 @@ function reBindPostStep(){
   });
   var au = document.getElementById('rpAreaUnit');
   if(au) au.addEventListener('change', function(){ if(av) av.dispatchEvent(new Event('input')); });
-  var tp = document.getElementById('rpType');
-  if(tp) tp.addEventListener('change', function(){ /* step 6 fields follow the type at render time */ });
+  function rePostCollectMediaCaps(){
+    document.querySelectorAll('[data-rp-media-cap]').forEach(function(inp){
+      var m = s.media[+inp.getAttribute('data-rp-media-cap')];
+      if(m) m.caption = inp.value;
+    });
+  }
   var add = document.getElementById('rpAddMedia');
   if(add) add.addEventListener('click', function(){ document.getElementById('rpMediaFile').click(); });
   var mf = document.getElementById('rpMediaFile');
@@ -11755,54 +11514,47 @@ function reBindPostStep(){
       reRenderPostStep();
     });
   });
-  function rePostCollectMediaCaps(){
-    document.querySelectorAll('[data-rp-media-cap]').forEach(function(inp){
-      var m = s.media[+inp.getAttribute('data-rp-media-cap')];
-      if(m) m.caption = inp.value;
-    });
-  }
-  if(s.step === 4){
-    var llNow = document.getElementById('rpLatLng');
-    if(llNow && llNow.style.display !== 'none') rpInitPicker();
-  }
+  var cancel = document.getElementById('rpCancel');
+  if(cancel) cancel.addEventListener('click', function(){ RE.post = null; reShowTab('mine'); });
   var back = document.getElementById('rpBack');
   if(back) back.addEventListener('click', function(){ rePostCollect(); s.step--; reRenderPostStep(); window.scrollTo({ top:0 }); });
-  var draft = document.getElementById('rpDraft');
-  if(draft) draft.addEventListener('click', function(){ rePostCollect(); rePostSave(false); });
   var next = document.getElementById('rpNext');
   if(next) next.addEventListener('click', function(){
     rePostCollect();
     var err = rePostValidateStep();
     var e = document.getElementById('rpErr');
-    if(err){ e.textContent = err; e.classList.add('show'); return; }
-    e.textContent = ''; e.classList.remove('show');
+    if(err){ if(e){ e.textContent = err; e.classList.add('show'); } return; }
+    if(e){ e.textContent = ''; e.classList.remove('show'); }
     s.step++; reRenderPostStep(); window.scrollTo({ top:0 });
   });
+  var draft = document.getElementById('rpDraft');
+  if(draft) draft.addEventListener('click', function(){ rePostSave(false); });
   var sub = document.getElementById('rpSubmit');
-  if(sub) sub.addEventListener('click', function(){
-    rePostCollect();
-    var err = '';
-    [2, 3, 4, 5].forEach(function(st){ s.step = st; err = err || rePostValidateStep(); });
-    s.step = 7;
-    var e = document.getElementById('rpErr');
-    if(err){ e.textContent = err + ' Go back and fix it — nothing was submitted.'; e.classList.add('show'); return; }
-    rePostSave(true);
-  });
+  if(sub) sub.addEventListener('click', function(){ rePostSave(true); });
 }
 function rePostSave(submit){
   var s = RE.post; if(!s || s.busy) return;
-  var c = reClient();
+  var err = document.getElementById('rpErr');
+  function fail(msg){
+    s.busy = false;
+    var b1 = document.getElementById('rpSubmit'), b2 = document.getElementById('rpDraft');
+    if(b1){ b1.disabled = false; b1.textContent = 'Submit for Review'; }
+    if(b2){ b2.disabled = false; b2.textContent = 'Save draft'; }
+    if(err){ err.textContent = msg; err.classList.add('show'); }
+  }
+  if(err){ err.textContent = ''; err.classList.remove('show'); }
+  if(!s.media.some(function(m){ return m.kind === 'photo'; })){ fail('Add at least one photo of the property.'); s.step = 1; reRenderPostStep(); return; }
+  if((s.title || '').trim().length < 4){ fail('The title needs at least 4 characters.'); return; }
   var price = Math.round(reParseMoney(s.price) || 0);
+  if(!price || price < 1){ fail('Set a valid asking price.'); return; }
   var areaVal = parseFloat(s.areaValue);
   var areaSqft = reToSqft(areaVal, s.areaUnit);
-  if(!((s.title || '').trim().length >= 4) || price <= 0 || !isFinite(areaSqft) || areaSqft <= 0 || !s.locality){
-    var e = document.getElementById('rpErr');
-    if(e){ e.textContent = 'Title, price, area and locality are required before saving.'; e.classList.add('show'); }
-    return;
-  }
+  if(!isFinite(areaSqft) || areaSqft <= 0){ fail('Enter the property area exactly as in your documents.'); return; }
+  if(!s.locality){ fail('Choose the locality.'); return; }
   s.busy = true;
   var busyBtn = document.getElementById(submit ? 'rpSubmit' : 'rpDraft');
   if(busyBtn){ busyBtn.disabled = true; busyBtn.textContent = 'Saving…'; }
+  var c = reClient();
   var payload = {
     seller_id:RE.user.id, title:s.title.trim(), property_type:s.ptype, price:price, currency:'INR',
     negotiable:!!s.negotiable, description:s.desc.trim() || null, listing_kind:s.kind, availability:s.availability,
@@ -11829,16 +11581,6 @@ function rePostSave(submit){
       location_consent:s.consent
     }, { onConflict:'property_id' });
   }).then(function(r){ if(r && r.error) throw r.error;
-    return c.from('property_type_details').upsert({ property_id:propId, details:s.details }, { onConflict:'property_id' });
-  }).then(function(r){ if(r && r.error) throw r.error;
-    return c.from('property_seller_profiles').upsert({
-      user_id:RE.user.id, seller_type:(s.listingRole || s.sellerType), registration_number:s.regNumber.trim() || null
-    }, { onConflict:'user_id' });
-  }).then(function(r){ if(r && r.error) throw r.error;
-    if(s.sellerName && s.sellerName.trim().length >= 2){
-      return c.from('profiles').update({ display_name:s.sellerName.trim() }).eq('id', RE.user.id).then(function(){}, function(){});
-    }
-  }).then(function(){
     /* media sync: upload new files, drop removed rows/objects, rewrite order */
     var jobs = [];
     var uploads = s.media.map(function(m, idx){
@@ -11876,15 +11618,11 @@ function rePostSave(submit){
     s.busy = false;
     RE.post = null;
     showToast(submit
-      ? '<b>Submitted for review.</b> Your property is saved in My Properties as Pending Review. It goes public only when the founder approves it.'
-      : '<b>Draft saved.</b> Find it in My Properties whenever you are ready.');
+      ? '<b>Submitted — Pending Review.</b> Your property is saved in My Properties now. It becomes public only when the founder approves it.'
+      : '<b>Draft saved.</b> Find it any time in My Properties.');
     reShowTab('mine');
-  }).catch(function(err){
-    s.busy = false;
-    var b2 = document.getElementById(submit ? 'rpSubmit' : 'rpDraft');
-    if(b2){ b2.disabled = false; b2.textContent = submit ? 'Submit for Review' : 'Save draft'; }
-    var e = document.getElementById('rpErr');
-    if(e){ e.textContent = 'Saving was rejected: ' + ((err && err.message) || 'the backend did not answer. Your entries are still here — try again.'); e.classList.add('show'); }
+  }).catch(function(e){
+    fail('Saving did not complete: ' + ((e && e.message) || 'the backend did not answer') + ' — nothing was published. Check the connection and try again.');
   });
 }
 function reEditProperty(p, loc, media){
