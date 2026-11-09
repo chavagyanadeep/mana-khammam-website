@@ -2046,14 +2046,14 @@ body.mk-lock{overflow:hidden}
 .re-discovery .re-filter-btn .chev{color:rgba(255,255,255,.7)}
 .re-discovery .re-filter-btn.open{background:var(--accent-deep);border-color:var(--accent-deep);color:#fff}
 .re-filter-panel{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
-.re-types-head{display:flex;align-items:baseline;gap:10px;margin:18px 0 0}
-.re-types-head h3{margin:0;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--forest)}
-.re-types-head span{font-size:12.5px;color:var(--muted)}
-#reTypeChips{display:flex;flex-wrap:wrap;overflow:visible;gap:8px;padding:10px 0 2px;margin:0}
-#reTypeChips .chip{flex:none;padding:9px 15px;font-size:13px;border-radius:999px}
+.re-types-head{display:flex;align-items:baseline;gap:10px;margin:14px 0 0}
+.re-types-head h3{margin:0;font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--forest)}
+.re-types-head span{font-size:12px;color:var(--muted)}
+#reTypeChips{display:flex;flex-wrap:wrap;overflow:visible;gap:7px;padding:8px 0 2px;margin:0}
+#reTypeChips .chip{flex:none;padding:7px 12px;font-size:12.5px;border-radius:999px;white-space:nowrap}
 #reTypeChips .chip.on{background:var(--forest);border-color:var(--forest);color:#fff}
-#reTypeChipsF{display:flex;flex-wrap:wrap;overflow:visible;gap:8px;padding:2px 0 4px;margin:0}
-#reTypeChipsF .chip{flex:none;padding:9px 15px;font-size:13px;border-radius:999px}
+#reTypeChipsF{display:flex;flex-wrap:wrap;overflow:visible;gap:7px;padding:2px 0 4px;margin:0}
+#reTypeChipsF .chip{flex:none;padding:7px 12px;font-size:12.5px;border-radius:999px;white-space:nowrap}
 #reTypeChipsF .chip.on{background:var(--forest);border-color:var(--forest);color:#fff}
 /* --- Results toolbar --- */
 .re-viewbar{
@@ -2107,12 +2107,40 @@ body.mk-lock{overflow:hidden}
   .re-list{grid-template-columns:repeat(3,1fr);gap:18px}
   .re-card:hover{transform:translateY(-2px)}
 }
+/* --- Compact property type filter on phones ---
+   The quick type row becomes ONE slim swipeable line (~32px tall)
+   instead of five wrapped rows, and the search + Filter controls
+   share a single row — so real properties start almost immediately
+   below the card instead of a full screen down. The Filter-panel
+   type group keeps wrapping, just with the same smaller pills. */
+@media (max-width:640px){
+  .re-discovery{padding:12px}
+  .re-discovery .mp-search{padding:11px 13px 11px 38px;border-radius:12px;font-size:14px;background-position:12px center}
+  .re-discovery .re-filter-btn{padding:10px 13px;border-radius:12px;font-size:13px}
+  .re-filter-panel{margin-top:10px;padding-top:10px}
+  .re-types-head{margin-top:10px;align-items:center}
+  .re-types-head h3{font-size:11.5px}
+  .re-types-head span{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #reTypeChips{
+    flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:6px;
+    margin:0 -12px;padding:8px 12px 4px;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+  }
+  #reTypeChips::-webkit-scrollbar{display:none}
+  #reTypeChips .chip{padding:6px 11px;font-size:12px;line-height:1.35}
+  #reTypeChipsF{gap:6px}
+  #reTypeChipsF .chip{padding:6px 11px;font-size:12px;line-height:1.35}
+  .re-viewbar{margin-top:10px;padding-top:10px;gap:8px}
+  .re-viewbar .seg button{padding:6px 12px;min-height:32px;font-size:12px}
+  #reSaveSearchBtn{padding:7px 11px;font-size:12px}
+  .re-results-head{margin-top:14px}
+}
 @media (max-width:480px){
-  .re-discovery .mp-searchrow{flex-wrap:wrap}
-  .re-discovery .mp-searchrow .mp-search{flex:1 1 100%}
-  .re-discovery .re-filter-btn{flex:1;justify-content:center}
-  #reSaveSearchBtn{margin-left:0}
-  .re-viewbar .re-count{width:100%;order:3}
+  .re-discovery .mp-searchrow{flex-wrap:nowrap;gap:8px}
+  .re-discovery .mp-searchrow .mp-search{flex:1 1 auto;min-width:0;width:auto}
+  .re-discovery .re-filter-btn{flex:none;justify-content:center}
+  #reSaveSearchBtn{margin-left:auto}
+  .re-viewbar .re-count{width:auto;order:0}
 }
 
 
@@ -2202,6 +2230,69 @@ body.mk-lock{overflow:hidden}
   .remap-preview{right:auto;width:356px}
 }
 @media (prefers-reduced-motion: reduce){.remap-preview{animation:none}}
+
+/* ================================================================
+   FULL-SCREEN PROPERTY MAP — tapping the Map tab takes the whole
+   screen: a slim bar (back to List · count · Area picker), one
+   compact filter row, then the map edge to edge with the property
+   cards as a swipeable strip along the bottom. The page search,
+   hero and filter panel stay in List view, where they belong.
+   ================================================================ */
+body.re-mapfs{overflow:hidden}
+#view-realestate.map-on{position:fixed;inset:0;z-index:58;background:var(--paper);overflow:hidden}
+#view-realestate.map-on.active{display:flex;flex-direction:column}
+#view-realestate.map-on .back-btn,
+#view-realestate.map-on .re-hero,
+#view-realestate.map-on .re-menu-bar,
+#view-realestate.map-on .mp-toprow,
+#view-realestate.map-on .re-back-browse,
+#view-realestate.map-on .re-discovery,
+#view-realestate.map-on .re-results-head,
+#view-realestate.map-on .pn-band{display:none!important}
+#view-realestate.map-on .mp-panel{display:none}
+#view-realestate.map-on #rePanel-browse{display:flex;flex-direction:column;flex:1;min-height:0;padding:0}
+#view-realestate.map-on #reBrowseBody{flex:1;min-height:0;display:flex;flex-direction:column}
+.remap-fsbar{flex:none;display:flex;align-items:center;gap:10px;padding:calc(8px + env(safe-area-inset-top)) 12px 8px;background:var(--surface);border-bottom:1px solid var(--line)}
+.remap-fs-back{display:inline-flex;align-items:center;gap:5px;font-size:13.5px;font-weight:800;color:var(--forest);background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:9px 14px;min-height:40px;flex:none}
+.remap-fs-back:active{transform:scale(.96)}
+.remap-fs-title{min-width:0;flex:1;line-height:1.25}
+.remap-fs-title b{display:block;font-size:15px;font-weight:800;color:var(--forest);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.remap-fs-title span{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+.remap-fs-area{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.remap-fs-area select{font-family:inherit;font-size:13px;font-weight:700;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 8px;max-width:42vw;min-height:40px}
+#view-realestate.map-on .remap-toolbar{flex:none;margin-top:0;padding:8px 12px;flex-wrap:nowrap;overflow-x:auto;background:var(--paper);border-bottom:1px solid var(--line);scrollbar-width:none}
+#view-realestate.map-on .remap-toolbar::-webkit-scrollbar{display:none}
+#view-realestate.map-on .remap-tool{flex:none}
+#view-realestate.map-on .remap-area-chip{flex:none}
+#view-realestate.map-on .remap-unit{flex:none;margin-left:0}
+#view-realestate.map-on .remap-split{flex:1;min-height:0;margin-top:0;position:relative;gap:0}
+#view-realestate.map-on .remap-main{position:absolute;inset:0;height:auto;min-height:0;border:0;border-radius:0;box-shadow:none}
+#view-realestate.map-on .remap-side{position:absolute;left:0;right:0;bottom:0;z-index:5;padding-bottom:env(safe-area-inset-bottom)}
+#view-realestate.map-on .remap-side-head{display:none}
+#view-realestate.map-on .remap-list{flex-direction:row;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;padding:10px 12px 12px;margin-top:0;scrollbar-width:none}
+#view-realestate.map-on .remap-list::-webkit-scrollbar{display:none}
+#view-realestate.map-on .remap-card{flex:0 0 min(300px,80vw);scroll-snap-align:start;box-shadow:0 8px 22px rgba(16,43,36,.16)}
+#view-realestate.map-on .remap-note{flex:0 0 min(270px,76vw);scroll-snap-align:start;box-shadow:0 8px 22px rgba(16,43,36,.12)}
+#view-realestate.map-on .remap-side .re-empty{flex:0 0 min(320px,84vw);scroll-snap-align:start;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 8px 22px rgba(16,43,36,.16)}
+#view-realestate.map-on .remap-preview{bottom:calc(148px + env(safe-area-inset-bottom));cursor:pointer}
+#view-realestate.map-on .remap-canvas .leaflet-bottom{bottom:132px}
+@media (min-width:960px){
+  #view-realestate.map-on .remap-split{flex-direction:row;align-items:stretch}
+  #view-realestate.map-on .remap-main{position:relative;inset:auto;flex:1 1 auto;height:auto;min-height:0}
+  #view-realestate.map-on .remap-side{position:static;width:min(400px,34%);max-height:none;height:auto;overflow-y:auto;padding:12px 10px 12px 12px;order:-1}
+  #view-realestate.map-on .remap-side-head{display:block}
+  #view-realestate.map-on .remap-list{flex-direction:column;overflow:visible;padding:0;scroll-snap-type:none}
+  #view-realestate.map-on .remap-card{flex:none}
+  #view-realestate.map-on .remap-note{flex:none}
+  #view-realestate.map-on .remap-side .re-empty{flex:none}
+  #view-realestate.map-on .remap-preview{bottom:10px}
+  #view-realestate.map-on .remap-canvas .leaflet-bottom{bottom:0}
+}
+/* Post Property — exact-location pin picker (step 3) */
+.rp-pinaddr{font-size:13px;font-weight:700;color:var(--accent-deep);background:var(--green-tint);border-radius:10px;padding:10px 12px;margin-top:10px;line-height:1.55}
+.rp-pinaddr:empty{display:none}
+.rp-findrow{display:flex;gap:8px;align-items:center;margin-top:9px;flex-wrap:wrap}
+.rp-findrow .btn-ghost{flex:none;padding:10px 15px;font-size:13px}
 
 /* ================================================================
    MARKETPLACE — PREMIUM REDESIGN (Feature 02)
@@ -5393,6 +5484,12 @@ function showView(name){
   mkCloseAllDialogs();
   document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
   document.getElementById('view-'+name).classList.add('active');
+  /* The full-screen map locks body scroll — release it when the user
+     navigates away, and re-measure the map when they come back. */
+  if(name !== 'realestate') document.body.classList.remove('re-mapfs');
+  else if(typeof RE !== 'undefined' && RE.viewMode === 'map' && typeof OSM !== 'undefined' && OSM.map){
+    setTimeout(function(){ if(OSM.map) OSM.map.invalidateSize(); }, 160);
+  }
   document.querySelectorAll('.tab[data-goto]').forEach(function(t){
     t.classList.toggle('on', t.getAttribute('data-goto')===name || (name==='category' && t.getAttribute('data-goto')==='explore'));
   });
@@ -9095,7 +9192,8 @@ var MAP_KHAMMAM = { lat:17.2473, lng:80.1514 };
 var OSM = { state:'idle', map:null, markers:{}, clusterer:null,
   baseLayer:null, satLayer:null, tier:-1, satellite:false,
   selectedId:null, boundsFilter:null, initialBounds:null, shell:false,
-  suppressUntil:0, lastItems:[] };
+  suppressUntil:0, lastItems:[],
+  areaFilter:null, areaLayer:null, areaCache:{}, areaToken:0 };
 function osmReady(){ return typeof L !== 'undefined'; }
 function osmPaintFounder(){
   var pill = document.getElementById('fsOsmStatus'), label = document.getElementById('fsOsmStatusText');
@@ -9449,7 +9547,7 @@ function reInit(){
     });
   })();
   document.getElementById('reBackBrowse').addEventListener('click', function(){ reShowTab('browse'); });
-  document.getElementById('reViewList').addEventListener('click', function(){ RE.viewMode = 'list'; OSM.shell = false; OSM.boundsFilter = null; OSM.selectedId = null; rePaintViewMode(); reRenderBrowse(); });
+  document.getElementById('reViewList').addEventListener('click', reExitMapMode);
   document.getElementById('reViewMap').addEventListener('click', function(){ RE.viewMode = 'map'; OSM.shell = false; rePaintViewMode(); reRenderBrowse(); });
   document.getElementById('reViewVideos').addEventListener('click', function(){ RE.viewMode = 'videos'; OSM.shell = false; rePaintViewMode(); reRenderBrowse(); });
   document.getElementById('reSaveSearchBtn').addEventListener('click', reSaveCurrentSearch);
@@ -9497,6 +9595,17 @@ function rePaintViewMode(){
   if(vv) vv.classList.toggle('on', RE.viewMode === 'videos');
   var v = document.getElementById('view-realestate');
   if(v) v.classList.toggle('map-on', RE.viewMode === 'map');
+  /* Map mode is a full-screen takeover — lock page scroll behind it. */
+  document.body.classList.toggle('re-mapfs', RE.viewMode === 'map');
+}
+/* Leaving Map mode always returns to a clean List view: no area
+   boundary, no "this area" filter and no leftover selection. */
+function reExitMapMode(){
+  RE.viewMode = 'list'; OSM.shell = false; OSM.boundsFilter = null; OSM.selectedId = null;
+  OSM.areaFilter = null;
+  if(OSM.areaLayer && OSM.map){ try{ OSM.map.removeLayer(OSM.areaLayer); }catch(e){} }
+  OSM.areaLayer = null;
+  rePaintViewMode(); reRenderBrowse();
 }
 function rePaintCompareBtn(){
   var b = document.getElementById('reCompareBtn'); if(!b) return;
@@ -9506,6 +9615,11 @@ function rePaintCompareBtn(){
 function reShowTab(tab, authWhy){
   /* One sign-in system for the whole app — see mpShowTab. */
   if(tab === 'auth' && !RE.user){ auOpen('realestate', authWhy); return; }
+  /* The full-screen map belongs to Browse — leaving Browse exits it. */
+  if(tab !== 'browse' && RE.viewMode === 'map'){
+    RE.viewMode = 'list'; OSM.shell = false; OSM.boundsFilter = null; OSM.selectedId = null; OSM.areaFilter = null;
+    rePaintViewMode();
+  }
   RE.tab = tab;
   document.querySelectorAll('[data-re-tab]').forEach(function(t){ t.classList.toggle('on', t.getAttribute('data-re-tab') === tab); });
   var reTiles = { saved:'reQuickSaved', inbox:'reQuickInbox', mine:'reQuickMine', post:'reQuickPost' };
@@ -9810,9 +9924,22 @@ function reRenderBrowse(){
     : mpEmptyHTML('No properties match', 'Try a wider price or area range, or a different property type. New Khammam properties appear here the moment the founder approves them.', '', ''));
   reBindCards(body);
 }
+function reMapFsBarHTML(withArea){
+  var back = '<button class="remap-fs-back" data-remap-list aria-label="Back to list view"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>List</button>';
+  if(!withArea){
+    return '<div class="remap-fsbar">' + back + '<div class="remap-fs-title"><b>Property map</b><span>Khammam, Telangana</span></div></div>';
+  }
+  return '<div class="remap-fsbar">' + back
+    + '<div class="remap-fs-title"><b>Property map</b><span id="remapFsCount" aria-live="polite"></span></div>'
+    + '<label class="remap-fs-area"><span>Area</span><select id="remapAreaSel" aria-label="Show only properties in one area">'
+    + '<option value="">All areas</option>'
+    + MP_LOCALITIES.map(function(l){ return '<option value="' + mkEsc(l) + '"' + (OSM.areaFilter && OSM.areaFilter.name === l ? ' selected' : '') + '>' + mkEsc(l) + '</option>'; }).join('')
+    + '</select></label></div>';
+}
 function reMapOfflineHTML(){
   OSM.shell = true;
-  return '<div class="remap-split"><section class="remap-main" aria-label="Property map">'
+  return reMapFsBarHTML(false)
+    + '<div class="remap-split"><section class="remap-main" aria-label="Property map">'
     + '<div class="remap-pane-state" style="display:flex">' + reMapFallbackInner('notconnected') + '</div></section>'
     + '<aside class="remap-side" aria-label="Property results">' + reNotConnectedHTML() + '</aside></div>';
 }
@@ -9824,7 +9951,7 @@ function reMapFallbackInner(kind){
 }
 function reBindPaneState(root){
   root.querySelectorAll('[data-remap-list]').forEach(function(b){
-    b.addEventListener('click', function(){ RE.viewMode = 'list'; OSM.shell = false; OSM.boundsFilter = null; OSM.selectedId = null; rePaintViewMode(); reRenderBrowse(); });
+    b.addEventListener('click', reExitMapMode);
   });
   root.querySelectorAll('[data-remap-retry]').forEach(function(b){
     b.addEventListener('click', function(){ OSM.state = 'idle'; OSM.promise = null; osmMountMap(OSM.lastItems || []); });
@@ -9851,16 +9978,100 @@ function reDisplayArea(p){
   return reFmtNum(Number(p.area_value)) + ' ' + (RE_UNITS[p.area_unit] || '');
 }
 function reMarkerText(p, tier){
+  /* Every marker carries the property TYPE and the PRICE, so buyers
+     can read the map without tapping anything: "Independent House ·
+     ₹45L". Zoomed right in, the size joins them. */
   var price = reFmtShortINR(p.price);
-  if(p.status === 'sold') return price + ' · Sold';
-  if(tier === 0) return price;
-  var cat = RE_MAP_SHORTCAT[p.property_type] || 'Property';
-  if(tier === 1) return price + ' · ' + cat;
-  return price + ' · ' + cat + ' · ' + reDisplayArea(p);
+  var type = reTypeLabel(p.property_type);
+  var base = type + ' · ' + price;
+  if(p.status === 'sold') return base + ' · Sold';
+  if(tier === 2) return base + ' · ' + reDisplayArea(p);
+  return base;
 }
 function reMapLoc(p){ var l = RE.locs[p.id]; return (l && l.has_map && l.lat != null && l.lng != null) ? l : null; }
 function reInBounds(p, b){ var l = reMapLoc(p); if(!l) return false; return (+l.lat) <= b.north && (+l.lat) >= b.south && (+l.lng) <= b.east && (+l.lng) >= b.west; }
-function reMapShown(items){ return OSM.boundsFilter ? items.filter(function(p){ return reInBounds(p, OSM.boundsFilter); }) : items; }
+function reMapShown(items){
+  var out = items;
+  if(OSM.boundsFilter) out = out.filter(function(p){ return reInBounds(p, OSM.boundsFilter); });
+  if(OSM.areaFilter) out = out.filter(function(p){ return reInArea(p, OSM.areaFilter); });
+  return out;
+}
+/* ---------- area search: boundary from OpenStreetMap (Nominatim) ----------
+   Picking an area draws its real OSM boundary and keeps only the
+   properties inside it. Where OSM has no mapped boundary for a
+   locality, nothing is drawn and nothing is invented — properties
+   are matched by the locality name the seller chose instead, and
+   the side list says exactly that. */
+function osmPointInRing(lat, lng, ring){
+  var inside = false;
+  for(var i = 0, j = ring.length - 1; i < ring.length; j = i++){
+    var xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+    if(((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+function osmPointInGeom(lat, lng, geom){
+  if(!geom) return false;
+  var polys = geom.type === 'Polygon' ? [geom.coordinates] : (geom.type === 'MultiPolygon' ? geom.coordinates : []);
+  for(var k = 0; k < polys.length; k++){
+    var rings = polys[k];
+    if(!rings || !rings.length) continue;
+    if(!osmPointInRing(lat, lng, rings[0])) continue;
+    var inHole = false;
+    for(var h = 1; h < rings.length; h++) if(osmPointInRing(lat, lng, rings[h])){ inHole = true; break; }
+    if(!inHole) return true;
+  }
+  return false;
+}
+function reInArea(p, a){
+  var l = reMapLoc(p);
+  if(!l) return (p.locality || '') === a.name;
+  if(a.geom) return osmPointInGeom(+l.lat, +l.lng, a.geom);
+  return (p.locality || '') === a.name;
+}
+function osmDrawArea(){
+  if(!OSM.map || !osmReady()) return;
+  if(OSM.areaLayer){ try{ OSM.map.removeLayer(OSM.areaLayer); }catch(e){} OSM.areaLayer = null; }
+  var a = OSM.areaFilter;
+  if(!a || !a.geom) return;
+  OSM.areaLayer = L.geoJSON(a.geom, { interactive:false, style:{ color:'#8A6D2F', weight:2.5, opacity:.9, fillColor:'#D5B57C', fillOpacity:0.14 } });
+  OSM.areaLayer.addTo(OSM.map);
+}
+function reAreaSelect(name){
+  if(!name){ reClearArea(); return; }
+  OSM.areaFilter = { name:name, geom:null, pending:true };
+  reRenderBrowse();
+  var token = ++OSM.areaToken;
+  function done(geom){
+    if(token !== OSM.areaToken || !OSM.areaFilter || OSM.areaFilter.name !== name) return;
+    OSM.areaFilter.geom = geom; OSM.areaFilter.pending = false;
+    OSM.areaCache[name] = geom;
+    osmDrawArea();
+    if(OSM.map && OSM.areaLayer){
+      OSM.suppressUntil = Date.now() + 900;
+      try{ OSM.map.fitBounds(OSM.areaLayer.getBounds().pad(0.08)); }catch(e){}
+    }
+    reRenderBrowse();
+  }
+  if(Object.prototype.hasOwnProperty.call(OSM.areaCache, name)){ done(OSM.areaCache[name]); return; }
+  if(name === 'Other Khammam' || typeof fetch === 'undefined'){ done(null); return; }
+  fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&polygon_geojson=1&q=' + encodeURIComponent(name + ', Khammam, Telangana, India'))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      var g = null;
+      if(res && res[0] && res[0].geojson && (res[0].geojson.type === 'Polygon' || res[0].geojson.type === 'MultiPolygon')) g = res[0].geojson;
+      done(g);
+    })
+    .catch(function(){ done(null); });
+}
+function reClearArea(){
+  OSM.areaFilter = null;
+  if(OSM.areaLayer && OSM.map){ try{ OSM.map.removeLayer(OSM.areaLayer); }catch(e){} }
+  OSM.areaLayer = null;
+  var sel = document.getElementById('remapAreaSel');
+  if(sel) sel.value = '';
+  reRenderBrowse();
+}
 function reMapCardHTML(p){
   var cover = reCoverOf(p);
   return '<article class="remap-card' + (OSM.selectedId === p.id ? ' sel' : '') + '" data-remap-card="' + p.id + '">'
@@ -9872,7 +10083,7 @@ function reMapCardHTML(p){
     + '<span class="rc-title" style="display:-webkit-box">' + mkEsc(p.title) + '</span>'
     + '<span class="rc-meta" style="display:block">' + mkEsc(reTypeLabel(p.property_type)) + ' · ' + mkEsc(p.locality) + ', Khammam</span>'
     + '<span class="rc-meta" style="display:block">' + mkEsc(RE_MEASURES[p.area_measure] || 'Area') + ': ' + reDisplayArea(p) + (p.bhk ? ' · ' + p.bhk + ' BHK' : '') + '</span>'
-    + '<span class="rc-view">View on map &amp; details <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>'
+    + '<span class="rc-view">View full details <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>'
     + '</span></button>'
     + '<button class="mp-save' + (RE.savedIds[p.id] ? ' on' : '') + '" data-re-save="' + p.id + '" aria-label="Save property">' + (RE.savedIds[p.id] ? NR_ICONS.bookmarkOn : NR_ICONS.bookmark) + '</button>'
     + waCardAnchor(waPropHref(p), 'right:47px;z-index:2')
@@ -9889,12 +10100,22 @@ function reMapSideHTML(shown, items){
   if(OSM.boundsFilter && !shown.length){
     return '<div class="re-empty" role="status"><h3>No properties in this area</h3><p>No matching properties for sale fall inside the part of the map you searched. Move the map, or see everything in Khammam.</p><div class="re-empty-acts"><button class="btn-solid" data-remap-showall>Show all of Khammam</button></div></div>';
   }
+  if(OSM.areaFilter && !shown.length){
+    return '<div class="re-empty" role="status"><h3>No properties in ' + mkEsc(OSM.areaFilter.name) + ' yet</h3><p>No matching properties for sale are inside this area right now. New approved listings in ' + mkEsc(OSM.areaFilter.name) + ' will appear here automatically.</p><div class="re-empty-acts"><button class="btn-solid" data-remap-cleararea>Show all areas</button></div></div>';
+  }
   var withLoc = shown.filter(function(p){ return !!reMapLoc(p); }).length;
   var note = '';
+  if(OSM.areaFilter && OSM.areaFilter.pending){
+    note = '<div class="remap-note">Finding <b>' + mkEsc(OSM.areaFilter.name) + '</b> on the map…</div>';
+  } else if(OSM.areaFilter && !OSM.areaFilter.geom){
+    note = '<div class="remap-note">OpenStreetMap has no mapped boundary for <b>' + mkEsc(OSM.areaFilter.name) + '</b> yet — showing the properties listed under this locality name instead. Nothing is drawn that is not really mapped.</div>';
+  } else if(OSM.areaFilter && OSM.areaFilter.geom){
+    note = '<div class="remap-note">Showing only properties inside <b>' + mkEsc(OSM.areaFilter.name) + '</b> — boundary © OpenStreetMap contributors.</div>';
+  }
   if(shown.length && !withLoc){
-    note = '<div class="remap-note"><b>No map locations shared yet.</b> These sellers have not shared an approximate location, so there is nothing honest to plot. Every property is still listed here — Mana Khammam never invents map pins.</div>';
+    note += '<div class="remap-note"><b>No map locations shared yet.</b> These sellers have not shared an approximate location, so there is nothing honest to plot. Every property is still listed here — Mana Khammam never invents map pins.</div>';
   } else if(withLoc < shown.length){
-    note = '<div class="remap-note">Showing <b>' + withLoc + ' of ' + shown.length + '</b> properties on the map — the rest have not shared an approximate location. Exact addresses are never shown.</div>';
+    note += '<div class="remap-note">Showing <b>' + withLoc + ' of ' + shown.length + '</b> properties on the map — the rest have not shared an approximate location. Exact addresses are never shown.</div>';
   }
   return note + shown.map(reMapCardHTML).join('');
 }
@@ -9911,16 +10132,23 @@ function reMapToolbarHTML(){
     + '<button class="remap-tool" data-remap-tool>Location · <b>' + mkEsc(f.q ? f.q : 'Khammam') + '</b></button>'
     + '<button class="remap-tool" data-remap-tool>More filters' + (reActiveFilterCount() ? ' · <b>' + reActiveFilterCount() + ' active</b>' : '') + '</button>'
     + (OSM.boundsFilter ? '<span class="remap-area-chip">This area only <button data-remap-showall>Show all</button></span>' : '')
+    + (OSM.areaFilter ? '<span class="remap-area-chip">Area: ' + mkEsc(OSM.areaFilter.name) + ' <button data-remap-cleararea>Show all</button></span>' : '')
     + '<button class="remap-tool' + (OSM.satellite ? ' ng-sat-on' : '') + '" data-remap-sat aria-pressed="' + (OSM.satellite ? 'true' : 'false') + '">Satellite · <b>' + (OSM.satellite ? 'On' : 'Off') + '</b></button>'
     + '<label class="remap-unit">Size in <select id="remapUnit" aria-label="Display area unit">' + units.map(function(u){ return '<option value="' + u[0] + '"' + (RE.displayUnit === u[0] ? ' selected' : '') + '>' + u[1] + '</option>'; }).join('') + '</select></label>';
 }
 function reBindMapToolbar(root){
   root.querySelectorAll('[data-remap-tool]').forEach(function(b){
     b.addEventListener('click', function(){
+      /* The filter panel lives with the search UI in List view — from
+         the full-screen map, step back to List with the panel open. */
+      if(RE.viewMode === 'map'){ RE.viewMode = 'list'; OSM.shell = false; rePaintViewMode(); reRenderBrowse(); }
       reSetFilterPanel(true);
       var d = document.querySelector('#view-realestate .re-discovery');
       if(d) d.scrollIntoView({ behavior:'smooth', block:'start' });
     });
+  });
+  root.querySelectorAll('[data-remap-cleararea]').forEach(function(b){
+    b.addEventListener('click', reClearArea);
   });
   root.querySelectorAll('[data-remap-showall]').forEach(function(b){
     b.addEventListener('click', function(){ OSM.boundsFilter = null; OSM.initialBounds = null; reRenderBrowse(); });
@@ -9939,7 +10167,14 @@ function reBindMapToolbar(root){
 function reBindMapSide(root){
   reBindCards(root);
   root.querySelectorAll('[data-remap-select]').forEach(function(b){
-    b.addEventListener('click', function(){ reMapSelect(b.getAttribute('data-remap-select'), { center:true }); });
+    b.addEventListener('click', function(){
+      var id = b.getAttribute('data-remap-select');
+      reMapSelect(id, { center:true });
+      reOpenDetail(id);
+    });
+  });
+  root.querySelectorAll('[data-remap-cleararea]').forEach(function(b){
+    b.addEventListener('click', reClearArea);
   });
   root.querySelectorAll('[data-remap-clearfilters]').forEach(function(b){
     b.addEventListener('click', function(){ var si = document.getElementById('reSearchInput'); if(si) si.value = ''; reClearFilters(); });
@@ -9957,6 +10192,8 @@ function reRenderMap(body, items){
     side.innerHTML = reMapSideHTML(shown, items);
     var head = document.getElementById('remapSideCount');
     if(head) head.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties') + ' for sale';
+    var fc = document.getElementById('remapFsCount');
+    if(fc) fc.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties') + ' for sale · Khammam';
     var tb = document.getElementById('remapToolbar');
     if(tb){ tb.innerHTML = reMapToolbarHTML(); reBindMapToolbar(tb); }
     reBindMapSide(side);
@@ -9970,17 +10207,23 @@ function reRenderMap(body, items){
   }
   OSM.shell = true;
   OSM.lastItems = shown;
-  body.innerHTML = '<div class="remap-toolbar" id="remapToolbar">' + reMapToolbarHTML() + '</div>'
+  body.innerHTML = reMapFsBarHTML(true)
+    + '<div class="remap-toolbar" id="remapToolbar">' + reMapToolbarHTML() + '</div>'
     + '<div class="remap-split"><section class="remap-main" aria-label="Property map">'
     + '<div id="remapCanvas" class="remap-canvas" role="application" aria-label="Map of properties for sale in Khammam"></div>'
     + '<div id="remapPaneState" class="remap-pane-state"></div>'
     + '<button class="remap-search-area" id="remapSearchArea" style="display:none">Search this area</button>'
     + '<div id="remapPreview"></div>'
     + '</section>'
-    + '<aside class="remap-side" aria-label="Property results"><div class="remap-side-head"><h3 id="remapSideCount">' + shown.length + (shown.length === 1 ? ' property' : ' properties') + ' for sale</h3><span>Khammam, Telangana · Tap a card to centre it on the map</span></div>'
+    + '<aside class="remap-side" aria-label="Property results"><div class="remap-side-head"><h3 id="remapSideCount">' + shown.length + (shown.length === 1 ? ' property' : ' properties') + ' for sale</h3><span>Khammam, Telangana · Tap a marker or a card for full details</span></div>'
     + '<div id="remapList" class="remap-list">' + reMapSideHTML(shown, items) + '</div></aside></div>';
   reBindMapToolbar(body);
   reBindMapSide(body);
+  reBindPaneState(body);
+  var fc2 = document.getElementById('remapFsCount');
+  if(fc2) fc2.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties') + ' for sale · Khammam';
+  var asel = document.getElementById('remapAreaSel');
+  if(asel) asel.addEventListener('change', function(){ reAreaSelect(asel.value); });
   var sab = document.getElementById('remapSearchArea');
   if(sab) sab.addEventListener('click', function(){
     if(!OSM.map) return;
@@ -10024,6 +10267,7 @@ function osmMountMap(shown){
   });
   OSM.lastItems = shown;
   OSM.tier = -1;
+  osmDrawArea();
   osmRefreshMarkers(shown);
   var withLoc = shown.filter(function(p){ return !!reMapLoc(p); });
   if(withLoc.length){
@@ -10072,7 +10316,7 @@ function osmRefreshMarkers(items){
     var cls = 'osm-pill' + (OSM.selectedId === p.id ? ' sel' : '') + (p.status === 'sold' ? ' sold' : '');
     var icon = L.divIcon({ className:'osm-div-icon', html:'<div class="' + cls + '">' + mkEsc(reMarkerText(p, tier)) + '</div>', iconSize:[0,0] });
     var mk = L.marker([ +l.lat, +l.lng ], { icon:icon, title:reMarkerText(p, 2) + ' \u2014 ' + p.title, zIndexOffset:(OSM.selectedId === p.id ? 1000 : 0) });
-    (function(prop){ mk.on('click', function(){ reMapSelect(prop.id, { center:false }); }); })(p);
+    (function(prop){ mk.on('click', function(){ reMapSelect(prop.id, { center:false }); reOpenDetail(prop.id); }); })(p);
     OSM.markers[p.id] = mk; arr.push(mk);
   });
   if(OSM.clusterer) OSM.clusterer.addLayers(arr);
@@ -10116,6 +10360,8 @@ function reRenderMapPreview(p){
     + '</div>'
     + '</div></div>';
   reBindCards(box);
+  var pv = box.querySelector('.remap-preview');
+  if(pv) pv.addEventListener('click', function(e){ if(e.target.closest('button')) return; reOpenDetail(p.id); });
   var x = box.querySelector('[data-remap-close]');
   if(x) x.addEventListener('click', function(){
     box.innerHTML = ''; OSM.selectedId = null;
@@ -11192,12 +11438,12 @@ function rePostDefaults(){
     title:'', ptype:'independent_house', price:'', negotiable:false, desc:'', kind:'resale', availability:'ready_to_move',
     areaValue:'', areaUnit:'sqyd', areaMeasure:'total', bhk:'', facing:'',
     state:'Telangana', district:'Khammam', city:'Khammam', locality:'Wyra Road', landmark:'', pincode:'',
-    exactAddress:'', consent:'none', lat:'', lng:'', locConfirmed:false,
+    exactAddress:'', consent:'none', lat:'', lng:'', locConfirmed:false, pinnedAddress:'',
     media:[], tourUrl:'', reelUrl:'', details:{}, amenities:[], busy:false
   };
 }
 /* Property posting follows the exact same pattern as the Marketplace
-   (Buy & Sell) sell flow: four steps — Photos, Details, Price & locality,
+   (Buy & Sell) sell flow: four steps — Photos, Details, Price & location,
    Review & submit. Any signed-in user can post; the listing is saved
    immediately as a draft, and on submit it waits in My Properties as
    Pending Review until the founder approves the listing itself. There
@@ -11254,11 +11500,22 @@ function reRenderPostStep(){
       + reField('Description', '<textarea class="f-input" id="rpDesc" placeholder="What makes this property worth a visit? Layout, light, water, road, neighbourhood — facts, not hype.">' + mkEsc(s.desc) + '</textarea>', 'rpDesc')
       + '<div class="f-err" id="rpErr"></div>';
   } else if(s.step === 3){
-    inner = '<h3 class="mp-step-title">Price &amp; locality</h3><p class="mp-step-sub">Set your asking price in rupees. Only your general locality is ever shown — never your address.</p>'
+    inner = '<h3 class="mp-step-title">Price &amp; location</h3><p class="mp-step-sub">Set your asking price, then give the exact location. The exact address and pin stay <b>private</b> — they help our review team verify the listing. Buyers only ever see the locality and landmark.</p>'
       + reField('Asking price (₹)', reTextInput('rpPrice', s.price, 'e.g. 4500000', ' inputmode="numeric"'), 'rpPrice')
       + reField('Price type', reSeg('rpNeg', [['no','Fixed price'],['yes','Negotiable']], s.negotiable ? 'yes' : 'no'))
       + reField('Locality', reSelect('rpLocality', MP_LOCALITIES.map(function(l){ return [l, l]; }), s.locality), 'rpLocality')
       + reField('Landmark (optional, public)', reTextInput('rpLandmark', s.landmark, 'e.g. Near Wyra Road circle'), 'rpLandmark')
+      + '<div class="rp-picker" id="rpPicker">'
+      + '<div class="rp-picker-head">Exact location — pin the property</div>'
+      + '<p class="f-note" style="margin:0">1. Type the exact address. 2. Tap “Find on map”, then drag the pin until it sits exactly on the property — you can also tap the map to move it. 3. Check the address shown under the map and tick the confirmation.</p>'
+      + reField('Exact address (private — never shown to buyers)', '<textarea class="f-input" id="rpExactAddr" placeholder="e.g. H.No. 5-4-120, Near … , ' + mkEsc(s.locality) + ', Khammam, Telangana">' + mkEsc(s.exactAddress) + '</textarea>', 'rpExactAddr')
+      + '<div class="rp-findrow"><button type="button" class="btn-ghost" id="rpFindAddr">Find address on map</button><span class="f-note" style="margin:0">Map © OpenStreetMap contributors</span></div>'
+      + '<div class="rp-picker-map" id="rpPinMap" role="application" aria-label="Map — drag the pin to the exact property location"></div>'
+      + '<p class="rp-pinaddr" id="rpPinAddr"></p>'
+      + reField('Show this location on the public property map?', reSeg('rpConsent', [['map','Show approximate area'],['private','Keep pin private']], s.consent === 'approximate' ? 'map' : 'private'))
+      + '<p class="f-note" style="margin:-6px 0 0">“Show approximate area” plots an approximate marker so buyers can find the property in Map view — your exact address is never shown. “Keep pin private” saves the pin only for our review team.</p>'
+      + '<label class="rp-confirm"><input type="checkbox" id="rpLocConfirm"' + (s.locConfirmed ? ' checked' : '') + '/><span><b>Please verify:</b> the pin above is exactly on this property, and the address shown under the map is the property’s real address.</span></label>'
+      + '</div>'
       + '<div class="f-err" id="rpErr"></div>';
   } else {
     var sq2 = reToSqft(parseFloat(s.areaValue), s.areaUnit);
@@ -11270,7 +11527,8 @@ function reRenderPostStep(){
       { ok:reParseMoney(s.price) > 0, label:'Price added — ' + (reParseMoney(s.price) ? reFmtINR(reParseMoney(s.price)) : 'missing') },
       { ok:isFinite(sq2) && sq2 > 0, label:'Area added — ' + (isFinite(sq2) && sq2 > 0 ? reFmtNum(parseFloat(s.areaValue)) + ' ' + RE_UNITS[s.areaUnit] + ' (' + RE_MEASURES[s.areaMeasure] + ') = ' + reFmtNum(sq2) + ' sq ft' : 'missing') },
       { ok:!!s.locality, label:'Locality: ' + s.locality + ', Khammam' },
-      { ok:true, label:'Buyers see only the locality and landmark — your phone number and email are never published' }
+      { ok:!!(isFinite(parseFloat(s.lat)) && isFinite(parseFloat(s.lng)) && s.locConfirmed), label:(isFinite(parseFloat(s.lat)) && s.locConfirmed) ? 'Exact location pinned & confirmed (private): ' + (s.pinnedAddress || s.exactAddress || '').trim().slice(0, 70) : 'Pin the exact location in step 3 and tick the confirmation' },
+      { ok:true, label:'Buyers see only the locality and landmark — your exact address, phone number and email are never published' }
     ];
     inner = '<h3 class="mp-step-title">Review &amp; submit</h3><p class="mp-step-sub">This is exactly what buyers will see after approval. Submitting saves the property immediately — it waits in My Properties as <b>Pending Review</b> and stays hidden from buyers until the founder approves it. There is no automatic approval.</p>'
       + '<div class="re-list" style="margin-top:0;grid-template-columns:1fr;max-width:560px"><article class="re-card"><span class="ph" style="display:block">'
@@ -11334,6 +11592,9 @@ function rePostCollect(){
     s.negotiable = seg('rpNeg') === 'yes';
     s.locality = g('rpLocality') || s.locality;
     s.landmark = g('rpLandmark') != null ? g('rpLandmark') : s.landmark;
+    s.exactAddress = g('rpExactAddr') != null ? g('rpExactAddr') : s.exactAddress;
+    var cs = seg('rpConsent'); if(cs) s.consent = cs === 'map' ? 'approximate' : 'none';
+    var lc = document.getElementById('rpLocConfirm'); if(lc) s.locConfirmed = !!lc.checked;
   }
 }
 function rePostValidateStep(){
@@ -11347,6 +11608,9 @@ function rePostValidateStep(){
   if(s.step === 3){
     if(!(reParseMoney(s.price) > 0)) return 'Enter the asking price in rupees.';
     if(!s.locality) return 'Choose the locality.';
+    if((s.exactAddress || '').trim().length < 8) return 'Type the exact address of the property — it stays private and is never shown to buyers.';
+    if(!(isFinite(parseFloat(s.lat)) && isFinite(parseFloat(s.lng)))) return 'Drop the pin on the map exactly where the property is — drag it or tap the map to place it.';
+    if(!s.locConfirmed) return 'Please check the pinned address under the map and tick the confirmation that the pin is exactly on the property.';
     return '';
   }
   return '';
@@ -11360,6 +11624,11 @@ function reBindPostStep(){
       b.classList.add('on');
     });
   });
+  if(document.getElementById('rpPinMap')) rpInitPinMap();
+  var findBtn = document.getElementById('rpFindAddr');
+  if(findBtn) findBtn.addEventListener('click', rpFindAddress);
+  var confirmBox = document.getElementById('rpLocConfirm');
+  if(confirmBox) confirmBox.addEventListener('change', function(){ s.locConfirmed = !!confirmBox.checked; });
   var av = document.getElementById('rpAreaVal');
   if(av) av.addEventListener('input', function(){
     var u = document.getElementById('rpAreaUnit').value;
@@ -11450,6 +11719,94 @@ function reBindPostStep(){
   var sub = document.getElementById('rpSubmit');
   if(sub) sub.addEventListener('click', function(){ rePostSave(true); });
 }
+/* ---------- Post Property: exact-location pin (Leaflet on OSM) ----------
+   The poster types the exact address, drops/drag the pin onto the
+   property, reads back the address Nominatim reports for the pin
+   and confirms it before continuing. The pin + exact address are
+   stored in the private property_locations table; the public view
+   only ever exposes coordinates when the poster chose "Show
+   approximate area" (location_consent = 'approximate'). */
+var RP_PIN = { map:null, marker:null };
+function rpPinAddrEl(){ return document.getElementById('rpPinAddr'); }
+function rpPinShowText(t){
+  var el = rpPinAddrEl(); if(el) el.textContent = t;
+}
+function rpPinLookup(){
+  var s = RE.post; if(!s) return;
+  var lat = parseFloat(s.lat), lng = parseFloat(s.lng);
+  if(!isFinite(lat) || !isFinite(lng)){ rpPinShowText('Drag the pin or tap the map to place it exactly on the property.'); return; }
+  rpPinShowText('Looking up the pinned address…');
+  if(typeof fetch === 'undefined'){ rpPinShowText('Pinned at ' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ' — check it against your address above.'); return; }
+  fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng))
+    .then(function(r){ return r.json(); })
+    .then(function(j){
+      if(!RE.post) return;
+      if(j && j.display_name){
+        RE.post.pinnedAddress = j.display_name;
+        rpPinShowText('Pinned address: ' + j.display_name);
+      } else {
+        rpPinShowText('Pinned at ' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ' — no street address is mapped here yet; check the pin against your address above.');
+      }
+    })
+    .catch(function(){
+      rpPinShowText('Pinned at ' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ' — the address lookup did not answer; check the pin on the map.');
+    });
+}
+function rpPinSet(lat, lng){
+  var s = RE.post; if(!s) return;
+  s.lat = String(Math.round(lat * 1e6) / 1e6);
+  s.lng = String(Math.round(lng * 1e6) / 1e6);
+  /* Moving the pin voids the earlier confirmation — the poster must
+     verify the new position before continuing. */
+  if(s.locConfirmed){
+    s.locConfirmed = false;
+    var cb = document.getElementById('rpLocConfirm');
+    if(cb) cb.checked = false;
+  }
+  rpPinLookup();
+}
+function rpInitPinMap(){
+  var el = document.getElementById('rpPinMap');
+  var s = RE.post; if(!el || !s) return;
+  if(RP_PIN.map){ try{ RP_PIN.map.remove(); }catch(e){} RP_PIN.map = null; RP_PIN.marker = null; }
+  if(!osmReady()){
+    el.innerHTML = '<p class="f-note" style="padding:16px;margin:0">The map could not load here — check your connection and reopen this step to place the pin.</p>';
+    return;
+  }
+  var has = isFinite(parseFloat(s.lat)) && isFinite(parseFloat(s.lng));
+  var center = has ? [parseFloat(s.lat), parseFloat(s.lng)] : [MAP_KHAMMAM.lat, MAP_KHAMMAM.lng];
+  RP_PIN.map = L.map(el, { center:center, zoom: has ? 16 : 12, attributionControl:true });
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors' }).addTo(RP_PIN.map);
+  RP_PIN.marker = L.marker(center, { draggable:true }).addTo(RP_PIN.map);
+  RP_PIN.marker.on('dragend', function(){ var ll = RP_PIN.marker.getLatLng(); rpPinSet(ll.lat, ll.lng); });
+  RP_PIN.map.on('click', function(e){ if(RP_PIN.marker) RP_PIN.marker.setLatLng(e.latlng); rpPinSet(e.latlng.lat, e.latlng.lng); });
+  if(has) rpPinLookup();
+  else rpPinShowText('Drag the pin or tap the map to place it exactly on the property.');
+  setTimeout(function(){ if(RP_PIN.map) RP_PIN.map.invalidateSize(); }, 120);
+}
+function rpFindAddress(){
+  var s = RE.post; if(!s) return;
+  var inp = document.getElementById('rpExactAddr');
+  var q = inp ? (inp.value || '').trim() : '';
+  if(q.length < 6){ showToast('<b>Type the exact address first</b>, then tap “Find address on map”.'); return; }
+  s.exactAddress = q;
+  if(typeof fetch === 'undefined'){ showToast('Address search is not available in this browser — drag the pin to the property instead.'); return; }
+  showToast('Finding that address on the map…');
+  fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&viewbox=79.95,17.35,80.35,17.15&bounded=1&q=' + encodeURIComponent(q + ', Khammam, Telangana, India'))
+    .then(function(r){ return r.json(); })
+    .then(function(res){
+      if(res && res[0] && RP_PIN.map && RP_PIN.marker){
+        var lat = parseFloat(res[0].lat), lng = parseFloat(res[0].lon);
+        RP_PIN.marker.setLatLng([lat, lng]);
+        RP_PIN.map.setView([lat, lng], 16);
+        rpPinSet(lat, lng);
+        showToast('<b>Pin placed.</b> Drag it until it sits exactly on the property, then tick the confirmation.');
+      } else {
+        showToast('That address was not found on the map — drag the pin to the property instead.');
+      }
+    })
+    .catch(function(){ showToast('The address search did not answer — drag the pin to the property instead.'); });
+}
 function rePostSave(submit){
   var s = RE.post; if(!s || s.busy) return;
   var err = document.getElementById('rpErr');
@@ -11494,8 +11851,11 @@ function rePostSave(submit){
       property_id:propId, state:s.state || 'Telangana', district:s.district || 'Khammam', city:s.city || 'Khammam',
       locality:s.locality, landmark:s.landmark.trim() || null, pincode:s.pincode.trim() || null,
       exact_address:s.exactAddress.trim() || null,
-      lat:(s.consent === 'approximate' && isFinite(lat)) ? lat : null,
-      lng:(s.consent === 'approximate' && isFinite(lng)) ? lng : null,
+      /* The exact pin is always stored in this private table so the
+         review team can verify the listing; the public view exposes
+         coordinates only when location_consent is 'approximate'. */
+      lat:isFinite(lat) ? lat : null,
+      lng:isFinite(lng) ? lng : null,
       location_consent:s.consent
     }, { onConflict:'property_id' });
   }).then(function(r){ if(r && r.error) throw r.error;
@@ -11558,7 +11918,7 @@ function reEditProperty(p, loc, media){
     s.pincode = loc.pincode || ''; s.exactAddress = loc.exact_address || '';
     s.consent = loc.location_consent || 'none';
     s.lat = loc.lat != null ? String(loc.lat) : ''; s.lng = loc.lng != null ? String(loc.lng) : '';
-    s.locConfirmed = (s.consent === 'approximate' && s.lat !== '' && s.lng !== '');
+    s.locConfirmed = (s.lat !== '' && s.lng !== '' && (loc.exact_address || '').trim().length >= 8);
   }
   s.media = (media || []).filter(function(m){ return m.kind !== 'tour360'; }).map(function(m){
     return { path:m.storage_path, kind:m.kind, caption:m.caption || '', cover:!!m.is_cover, url:reImg(m.storage_path) };
