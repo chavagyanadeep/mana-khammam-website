@@ -23,6 +23,8 @@
 <title>Mana Khammam — News, Real Estate, Buy &amp; Sell and Daily Essentials for Khammam</title>
 <meta name="theme-color" content="#102B24" />
 <link rel="stylesheet" href="data:text/css;base64,LyogUGx1cyBKYWthcnRhIFNhbnMg4oCUIHZlbmRvcmVkIGxvY2FsbHkgKHZhcmlhYmxlIGZvbnQsIHdlaWdodHMgMjAw4oCTODAwKS4KICAgVGhlIHNpdGUgbm8gbG9uZ2VyIGxvYWRzIGl0cyB0eXBlZmFjZSBmcm9tIEdvb2dsZSBGb250cywgc28gdGhlIFVJCiAgIHJlbmRlcnMgaWRlbnRpY2FsbHkgd2l0aCBvciB3aXRob3V0IGV4dGVybmFsIG5ldHdvcmsgYWNjZXNzLgogICBGaWxlczogZm9udHMuZ3N0YXRpYy5jb20vcy9wbHVzamFrYXJ0YXNhbnMvdjEyIChsYXRpbiArIGxhdGluLWV4dCkuICovCkBmb250LWZhY2UgewogIGZvbnQtZmFtaWx5OiAnUGx1cyBKYWthcnRhIFNhbnMnOwogIGZvbnQtc3R5bGU6IG5vcm1hbDsKICBmb250LXdlaWdodDogMjAwIDgwMDsKICBmb250LWRpc3BsYXk6IHN3YXA7CiAgc3JjOiB1cmwoZm9udHMvcGx1cy1qYWthcnRhLXNhbnMtbGF0aW4ud29mZjIpIGZvcm1hdCgnd29mZjInKTsKICB1bmljb2RlLXJhbmdlOiBVKzAwMDAtMDBGRiwgVSswMTMxLCBVKzAxNTItMDE1MywgVSswMkJCLTAyQkMsIFUrMDJDNiwgVSswMkRBLCBVKzAyREMsIFUrMDMwNCwgVSswMzA4LCBVKzAzMjksIFUrMjAwMC0yMDZGLCBVKzIwQUMsIFUrMjEyMiwgVSsyMTkxLCBVKzIxOTMsIFUrMjIxMiwgVSsyMjE1LCBVK0ZFRkYsIFUrRkZGRDsKfQpAZm9udC1mYWNlIHsKICBmb250LWZhbWlseTogJ1BsdXMgSmFrYXJ0YSBTYW5zJzsKICBmb250LXN0eWxlOiBub3JtYWw7CiAgZm9udC13ZWlnaHQ6IDIwMCA4MDA7CiAgZm9udC1kaXNwbGF5OiBzd2FwOwogIHNyYzogdXJsKGZvbnRzL3BsdXMtamFrYXJ0YS1zYW5zLWxhdGluLWV4dC53b2ZmMikgZm9ybWF0KCd3b2ZmMicpOwogIHVuaWNvZGUtcmFuZ2U6IFUrMDEwMC0wMkJBLCBVKzAyQkQtMDJDNSwgVSswMkM3LTAyQ0MsIFUrMDJDRS0wMkQ3LCBVKzAyREQtMDJGRiwgVSswMzA0LCBVKzAzMDgsIFUrMDMyOSwgVSsxRDAwLTFEQkYsIFUrMUUwMC0xRTlGLCBVKzFFRjItMUVGRiwgVSsyMDIwLCBVKzIwQTAtMjBBQiwgVSsyMEFELTIwQzQsIFUrMjBCOSwgVSsyMTEzLCBVKzJDNjAtMkM3RiwgVStBNzIwLUE3RkY7Cn0K" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <style>
 /* ============ MANA KHAMMAM — DESIGN TOKENS ============ */
 :root{
@@ -2115,13 +2117,12 @@ body.mk-lock{overflow:hidden}
 
 
 /* ================================================================
-   REAL ESTATE MAP — GOOGLE MAPS-STYLE DISCOVERY (Feature 03b)
-   Split results panel + Google Map with price · category · size
-   pill markers (AdvancedMarkerElement), clustering, Search this
-   area, single preview / mobile bottom sheet. Markers are built
-   ONLY from real approved listings + the public approximate
-   locations view. With no founder-supplied Google Maps key the
-   pane shows an honest unavailable state — never fake tiles.
+   REAL ESTATE MAP — OPENSTREETMAP DISCOVERY (Feature 03b)
+   Split results panel + Leaflet map on free OpenStreetMap tiles
+   with price · category · size pill markers, clustering,
+   Search this area, single preview / mobile bottom sheet. No API
+   key, no billing. Markers are built ONLY from real approved
+   listings + the public approximate locations view.
    ================================================================ */
 .remap-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px}
 .remap-tool{font-size:12.5px;font-weight:700;padding:9px 13px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--ink-2);display:inline-flex;gap:6px;align-items:center;min-height:38px}
@@ -2134,7 +2135,13 @@ body.mk-lock{overflow:hidden}
 .remap-split{display:flex;flex-direction:column;gap:16px;margin-top:12px}
 .remap-main{position:relative;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:#E7EEE8;height:56dvh;min-height:360px;box-shadow:var(--shadow-card)}
 .remap-canvas{position:absolute;inset:0}
-.remap-canvas .gm-style{font-family:var(--font-ui)}
+.remap-canvas .leaflet-container{font-family:var(--font-ui);background:#E7EEE8}
+.osm-div-icon{background:transparent;border:none}
+.osm-pill{transform:translate(-50%,calc(-100% - 4px))}
+.osm-cluster-wrap{background:transparent;border:none}
+.marker-cluster{background:transparent}
+.leaflet-control-attribution{font-size:10px!important;background:rgba(255,255,255,.85)!important;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--accent-deep)}
 .remap-pane-state{position:absolute;inset:0;z-index:4;display:none;align-items:center;justify-content:center;padding:26px;background:linear-gradient(180deg,#EFF4EF,#E4EDE4)}
 .remap-fallback{text-align:center;max-width:40ch}
 .remap-fallback .rf-ic{width:64px;height:64px;border-radius:20px;background:var(--surface);border:1px solid var(--line);color:var(--accent);display:grid;place-items:center;margin:0 auto 14px}
@@ -2145,13 +2152,13 @@ body.mk-lock{overflow:hidden}
 .remap-loading{font-size:13.5px;font-weight:700;color:var(--muted)}
 .remap-search-area{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;background:var(--forest);color:#fff;font-size:13px;font-weight:800;padding:10px 18px;border-radius:999px;box-shadow:0 6px 18px rgba(16,43,36,.32);min-height:40px}
 .remap-search-area:active{transform:translateX(-50%) scale(.96)}
-.gmap-pill{background:var(--forest);color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:12.5px;font-weight:800;letter-spacing:-.01em;padding:7px 11px;border-radius:999px;border:2px solid #fff;box-shadow:0 4px 12px rgba(16,43,36,.35);white-space:nowrap;cursor:pointer;position:relative;line-height:1.25}
-.gmap-pill::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--forest);border-bottom:0}
-.gmap-pill.sel{background:#fff;color:var(--forest);border-color:var(--gold);transform:scale(1.07)}
-.gmap-pill.sel::after{border-top-color:var(--gold)}
-.gmap-pill.sold{background:#5C6B63}
-.gmap-pill.sold::after{border-top-color:#5C6B63}
-.gmap-cluster{width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;font-weight:800;display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 4px 14px rgba(16,43,36,.35);cursor:pointer}
+.osm-pill{background:var(--forest);color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:12.5px;font-weight:800;letter-spacing:-.01em;padding:7px 11px;border-radius:999px;border:2px solid #fff;box-shadow:0 4px 12px rgba(16,43,36,.35);white-space:nowrap;cursor:pointer;position:relative;line-height:1.25}
+.osm-pill::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--forest);border-bottom:0}
+.osm-pill.sel{background:#fff;color:var(--forest);border-color:var(--gold);transform:translate(-50%,calc(-100% - 4px)) scale(1.07)}
+.osm-pill.sel::after{border-top-color:var(--gold)}
+.osm-pill.sold{background:#5C6B63}
+.osm-pill.sold::after{border-top-color:#5C6B63}
+.osm-cluster{width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;font-weight:800;display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 4px 14px rgba(16,43,36,.35);cursor:pointer}
 .remap-side-head h3{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--forest)}
 .remap-side-head span{font-size:12.5px;color:var(--muted)}
 .remap-list{display:flex;flex-direction:column;gap:12px;margin-top:12px}
@@ -3162,7 +3169,7 @@ table.ng-table td b{color:var(--ink)}
         <li><b>Supabase</b> — authentication, database and file storage (see “Who receives your information”).</li>
         <li><b>Open-Meteo</b> — weather forecasts for Khammam; requests carry the city’s coordinates, not your identity or precise location.</li>
         <li><b>Plus Jakarta Sans</b> — the interface typeface, served from this site’s own files; no font requests are sent to Google or any other font service.</li>
-        <li><b>Google Maps</b> — only where a founder-supplied Maps key is configured on a device, for the property map.</li>
+        <li><b>OpenStreetMap</b> — map tiles for the property map. Tile requests go to OpenStreetMap’s public tile service and carry only the map area on screen — not your identity or precise location. Map data © OpenStreetMap contributors.</li>
       </ul>
       <p>Mana Khammam does not run advertising trackers and does not sell personal data.</p>
       <h3>Your rights</h3>
@@ -3273,7 +3280,7 @@ table.ng-table td b{color:var(--ink)}
         <li>Payment terms</li>
       </ul>
       <p>Buyers should consult qualified property and legal professionals where appropriate.</p>
-      <h3>7. GOOGLE MAPS AND PROPERTY LOCATIONS</h3>
+      <h3>7. MAPS AND PROPERTY LOCATIONS</h3>
       <p>Property maps and geographical search tools are intended to assist discovery.</p>
       <p>Public map locations may be exact or approximate, depending on available data and privacy settings.</p>
       <p>A map marker does not constitute certification of ownership, land boundaries, legal survey accuracy, road access, or permission to develop land.</p>
@@ -3417,7 +3424,7 @@ table.ng-table td b{color:var(--ink)}
       <h3>16. THIRD-PARTY LINKS AND SERVICES</h3>
       <p>The Platform may provide links or integrations involving:</p>
       <ul>
-        <li>Google Maps</li>
+        <li>OpenStreetMap — property map tiles and data</li>
         <li>External news sources</li>
         <li>WhatsApp</li>
         <li>Instagram</li>
@@ -3530,24 +3537,10 @@ table.ng-table td b{color:var(--ink)}
         </div>
       </div>
       <div class="f-card">
-        <h3>Google Maps — Real Estate Map</h3>
-        <p>The property map and the Post Property location picker use the Google Maps JavaScript API. Paste your own Google Maps API key here — it is saved on this device only, is never written into the app, and no key ships with Mana Khammam. Until a key is saved, the map pane shows visitors an honest “map unavailable” state and List view keeps working.</p>
-        <div style="margin-bottom:14px"><span class="f-status" id="fsGmapsStatus"><i></i><span id="fsGmapsStatusText">Not set</span></span></div>
-        <div class="f-field">
-          <label for="fsGmapsKey">Google Maps API key</label>
-          <input class="f-input" id="fsGmapsKey" type="text" autocomplete="off" spellcheck="false" placeholder="Paste your restricted browser API key" />
-        </div>
-        <div class="f-field">
-          <label for="fsGmapsMapId">Map ID (optional)</label>
-          <input class="f-input" id="fsGmapsMapId" type="text" autocomplete="off" spellcheck="false" placeholder="Your Cloud Map ID — needed for custom map styling" />
-        </div>
-        <p class="f-note">Before using the key: in Google Cloud Console, restrict it to this website’s HTTP referrers and to the <b>Maps JavaScript API</b> (plus Places API for the location picker search) only. Maps loads are billed by Google — set a budget alert and a daily quota cap in the same console. Advanced Markers need a Map ID; if you leave it blank, Google’s demo Map ID is used so markers still work. Never paste a server-side or unrestricted key here.</p>
-        <div class="f-err" id="fsGmapsErr"></div>
-        <div class="f-ok" id="fsGmapsOk"></div>
-        <div class="f-row" style="margin-top:14px">
-          <button class="btn-ghost" id="fsGmapsClear">Clear saved key</button>
-          <button class="btn-solid" id="fsGmapsSave">Save</button>
-        </div>
+        <h3>Property Map — OpenStreetMap</h3>
+        <p>The property map uses <b>OpenStreetMap</b> with Leaflet — free map data and tiles, with no API key, no Google account and no billing. There is nothing to paste or configure here: the map is always on, centred on Khammam, and rupee price markers appear automatically for approved listings whose sellers shared an approximate location. Map data © OpenStreetMap contributors.</p>
+        <div style="margin-bottom:6px"><span class="f-status connected" id="fsOsmStatus"><i></i><span id="fsOsmStatusText">On — OpenStreetMap (free, no key)</span></span></div>
+        <p class="f-note">Satellite view in Map mode uses Esri World Imagery tiles. Exact addresses are never shown on the map — only the approximate location a seller chose to share.</p>
       </div>
       <div class="f-card">
         <h3>News Dashboard</h3>
@@ -6290,11 +6283,7 @@ function mkOpenFounderSettings(){
   var urlEl = document.getElementById('fsUrl'), keyEl = document.getElementById('fsKey');
   if(urlEl && !urlEl.value) urlEl.value = cfg.url;
   if(keyEl && !keyEl.value) keyEl.value = cfg.key;
-  var gmK = document.getElementById('fsGmapsKey'), gmM = document.getElementById('fsGmapsMapId');
-  var gmCfgNow = (typeof gmCfgRead === 'function') ? gmCfgRead() : { key:'', mapId:'' };
-  if(gmK && !gmK.value) gmK.value = gmCfgNow.key;
-  if(gmM && !gmM.value) gmM.value = gmCfgNow.mapId;
-  if(typeof gmPaintFounder === 'function') gmPaintFounder();
+  if(typeof osmPaintFounder === 'function') osmPaintFounder();
   if(!cfg.url || !cfg.key) mkSetStatus('not');
   window.scrollTo({ top:0 });
 }
@@ -9091,99 +9080,31 @@ window.addEventListener('hashchange', function(){
 });
 </script>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 /* =====================================================================
-   GOOGLE MAPS — single configuration point.
-   The API key is supplied by the founder in the hidden Founder Settings
-   and stored ONLY in this device's local storage (same pattern as the
-   Supabase config). No key is ever written into this file. When no key
-   is saved, gmLoad() resolves false and the Real Estate map pane shows
-   its honest unavailable state; List view is unaffected.
+   OPENSTREETMAP + LEAFLET — single configuration point.
+   The property map is drawn with Leaflet on free OpenStreetMap
+   tiles: no API key, no billing account, nothing to configure.
+   Satellite view uses Esri World Imagery tiles. Markers are built
+   only from real approved listings and their shared approximate
+   locations; with no locations shared, the map simply centres on
+   Khammam and the side list says so honestly.
    ===================================================================== */
-var GM_LS_KEY = 'mk_gmaps_key', GM_LS_MAPID = 'mk_gmaps_map_id';
-var GM_KHAMMAM = { lat:17.2473, lng:80.1514 };
-var GM = { state:'idle', promise:null, map:null, markers:{}, clusterer:null,
+var MAP_KHAMMAM = { lat:17.2473, lng:80.1514 };
+var OSM = { state:'idle', map:null, markers:{}, clusterer:null,
+  baseLayer:null, satLayer:null, tier:-1, satellite:false,
   selectedId:null, boundsFilter:null, initialBounds:null, shell:false,
   suppressUntil:0, lastItems:[] };
-function gmCfgRead(){
-  try{ return { key:(localStorage.getItem(GM_LS_KEY) || '').trim(), mapId:(localStorage.getItem(GM_LS_MAPID) || '').trim() }; }
-  catch(e){ return { key:'', mapId:'' }; }
-}
-function gmCfgWrite(key, mapId){
-  try{
-    if(key) localStorage.setItem(GM_LS_KEY, key); else localStorage.removeItem(GM_LS_KEY);
-    if(mapId) localStorage.setItem(GM_LS_MAPID, mapId); else localStorage.removeItem(GM_LS_MAPID);
-  }catch(e){}
-}
-function gmCfgClear(){ try{ localStorage.removeItem(GM_LS_KEY); localStorage.removeItem(GM_LS_MAPID); }catch(e){} }
-window.gm_authFailure = function(){
-  GM.state = 'failed'; GM.promise = null;
-  if(typeof reOnGmapsFailed === 'function') reOnGmapsFailed();
-};
-function gmLoad(){
-  if(GM.state === 'ready' && window.google && google.maps) return Promise.resolve(true);
-  if(GM.promise) return GM.promise;
-  var cfg = gmCfgRead();
-  if(!cfg.key){ GM.state = 'nokey'; return Promise.resolve(false); }
-  GM.state = 'loading';
-  GM.promise = new Promise(function(resolve){
-    var done = false;
-    function finish(ok){
-      if(done) return; done = true;
-      GM.state = ok ? 'ready' : 'failed';
-      if(!ok) GM.promise = null;
-      resolve(ok);
-    }
-    window.__gmReady = function(){ finish(!!(window.google && google.maps && google.maps.marker)); };
-    var cs = document.createElement('script');
-    cs.src = 'https://unpkg.com/@googlemaps/markerclusterer@2.5.3/dist/index.min.js';
-    cs.async = true; document.head.appendChild(cs);
-    var sc = document.createElement('script');
-    sc.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(cfg.key) + '&libraries=marker,places&v=weekly&callback=__gmReady';
-    sc.async = true; sc.defer = true;
-    sc.onerror = function(){ finish(false); };
-    document.head.appendChild(sc);
-    setTimeout(function(){ finish(!!(window.google && google.maps && google.maps.marker)); }, 12000);
-  });
-  return GM.promise;
-}
-function gmPaintFounder(){
-  var pill = document.getElementById('fsGmapsStatus'), label = document.getElementById('fsGmapsStatusText');
+function osmReady(){ return typeof L !== 'undefined'; }
+function osmPaintFounder(){
+  var pill = document.getElementById('fsOsmStatus'), label = document.getElementById('fsOsmStatusText');
   if(!pill || !label) return;
-  var has = !!gmCfgRead().key;
-  pill.className = 'f-status' + (has ? ' connected' : '');
-  label.textContent = has ? 'Key saved on this device' : 'Not set';
+  pill.className = 'f-status connected';
+  label.textContent = 'On \u2014 OpenStreetMap (free, no key)';
 }
-function gmFounderMsg(errText, okText){
-  var e = document.getElementById('fsGmapsErr'), o = document.getElementById('fsGmapsOk');
-  if(e){ e.textContent = errText || ''; e.classList.toggle('show', !!errText); }
-  if(o){ o.textContent = okText || ''; o.classList.toggle('show', !!okText); }
-}
-(function gmFounderInit(){
-  var k = document.getElementById('fsGmapsKey'), m = document.getElementById('fsGmapsMapId');
-  var cfg = gmCfgRead();
-  if(k && !k.value) k.value = cfg.key;
-  if(m && !m.value) m.value = cfg.mapId;
-  gmPaintFounder();
-  var save = document.getElementById('fsGmapsSave'), clear = document.getElementById('fsGmapsClear');
-  if(save) save.addEventListener('click', function(){
-    var key = (document.getElementById('fsGmapsKey').value || '').trim();
-    var mapId = (document.getElementById('fsGmapsMapId').value || '').trim();
-    if(!key){ gmFounderMsg('Paste your Google Maps API key first — Mana Khammam does not ship with one.', ''); return; }
-    gmCfgWrite(key, mapId);
-    GM.state = 'idle'; GM.promise = null; GM.shell = false;
-    gmPaintFounder();
-    gmFounderMsg('', 'Saved on this device. Open Real Estate → Map to load the live map with this key.');
-  });
-  if(clear) clear.addEventListener('click', function(){
-    gmCfgClear();
-    document.getElementById('fsGmapsKey').value = '';
-    document.getElementById('fsGmapsMapId').value = '';
-    GM.state = 'idle'; GM.promise = null; GM.shell = false; GM.map = null;
-    gmPaintFounder();
-    gmFounderMsg('', 'Saved Google Maps key cleared from this device. The map pane is back to its unavailable state.');
-  });
-})();
+(function osmFounderInit(){ osmPaintFounder(); })();
 </script>
 
 <script>
@@ -9529,9 +9450,9 @@ function reInit(){
     });
   })();
   document.getElementById('reBackBrowse').addEventListener('click', function(){ reShowTab('browse'); });
-  document.getElementById('reViewList').addEventListener('click', function(){ RE.viewMode = 'list'; GM.shell = false; GM.boundsFilter = null; GM.selectedId = null; rePaintViewMode(); reRenderBrowse(); });
-  document.getElementById('reViewMap').addEventListener('click', function(){ RE.viewMode = 'map'; GM.shell = false; rePaintViewMode(); reRenderBrowse(); });
-  document.getElementById('reViewVideos').addEventListener('click', function(){ RE.viewMode = 'videos'; GM.shell = false; rePaintViewMode(); reRenderBrowse(); });
+  document.getElementById('reViewList').addEventListener('click', function(){ RE.viewMode = 'list'; OSM.shell = false; OSM.boundsFilter = null; OSM.selectedId = null; rePaintViewMode(); reRenderBrowse(); });
+  document.getElementById('reViewMap').addEventListener('click', function(){ RE.viewMode = 'map'; OSM.shell = false; rePaintViewMode(); reRenderBrowse(); });
+  document.getElementById('reViewVideos').addEventListener('click', function(){ RE.viewMode = 'videos'; OSM.shell = false; rePaintViewMode(); reRenderBrowse(); });
   document.getElementById('reSaveSearchBtn').addEventListener('click', reSaveCurrentSearch);
   document.getElementById('reFilterToggle').addEventListener('click', function(){
     var p = document.getElementById('reFilterPanel');
@@ -9891,26 +9812,26 @@ function reRenderBrowse(){
   reBindCards(body);
 }
 function reMapOfflineHTML(){
-  GM.shell = true;
+  OSM.shell = true;
   return '<div class="remap-split"><section class="remap-main" aria-label="Property map">'
     + '<div class="remap-pane-state" style="display:flex">' + reMapFallbackInner('notconnected') + '</div></section>'
     + '<aside class="remap-side" aria-label="Property results">' + reNotConnectedHTML() + '</aside></div>';
 }
 function reMapFallbackInner(kind){
   var pin = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>';
-  if(kind === 'failed') return '<div class="remap-fallback"><div class="rf-ic">' + pin + '</div><h3>Google Maps failed to load</h3><p>The map could not be loaded right now. Your property results are unaffected — browse them in List view, or try loading the map again.</p><div class="rf-acts"><button class="btn-solid" data-remap-retry>Try again</button><button class="btn-ghost" data-remap-list>Switch to List view</button></div></div>';
+  if(kind === 'failed') return '<div class="remap-fallback"><div class="rf-ic">' + pin + '</div><h3>The map could not be loaded</h3><p>OpenStreetMap tiles did not load — check your connection and try again. Your property results are unaffected — browse them in List view, or try loading the map again.</p><div class="rf-acts"><button class="btn-solid" data-remap-retry>Try again</button><button class="btn-ghost" data-remap-list>Switch to List view</button></div></div>';
   if(kind === 'notconnected') return '<div class="remap-fallback"><div class="rf-ic">' + pin + '</div><h3>Listings aren’t available yet</h3><p>Real estate listings are not connected yet, so there is nothing to show on the map. When live Khammam properties are published, their price, type and size will appear here as map markers.</p><div class="rf-acts"><button class="btn-ghost" data-remap-list>Switch to List view</button></div></div>';
-  return '<div class="remap-fallback"><div class="rf-ic">' + pin + '</div><h3>Map unavailable</h3><p>The property map isn’t set up yet, so locations can’t be drawn right now. List view works fully — every property for sale in Khammam is there.</p><div class="rf-acts"><button class="btn-solid" data-remap-list>Browse in List view</button></div></div>';
+  return '<div class="remap-fallback"><div class="rf-ic">' + pin + '</div><h3>Map could not be shown</h3><p>The property map could not be drawn right now. List view works fully — every property for sale in Khammam is there.</p><div class="rf-acts"><button class="btn-solid" data-remap-list>Browse in List view</button></div></div>';
 }
 function reBindPaneState(root){
   root.querySelectorAll('[data-remap-list]').forEach(function(b){
-    b.addEventListener('click', function(){ RE.viewMode = 'list'; GM.shell = false; GM.boundsFilter = null; GM.selectedId = null; rePaintViewMode(); reRenderBrowse(); });
+    b.addEventListener('click', function(){ RE.viewMode = 'list'; OSM.shell = false; OSM.boundsFilter = null; OSM.selectedId = null; rePaintViewMode(); reRenderBrowse(); });
   });
   root.querySelectorAll('[data-remap-retry]').forEach(function(b){
-    b.addEventListener('click', function(){ GM.state = 'idle'; GM.promise = null; gmMountMap(GM.lastItems || []); });
+    b.addEventListener('click', function(){ OSM.state = 'idle'; OSM.promise = null; osmMountMap(OSM.lastItems || []); });
   });
 }
-function reOnGmapsFailed(){
+function reOnMapFailed(){
   var pane = document.getElementById('remapPaneState');
   if(pane && RE.viewMode === 'map'){ pane.innerHTML = reMapFallbackInner('failed'); pane.style.display = 'flex'; reBindPaneState(pane); }
 }
@@ -9940,10 +9861,10 @@ function reMarkerText(p, tier){
 }
 function reMapLoc(p){ var l = RE.locs[p.id]; return (l && l.has_map && l.lat != null && l.lng != null) ? l : null; }
 function reInBounds(p, b){ var l = reMapLoc(p); if(!l) return false; return (+l.lat) <= b.north && (+l.lat) >= b.south && (+l.lng) <= b.east && (+l.lng) >= b.west; }
-function reMapShown(items){ return GM.boundsFilter ? items.filter(function(p){ return reInBounds(p, GM.boundsFilter); }) : items; }
+function reMapShown(items){ return OSM.boundsFilter ? items.filter(function(p){ return reInBounds(p, OSM.boundsFilter); }) : items; }
 function reMapCardHTML(p){
   var cover = reCoverOf(p);
-  return '<article class="remap-card' + (GM.selectedId === p.id ? ' sel' : '') + '" data-remap-card="' + p.id + '">'
+  return '<article class="remap-card' + (OSM.selectedId === p.id ? ' sel' : '') + '" data-remap-card="' + p.id + '">'
     + '<button style="display:flex;gap:12px;flex:1;min-width:0;text-align:left" data-remap-select="' + p.id + '" aria-label="Show ' + mkEsc(p.title) + ' on the map">'
     + (cover ? '<img src="' + mkEsc(cover) + '" alt="' + mkEsc(p.title) + '" loading="lazy"/>' : '<span class="rc-noimg">No photos yet</span>')
     + '<span class="rc-body"><span class="rc-price">' + reFmtINR(p.price)
@@ -9966,7 +9887,7 @@ function reMapSideHTML(shown, items){
     return mpEmptyHTML('No properties match your filters', 'Try a wider price or area range, or a different property type.', '', '')
       + '<button class="btn-ghost" data-remap-clearfilters style="width:100%;margin-top:12px">Clear search &amp; filters</button>';
   }
-  if(GM.boundsFilter && !shown.length){
+  if(OSM.boundsFilter && !shown.length){
     return '<div class="re-empty" role="status"><h3>No properties in this area</h3><p>No matching properties for sale fall inside the part of the map you searched. Move the map, or see everything in Khammam.</p><div class="re-empty-acts"><button class="btn-solid" data-remap-showall>Show all of Khammam</button></div></div>';
   }
   var withLoc = shown.filter(function(p){ return !!reMapLoc(p); }).length;
@@ -9990,8 +9911,8 @@ function reMapToolbarHTML(){
     + '<button class="remap-tool" data-remap-tool>Area / Size · <b>' + mkEsc(area) + '</b></button>'
     + '<button class="remap-tool" data-remap-tool>Location · <b>' + mkEsc(f.q ? f.q : 'Khammam') + '</b></button>'
     + '<button class="remap-tool" data-remap-tool>More filters' + (reActiveFilterCount() ? ' · <b>' + reActiveFilterCount() + ' active</b>' : '') + '</button>'
-    + (GM.boundsFilter ? '<span class="remap-area-chip">This area only <button data-remap-showall>Show all</button></span>' : '')
-    + '<button class="remap-tool' + (GM.satellite ? ' ng-sat-on' : '') + '" data-remap-sat aria-pressed="' + (GM.satellite ? 'true' : 'false') + '">Satellite · <b>' + (GM.satellite ? 'On' : 'Off') + '</b></button>'
+    + (OSM.boundsFilter ? '<span class="remap-area-chip">This area only <button data-remap-showall>Show all</button></span>' : '')
+    + '<button class="remap-tool' + (OSM.satellite ? ' ng-sat-on' : '') + '" data-remap-sat aria-pressed="' + (OSM.satellite ? 'true' : 'false') + '">Satellite · <b>' + (OSM.satellite ? 'On' : 'Off') + '</b></button>'
     + '<label class="remap-unit">Size in <select id="remapUnit" aria-label="Display area unit">' + units.map(function(u){ return '<option value="' + u[0] + '"' + (RE.displayUnit === u[0] ? ' selected' : '') + '>' + u[1] + '</option>'; }).join('') + '</select></label>';
 }
 function reBindMapToolbar(root){
@@ -10003,12 +9924,12 @@ function reBindMapToolbar(root){
     });
   });
   root.querySelectorAll('[data-remap-showall]').forEach(function(b){
-    b.addEventListener('click', function(){ GM.boundsFilter = null; GM.initialBounds = null; reRenderBrowse(); });
+    b.addEventListener('click', function(){ OSM.boundsFilter = null; OSM.initialBounds = null; reRenderBrowse(); });
   });
   root.querySelectorAll('[data-remap-sat]').forEach(function(b){
     b.addEventListener('click', function(){
-      GM.satellite = !GM.satellite;
-      if(GM.map){ try{ GM.map.setMapTypeId(GM.satellite ? 'satellite' : 'roadmap'); }catch(e){} }
+      OSM.satellite = !OSM.satellite;
+      osmApplySatellite();
       var tb = document.getElementById('remapToolbar');
       if(tb){ tb.innerHTML = reMapToolbarHTML(); reBindMapToolbar(tb); }
     });
@@ -10025,31 +9946,31 @@ function reBindMapSide(root){
     b.addEventListener('click', function(){ var si = document.getElementById('reSearchInput'); if(si) si.value = ''; reClearFilters(); });
   });
   root.querySelectorAll('[data-remap-showall]').forEach(function(b){
-    b.addEventListener('click', function(){ GM.boundsFilter = null; GM.initialBounds = null; reRenderBrowse(); });
+    b.addEventListener('click', function(){ OSM.boundsFilter = null; OSM.initialBounds = null; reRenderBrowse(); });
   });
 }
 function reRenderMap(body, items){
   var shown = reMapShown(items);
   var countEl = document.getElementById('reResultCount');
-  if(countEl) countEl.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties') + (GM.boundsFilter ? ' in this area' : '');
+  if(countEl) countEl.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties') + (OSM.boundsFilter ? ' in this area' : '');
   var side = document.getElementById('remapList');
-  if(GM.shell && side && document.getElementById('remapCanvas')){
+  if(OSM.shell && side && document.getElementById('remapCanvas')){
     side.innerHTML = reMapSideHTML(shown, items);
     var head = document.getElementById('remapSideCount');
     if(head) head.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties') + ' for sale';
     var tb = document.getElementById('remapToolbar');
     if(tb){ tb.innerHTML = reMapToolbarHTML(); reBindMapToolbar(tb); }
     reBindMapSide(side);
-    GM.lastItems = shown;
-    gmRefreshMarkers(shown);
-    if(GM.selectedId){
-      var sp = shown.filter(function(p){ return p.id === GM.selectedId; })[0];
-      if(sp) reRenderMapPreview(sp); else { GM.selectedId = null; var pv = document.getElementById('remapPreview'); if(pv) pv.innerHTML = ''; }
+    OSM.lastItems = shown;
+    osmRefreshMarkers(shown);
+    if(OSM.selectedId){
+      var sp = shown.filter(function(p){ return p.id === OSM.selectedId; })[0];
+      if(sp) reRenderMapPreview(sp); else { OSM.selectedId = null; var pv = document.getElementById('remapPreview'); if(pv) pv.innerHTML = ''; }
     }
     return;
   }
-  GM.shell = true;
-  GM.lastItems = shown;
+  OSM.shell = true;
+  OSM.lastItems = shown;
   body.innerHTML = '<div class="remap-toolbar" id="remapToolbar">' + reMapToolbarHTML() + '</div>'
     + '<div class="remap-split"><section class="remap-main" aria-label="Property map">'
     + '<div id="remapCanvas" class="remap-canvas" role="application" aria-label="Map of properties for sale in Khammam"></div>'
@@ -10063,107 +9984,106 @@ function reRenderMap(body, items){
   reBindMapSide(body);
   var sab = document.getElementById('remapSearchArea');
   if(sab) sab.addEventListener('click', function(){
-    if(!GM.map) return;
-    var b = GM.map.getBounds(); if(!b) return;
-    var j = b.toJSON();
-    GM.boundsFilter = { north:j.north, south:j.south, east:j.east, west:j.west };
+    if(!OSM.map) return;
+    var b = OSM.map.getBounds(); if(!b) return;
+    OSM.boundsFilter = { north:b.getNorth(), south:b.getSouth(), east:b.getEast(), west:b.getWest() };
     sab.style.display = 'none';
     reRenderBrowse();
   });
-  gmMountMap(shown);
+  osmMountMap(shown);
 }
-function gmMountMap(shown){
+function osmMountMap(shown){
   var pane = document.getElementById('remapPaneState');
   var canvas = document.getElementById('remapCanvas');
   if(!pane || !canvas) return;
-  if(!gmCfgRead().key){
-    GM.map = null;
-    pane.innerHTML = reMapFallbackInner('nokey'); pane.style.display = 'flex'; reBindPaneState(pane);
+  if(!osmReady()){
+    OSM.map = null;
+    pane.innerHTML = reMapFallbackInner('failed'); pane.style.display = 'flex'; reBindPaneState(pane);
     return;
   }
-  pane.innerHTML = '<div class="remap-loading">Loading map…</div>'; pane.style.display = 'flex';
-  gmLoad().then(function(ok){
-    if(!document.getElementById('remapCanvas')) return;
-    var p2 = document.getElementById('remapPaneState');
-    if(!ok){ if(p2){ p2.innerHTML = reMapFallbackInner('failed'); p2.style.display = 'flex'; reBindPaneState(p2); } return; }
-    if(p2){ p2.style.display = 'none'; p2.innerHTML = ''; }
-    var c2 = document.getElementById('remapCanvas');
-    GM.map = new google.maps.Map(c2, {
-      center:GM_KHAMMAM, zoom:12,
-      mapTypeId:(GM.satellite ? 'satellite' : 'roadmap'),
-      mapId:(gmCfgRead().mapId || 'DEMO_MAP_ID'),
-      mapTypeControl:true, streetViewControl:false, fullscreenControl:true, zoomControl:true, gestureHandling:'greedy'
+  pane.style.display = 'none'; pane.innerHTML = '';
+  if(OSM.map){ try{ OSM.map.remove(); }catch(e){} OSM.map = null; OSM.clusterer = null; OSM.markers = {}; }
+  OSM.state = 'ready';
+  OSM.map = L.map(canvas, { center:[MAP_KHAMMAM.lat, MAP_KHAMMAM.lng], zoom:12, zoomControl:true, attributionControl:true });
+  OSM.baseLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors' });
+  OSM.satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, attribution:'Imagery &copy; Esri, Maxar, Earthstar Geographics' });
+  (OSM.satellite ? OSM.satLayer : OSM.baseLayer).addTo(OSM.map);
+  if(L.markerClusterGroup){
+    OSM.clusterer = L.markerClusterGroup({
+      maxClusterRadius:54, spiderfyOnMaxZoom:true, showCoverageOnHover:false, zoomToBoundsOnClick:true,
+      iconCreateFunction:function(cluster){
+        return L.divIcon({ html:'<div class="osm-cluster">' + cluster.getChildCount() + '</div>', className:'osm-cluster-wrap', iconSize:[46,46] });
+      }
     });
-    GM.map.addListener('idle', gmOnMapIdle);
-    GM.map.addListener('zoom_changed', function(){ gmRefreshMarkers(GM.lastItems || []); });
-    GM.lastItems = shown;
-    gmRefreshMarkers(shown);
-    var withLoc = shown.filter(function(p){ return !!reMapLoc(p); });
-    if(withLoc.length){
-      var b = new google.maps.LatLngBounds();
-      withLoc.forEach(function(p){ var l = reMapLoc(p); b.extend({ lat:+l.lat, lng:+l.lng }); });
-      GM.suppressUntil = Date.now() + 900;
-      GM.map.fitBounds(b, 64);
-      google.maps.event.addListenerOnce(GM.map, 'idle', function(){ if(GM.map && GM.map.getZoom() > 15) GM.map.setZoom(15); });
-    }
-    if(GM.selectedId) reMapSelect(GM.selectedId, { center:false });
+    OSM.map.addLayer(OSM.clusterer);
+  }
+  OSM.map.on('moveend', osmOnMapIdle);
+  OSM.map.on('zoomend', function(){
+    var z = OSM.map.getZoom() || 12;
+    var tier = z < 13 ? 0 : (z < 15 ? 1 : 2);
+    if(tier !== OSM.tier) osmRefreshMarkers(OSM.lastItems || []);
   });
+  OSM.lastItems = shown;
+  OSM.tier = -1;
+  osmRefreshMarkers(shown);
+  var withLoc = shown.filter(function(p){ return !!reMapLoc(p); });
+  if(withLoc.length){
+    var pts = withLoc.map(function(p){ var l = reMapLoc(p); return [ +l.lat, +l.lng ]; });
+    var b = L.latLngBounds(pts);
+    OSM.suppressUntil = Date.now() + 900;
+    OSM.map.fitBounds(b.pad(0.15));
+    OSM.map.once('moveend', function(){ if(OSM.map && OSM.map.getZoom() > 15) OSM.map.setZoom(15); });
+  }
+  setTimeout(function(){ if(OSM.map) OSM.map.invalidateSize(); }, 120);
+  if(OSM.selectedId) reMapSelect(OSM.selectedId, { center:false });
 }
-function gmOnMapIdle(){
-  if(!GM.map) return;
-  var b = GM.map.getBounds(); if(!b) return;
-  var j = b.toJSON();
-  if(!GM.initialBounds && !GM.boundsFilter){ GM.initialBounds = { north:j.north, south:j.south, east:j.east, west:j.west }; return; }
-  if(Date.now() < GM.suppressUntil) return;
-  var ref = GM.boundsFilter || GM.initialBounds; if(!ref) return;
+function osmApplySatellite(){
+  if(!OSM.map) return;
+  if(OSM.satellite){
+    if(OSM.baseLayer) OSM.map.removeLayer(OSM.baseLayer);
+    if(OSM.satLayer) OSM.satLayer.addTo(OSM.map);
+  } else {
+    if(OSM.satLayer) OSM.map.removeLayer(OSM.satLayer);
+    if(OSM.baseLayer) OSM.baseLayer.addTo(OSM.map);
+  }
+}
+function osmOnMapIdle(){
+  if(!OSM.map) return;
+  var b = OSM.map.getBounds(); if(!b) return;
+  var j = { north:b.getNorth(), south:b.getSouth(), east:b.getEast(), west:b.getWest() };
+  if(!OSM.initialBounds && !OSM.boundsFilter){ OSM.initialBounds = j; return; }
+  if(Date.now() < OSM.suppressUntil) return;
+  var ref = OSM.boundsFilter || OSM.initialBounds; if(!ref) return;
   var moved = Math.abs(j.north - ref.north) > 0.004 || Math.abs(j.south - ref.south) > 0.004 || Math.abs(j.east - ref.east) > 0.004 || Math.abs(j.west - ref.west) > 0.004;
   var btn = document.getElementById('remapSearchArea');
   if(btn) btn.style.display = moved ? '' : 'none';
 }
-function gmRefreshMarkers(items){
-  GM.lastItems = items;
-  if(!GM.map || GM.state !== 'ready' || !window.google) return;
-  Object.keys(GM.markers).forEach(function(id){ try{ GM.markers[id].map = null; }catch(e){} });
-  GM.markers = {};
-  if(GM.clusterer){ try{ GM.clusterer.clearMarkers(); }catch(e){} GM.clusterer = null; }
-  var zoom = GM.map.getZoom() || 12;
+function osmRefreshMarkers(items){
+  OSM.lastItems = items;
+  if(!OSM.map || !osmReady()) return;
+  var zoom = OSM.map.getZoom() || 12;
   var tier = zoom < 13 ? 0 : (zoom < 15 ? 1 : 2);
+  OSM.tier = tier;
+  if(OSM.clusterer){ try{ OSM.clusterer.clearLayers(); }catch(e){} }
+  else { Object.keys(OSM.markers).forEach(function(id){ try{ OSM.map.removeLayer(OSM.markers[id]); }catch(e){} }); }
+  OSM.markers = {};
   var arr = [];
   items.forEach(function(p){
     var l = reMapLoc(p); if(!l) return;
-    var el = document.createElement('div');
-    el.className = 'gmap-pill' + (GM.selectedId === p.id ? ' sel' : '') + (p.status === 'sold' ? ' sold' : '');
-    el.textContent = reMarkerText(p, tier);
-    var mk = new google.maps.marker.AdvancedMarkerElement({
-      position:{ lat:+l.lat, lng:+l.lng }, content:el,
-      title:reMarkerText(p, 2) + ' — ' + p.title,
-      zIndex:(GM.selectedId === p.id ? 999 : null)
-    });
-    (function(prop){ mk.addListener('gmp-click', function(){ reMapSelect(prop.id, { center:false }); }); })(p);
-    GM.markers[p.id] = mk; arr.push(mk);
+    var cls = 'osm-pill' + (OSM.selectedId === p.id ? ' sel' : '') + (p.status === 'sold' ? ' sold' : '');
+    var icon = L.divIcon({ className:'osm-div-icon', html:'<div class="' + cls + '">' + mkEsc(reMarkerText(p, tier)) + '</div>', iconSize:[0,0] });
+    var mk = L.marker([ +l.lat, +l.lng ], { icon:icon, title:reMarkerText(p, 2) + ' \u2014 ' + p.title, zIndexOffset:(OSM.selectedId === p.id ? 1000 : 0) });
+    (function(prop){ mk.on('click', function(){ reMapSelect(prop.id, { center:false }); }); })(p);
+    OSM.markers[p.id] = mk; arr.push(mk);
   });
-  if(window.markerClusterer && markerClusterer.MarkerClusterer && arr.length > 1){
-    GM.clusterer = new markerClusterer.MarkerClusterer({
-      map:GM.map, markers:arr,
-      renderer:{ render:function(c){
-        var el = document.createElement('div');
-        el.className = 'gmap-cluster'; el.textContent = String(c.count);
-        return new google.maps.marker.AdvancedMarkerElement({ position:c.position, content:el, zIndex:1000 + c.count, title:c.count + ' properties — zoom in to see them' });
-      } }
-    });
-  } else {
-    arr.forEach(function(mk){ mk.map = GM.map; });
-  }
+  if(OSM.clusterer) OSM.clusterer.addLayers(arr);
+  else arr.forEach(function(mk){ mk.addTo(OSM.map); });
 }
 function reMapSelect(id, opts){
   opts = opts || {};
   var p = RE.props.filter(function(x){ return x.id === id; })[0]; if(!p) return;
-  GM.selectedId = id;
-  Object.keys(GM.markers).forEach(function(k){
-    var mk = GM.markers[k];
-    if(mk.content) mk.content.classList.toggle('sel', k === id);
-    try{ mk.zIndex = (k === id ? 999 : null); }catch(e){}
-  });
+  OSM.selectedId = id;
+  if(OSM.map) osmRefreshMarkers(OSM.lastItems && OSM.lastItems.length ? OSM.lastItems : RE.props);
   var list = document.getElementById('remapList');
   if(list){
     list.querySelectorAll('.remap-card').forEach(function(c){ c.classList.toggle('sel', c.getAttribute('data-remap-card') === id); });
@@ -10171,10 +10091,9 @@ function reMapSelect(id, opts){
     if(card) card.scrollIntoView({ block:'nearest', behavior:'smooth' });
   }
   var l = reMapLoc(p);
-  if(GM.map && l && opts.center){
-    GM.suppressUntil = Date.now() + 900;
-    GM.map.panTo({ lat:+l.lat, lng:+l.lng });
-    if((GM.map.getZoom() || 0) < 14) GM.map.setZoom(14);
+  if(OSM.map && l && opts.center){
+    OSM.suppressUntil = Date.now() + 900;
+    OSM.map.setView([ +l.lat, +l.lng ], Math.max(OSM.map.getZoom() || 12, 14));
   }
   reRenderMapPreview(p);
 }
@@ -10200,8 +10119,8 @@ function reRenderMapPreview(p){
   reBindCards(box);
   var x = box.querySelector('[data-remap-close]');
   if(x) x.addEventListener('click', function(){
-    box.innerHTML = ''; GM.selectedId = null;
-    Object.keys(GM.markers).forEach(function(k){ if(GM.markers[k].content) GM.markers[k].content.classList.remove('sel'); });
+    box.innerHTML = ''; OSM.selectedId = null;
+    if(OSM.map) osmRefreshMarkers(OSM.lastItems || []);
     var list = document.getElementById('remapList');
     if(list) list.querySelectorAll('.remap-card').forEach(function(c){ c.classList.remove('sel'); });
   });
@@ -22177,14 +22096,14 @@ function ngBindFeed(root){
 }
 function ngViewOnMap(id){
   PN.feedReturn = { id:id };
-  RE.viewMode = 'map'; GM.shell = false;
+  RE.viewMode = 'map'; OSM.shell = false;
   rePaintViewMode(); reRenderBrowse();
   setTimeout(function(){ reMapSelect(id, { center:true }); }, 350);
   window.scrollTo({ top:0 });
 }
 function ngBackToFeed(){
   var id = PN.feedReturn && PN.feedReturn.id;
-  PN.feedReturn = null; GM.selectedId = null;
+  PN.feedReturn = null; OSM.selectedId = null;
   RE.viewMode = 'videos';
   rePaintViewMode(); reRenderBrowse();
   setTimeout(function(){
