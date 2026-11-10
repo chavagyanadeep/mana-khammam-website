@@ -692,6 +692,16 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 }
 .profile-card h3{margin:0;font-size:17.5px;font-weight:700}
 .profile-card p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+/* Signed-out Profile: ONLY the sign-in card — every other direct child
+   of the Profile view is hidden until the user is signed in. */
+#profSignedOut{display:none}
+#view-profile.prof-signed-out #profSignedOut{display:block}
+#view-profile.prof-signed-out>*:not(#profSignedOut){display:none!important}
+#profSignedOut{max-width:560px;margin:0 auto;padding:22px var(--gutter) 8px}
+.prof-signin-card{padding:26px 22px 22px;border-radius:24px;margin-bottom:0}
+.prof-signin-card h3{font-size:25px;font-weight:800;letter-spacing:-.02em;margin:0 0 10px}
+.prof-signin-card>p{font-size:15px;color:var(--muted);line-height:1.6;margin:0 0 20px}
+.prof-signin-card .btn-solid{padding:15px 12px;font-size:16px}
 .set-list{padding:14px var(--gutter) 0}
 .set-row{
   width:100%;display:flex;align-items:center;gap:12px;padding:15px 0;border-bottom:1px solid var(--line);text-align:left;font-size:15px;font-weight:600;
@@ -740,33 +750,45 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .btn-ghost[disabled]{opacity:.38;pointer-events:none}
 .btn-solid{flex:1;padding:12px;border-radius:999px;background:var(--accent);color:#FFFFFF;font-weight:700;font-size:14px}
 .btn-solid:active{transform:scale(.97)}
+/* Profile Log out — deliberately unmissable: full-width, solid, high
+   contrast, sitting right under the signed-in identity card. */
+.btn-logout{width:100%;padding:15px 12px;border:none;border-radius:999px;background:#B3261E;color:#FFFFFF;font-family:inherit;font-weight:800;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-logout:active{transform:scale(.98)}
+.btn-logout[disabled]{opacity:.55;pointer-events:none}
 .nreader{
-  position:fixed;inset:0;z-index:80;max-width:430px;margin:0 auto;background:var(--paper);
+  position:fixed;inset:0;z-index:80;max-width:430px;margin:0 auto;background:#FFFFFF;
   display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateY(16px);
   transition:opacity .26s ease,transform .26s cubic-bezier(.22,.8,.3,1),visibility 0s linear .26s;
 }
 .nreader.open{opacity:1;visibility:visible;transform:none;transition:opacity .26s ease,transform .26s cubic-bezier(.22,.8,.3,1)}
 .nr-head{
-  flex:none;display:flex;align-items:center;gap:10px;
+  flex:none;position:relative;display:flex;align-items:center;gap:10px;
   padding:calc(10px + env(safe-area-inset-top)) var(--gutter) 10px;
-  border-bottom:1px solid var(--line);background:var(--paper);
+  border-bottom:2px solid var(--accent);background:#FFFFFF;
 }
+.nr-head .nr-back{background:transparent;width:34px;height:34px}
+.nr-head .nr-back svg{width:21px;height:21px}
+.nr-more-head{
+  flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--ink);
+}
+.nr-more-head:active{background:var(--paper-2)}
+.nr-more-head svg{width:20px;height:20px}
 .nr-back{
   flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--paper-2);color:var(--ink);
 }
 .nr-back:active{transform:scale(.92)}
-.nr-title{font-weight:800;font-size:16.5px;flex:1;min-width:0;white-space:nowrap;letter-spacing:-.01em}
+.nr-title{font-weight:800;font-size:19px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
 .nr-title span{color:var(--accent)}
-.nr-lang{flex:none;display:flex;background:var(--paper-2);border-radius:999px;padding:3px}
+.nr-lang{flex:none;display:flex;background:#FFFFFF;border:1px solid #D9E4DC;border-radius:999px;padding:3px}
 .nr-lang button{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:999px;color:var(--muted);transition:all .18s ease}
-.nr-lang button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(23,32,29,.16)}
+.nr-lang button.on{background:#DFF0E3;color:var(--ink);box-shadow:none}
 .nr-progress{flex:none;height:3px;background:var(--paper-2)}
 .nr-progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
-.nr-stage{position:relative;flex:1;overflow:hidden;perspective:1200px;touch-action:none}
-.nr-peek{position:absolute;inset:14px var(--gutter) 6px;opacity:.5;pointer-events:none;transform:scale(.965)}
+.nr-stage{position:relative;flex:1;overflow:hidden;perspective:1200px;touch-action:none;min-height:0}
+.nr-peek{position:absolute;inset:0;opacity:.5;pointer-events:none;transform:scale(.985)}
 .nr-card{
-  position:absolute;inset:14px var(--gutter) 6px;background:var(--surface);border:1px solid var(--line);border-radius:20px;
-  overflow:hidden;display:flex;flex-direction:column;box-shadow:0 12px 32px rgba(23,32,29,.12);
+  position:absolute;inset:0;background:#FFFFFF;border:0;border-radius:0;
+  overflow:hidden;display:flex;flex-direction:column;box-shadow:none;
   transform-origin:50% 100%;will-change:transform;backface-visibility:hidden;
 }
 .nr-peek .nr-card{position:absolute;inset:0}
@@ -780,30 +802,89 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 }
 .nr-breaking i{width:7px;height:7px;border-radius:50%;background:#FFFFFF;flex:none}
 .nr-media{position:relative;flex:none;background:var(--paper-2)}
-.nr-media img.main,.nr-media video.main{width:100%;height:29dvh;min-height:168px;max-height:288px;object-fit:cover;background:#101613}
+.nr-media img.main,.nr-media video.main{width:100%;height:clamp(250px,40dvh,400px);object-fit:cover;background:#101613}
 .nr-media video.main{display:block}
-.nr-credit{font-size:10.5px;color:var(--muted);padding:6px 16px 0;line-height:1.45}
-.nr-thumbs{display:flex;gap:7px;padding:9px 16px 0}
+.nr-credit{font-size:10.5px;color:var(--muted);padding:6px var(--gutter) 0;line-height:1.45}
+.nr-thumbs{display:flex;gap:7px;padding:9px var(--gutter) 0}
 .nr-thumbs button{width:54px;height:38px;border-radius:8px;overflow:hidden;border:2px solid transparent;padding:0;flex:none}
 .nr-thumbs button.on{border-color:var(--accent)}
 .nr-thumbs img{width:100%;height:100%;object-fit:cover}
-.nr-body{padding:12px 16px 0;flex:1;min-height:0;overflow:hidden}
-.nr-body h2{font-weight:800;font-size:22px;line-height:1.16;letter-spacing:-.01em;margin:0 0 8px;text-wrap:balance}
-.nr-body p{font-size:14.5px;line-height:1.62;color:var(--ink-2);margin:0}
-.nr-meta{display:flex;flex-wrap:wrap;gap:5px 8px;align-items:center;font-size:12px;color:var(--muted);padding:11px 16px 0}
+.nr-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:10px}
+.nr-kicker{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:16px var(--gutter) 0}
+.nr-kicker .cat{display:inline-flex;align-items:center;gap:6px;font-size:14.5px;font-weight:700;color:var(--accent-deep);background:#E2F1E6;padding:7px 14px;border-radius:999px}
+.nr-kicker .cat svg{width:16px;height:16px;flex:none}
+.nr-kicker .divider{width:1px;height:22px;background:#C7D5CB;flex:none}
+.nr-kicker .loc{display:inline-flex;align-items:center;font-size:14.5px;font-weight:700;color:var(--accent-deep);background:#E2F1E6;padding:7px 14px;border-radius:999px}
+.nr-body{padding:14px var(--gutter) 0}
+.nr-body h2{font-weight:800;font-size:clamp(26px,7vw,33px);line-height:1.18;letter-spacing:-.015em;margin:0 0 14px;text-wrap:balance;color:var(--ink)}
+.nr-body p{font-size:17.5px;line-height:1.66;color:var(--ink);margin:0;white-space:pre-wrap}
+.nr-body p+p{margin-top:15px}
+.nr-meta{display:flex;flex-wrap:wrap;gap:5px 8px;align-items:center;font-size:13.5px;color:var(--muted);padding:14px var(--gutter) 0;line-height:1.5}
 .nr-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--muted)}
-.nr-meta .count{margin-left:auto;font-weight:700;color:var(--ink-2)}
-.nr-source{font-size:12px;color:var(--muted);padding:3px 16px 0}
-.nr-actions{flex:none;display:flex;border-top:1px solid var(--line);margin-top:12px;background:var(--surface)}
-.nr-actions button{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 11px;
-  font-size:10.5px;font-weight:700;color:var(--ink-2);transition:background .15s ease;
+.nr-source{font-size:12.5px;color:var(--muted);padding:4px var(--gutter) 0;line-height:1.5}
+.nr-readfull{
+  display:inline-flex;align-items:center;gap:7px;margin:22px var(--gutter) 6px;
+  font-size:15px;font-weight:800;color:var(--accent-deep);padding:6px 0;
+  border-bottom:2px solid var(--mint);text-align:left;
 }
-.nr-actions button svg{width:20px;height:20px}
-.nr-actions button:active{background:var(--paper-2)}
-.nr-actions button.on{color:var(--accent)}
-.nr-actions button.share-act{color:var(--accent)}
-.nr-navrow{flex:none;display:flex;gap:10px;padding:10px var(--gutter) calc(12px + env(safe-area-inset-bottom))}
+.nr-readfull:active{transform:scale(.98)}
+.nr-readfull svg{flex:none}
+/* Bottom toolbar — Save / Share / WhatsApp anchored to the reader,
+   never overlapping the article (it is in normal flow below the stage). */
+.nr-swipe-hint{
+  flex:none;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  padding:10px var(--gutter) 8px;font-size:13.5px;font-weight:600;color:var(--muted);
+  background:#FFFFFF;
+}
+.nr-swipe-hint.show{display:flex}
+.nr-swipe-hint svg{flex:none;color:var(--accent);animation:nrHintNudge 2.2s ease-in-out infinite}
+@keyframes nrHintNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.nr-toolbar{
+  flex:none;position:relative;display:flex;align-items:stretch;gap:2px;
+  border-top:1px solid var(--line);background:#FFFFFF;
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+}
+.nr-toolbar>button,.nr-toolbar>a{
+  flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:8px 2px 7px;font-size:13px;font-weight:700;color:var(--ink-2);border-radius:12px;
+  text-decoration:none;transition:background .15s ease;min-height:54px;
+}
+.nr-toolbar>button+button::before,.nr-toolbar>button+a::before,.nr-toolbar>a+button::before{
+  content:"";position:absolute;left:0;top:20%;bottom:20%;width:1px;background:var(--line);
+}
+.nr-toolbar>button svg,.nr-toolbar>a svg{width:23px;height:23px}
+#nrShareBtn{color:var(--accent-deep)}
+.nr-toolbar>button:active,.nr-toolbar>a:active{background:var(--paper-2)}
+.nr-toolbar>button.on{color:var(--accent-deep)}
+.nr-toolbar>button.wa-t{color:#13652F}
+.nr-menu{
+  position:absolute;right:10px;top:calc(100% + 6px);z-index:20;min-width:212px;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+  padding:6px;display:none;
+}
+.nr-menu.open{display:block}
+.nr-menu button{
+  display:flex;width:100%;align-items:center;gap:10px;padding:11px 12px;border-radius:9px;
+  font-size:14px;font-weight:700;color:var(--ink);text-align:left;
+}
+.nr-menu button:active{background:var(--paper-2)}
+.nr-menu button[disabled]{opacity:.38;pointer-events:none}
+.nr-menu button svg{width:17px;height:17px;flex:none;color:var(--accent)}
+.nr-menu .sep{height:1px;background:var(--line);margin:5px 6px}
+@media (max-width:380px){
+  .nr-title{font-size:16px}
+  .nr-lang button{padding:6px 8px;font-size:12px}
+  .nr-head{gap:7px;padding-left:12px;padding-right:12px}
+  .nr-body p{font-size:16.5px}
+}
+@media (max-height:640px){
+  .nr-media img.main,.nr-media video.main{height:clamp(190px,32dvh,260px)}
+  .nr-body p{font-size:15.5px}
+}
+@media (prefers-reduced-motion: reduce){
+  .nr-swipe-hint svg{animation:none}
+  .nr-card.enter-next,.nr-card.enter-prev{animation:none}
+}
 .nr-empty{
   position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;padding:30px var(--gutter);
@@ -813,7 +894,7 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-empty h3{font-weight:800;font-size:21px;margin:0 0 7px}
 .nr-empty p{color:var(--muted);font-size:14px;margin:0;line-height:1.6;max-width:30ch}
 .nr-empty .btn-solid{flex:none;margin-top:20px;padding:12px 22px}
-.nr-nolang{padding:16px}
+.nr-nolang{padding:16px var(--gutter)}
 .nr-nolang .nl-box{background:var(--paper-2);border-radius:14px;padding:18px 16px;text-align:left}
 .nr-nolang h3{font-weight:800;font-size:18px;margin:0 0 6px}
 .nr-nolang p{font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 14px}
@@ -823,7 +904,7 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-endcard p{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 18px;max-width:28ch}
 .nr-endcard .btn-solid{flex:none;padding:12px 22px}
 .nr-full{
-  position:absolute;inset:0;background:var(--paper);z-index:6;display:flex;flex-direction:column;
+  position:absolute;inset:0;background:#FFFFFF;z-index:6;display:flex;flex-direction:column;
   transform:translateY(103%);transition:transform .32s cubic-bezier(.32,.9,.3,1);
 }
 .nr-full.open{transform:none}
@@ -3118,7 +3199,23 @@ table.ng-table td b{color:var(--ink)}
   </main>
 
   <!-- ================= VIEW: PROFILE ================= -->
-  <main class="view" id="view-profile">
+  <main class="view prof-signed-out" id="view-profile">
+    <!-- Signed out: ONLY this sign-in card is shown — no profile rows,
+         sections, menus or links around it (founder rule). The class is
+         removed by auSyncProfileCard() the moment a session exists, and
+         the signed-in Profile below then shows exactly as before. -->
+    <div id="profSignedOut">
+      <div class="f-card prof-signin-card">
+        <h3>Sign in</h3>
+        <p>Use the email address you registered with, and your password. Returning users sign in with their password only — no verification code, no email check, every time.</p>
+        <div class="f-field"><label for="pfSiId">Email</label><input class="f-input" id="pfSiId" type="email" inputmode="email" autocomplete="username" placeholder="you@example.com" /></div>
+        <div class="f-field"><label for="pfSiPw">Password</label><div class="au-passwrap"><input class="f-input" id="pfSiPw" type="password" autocomplete="current-password" placeholder="Password" /><button type="button" class="au-eye" id="pfSiEye">Show</button></div></div>
+        <div class="f-err" id="pfSiErr"></div>
+        <button class="btn-solid" id="pfSiBtn" style="width:100%;margin-top:6px">Sign in</button>
+        <div class="au-links" style="margin-top:14px"><button type="button" id="pfSiForgot">Forgot Password</button><button type="button" id="pfSiCode">No password handy? Use a one-time code</button></div>
+        <p class="f-note" style="margin-top:10px;text-align:center">New here? <button type="button" id="pfSiNew" style="background:none;border:none;font-family:inherit;font-weight:700;color:var(--accent-deep);cursor:pointer;padding:0">Create an account</button></p>
+      </div>
+    </div>
     <div class="page-head">
       <span class="micro" style="color:var(--accent)">Profile</span>
       <h2>You &amp; your city</h2>
@@ -3129,6 +3226,13 @@ table.ng-table td b{color:var(--ink)}
         <h3 id="profName">Guest</h3>
         <p id="profSub">Browsing without an account — that’s fine here.</p>
       </div>
+    </div>
+    <!-- Log out — prominent and right under the signed-in identity card
+         so it cannot be missed (founder rule). Visible only while signed
+         in: auSyncProfileCard() toggles the wrapper, and the signed-out
+         CSS hides every non-sign-in child of this view regardless. -->
+    <div id="profSignOutWrap" style="padding:16px var(--gutter) 0;display:none">
+      <button type="button" class="btn-logout" id="profSignOutBtn">Log out</button>
     </div>
     <div style="padding:14px var(--gutter) 0" id="profAuthCta">
       <button class="btn-solid" id="profSignInBtn" style="width:100%">Sign in / Create account</button>
@@ -4891,12 +4995,22 @@ table.ng-table td b{color:var(--ink)}
 <div class="nreader" id="newsReader" role="dialog" aria-modal="true" aria-label="Mana Khammam News" aria-hidden="true">
   <div class="nr-head">
     <button class="nr-back" id="nrBack" aria-label="Back">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
     </button>
     <div class="nr-title">Mana Khammam <span>News</span></div>
     <div class="nr-lang" role="group" aria-label="News language">
       <button id="nrLangEn" class="on">English</button>
       <button id="nrLangTe">తెలుగు</button>
+    </div>
+    <button class="nr-more-head" id="nrMoreBtn" aria-haspopup="menu" aria-expanded="false" aria-label="More options">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+    </button>
+    <div class="nr-menu" id="nrMenu" role="menu" aria-label="Story options">
+      <button id="nrMenuPrev" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Previous story</button>
+      <button id="nrMenuNext" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Next story</button>
+      <button id="nrMenuFull" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11v16H5z"/><path d="M8 8h5M8 12h5M8 16h3"/></svg>Read full story</button>
+      <div class="sep"></div>
+      <button id="nrMenuReport" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 5h11l-2.5 3.5L17 12H6"/></svg>Report issue</button>
     </div>
   </div>
   <div class="nr-progress"><i id="nrProg"></i></div>
@@ -4912,18 +5026,22 @@ table.ng-table td b{color:var(--ink)}
       <button class="btn-solid" id="nrEmptyBack">Back to home</button>
     </div>
   </div>
-  <div class="nr-navrow" id="nrNavRow">
-    <button class="btn-ghost" id="nrPrevBtn">
-      <span style="display:inline-flex;align-items:center;gap:6px;justify-content:center">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
-        Previous
-      </span>
+  <div class="nr-swipe-hint" id="nrSwipeHint" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l6-6 6 6"/></svg>
+    <span>Swipe up for more</span>
+  </div>
+  <div class="nr-toolbar" id="nrToolbar">
+    <button id="nrSaveBtn" aria-pressed="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.6L7 20z"/></svg>
+      <span>Save</span>
     </button>
-    <button class="btn-solid" id="nrNextBtn">
-      <span style="display:inline-flex;align-items:center;gap:6px;justify-content:center">
-        Next story
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
-      </span>
+    <button id="nrShareBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M8 7l4-4 4 4"/><path d="M5 12v7a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19v-7"/></svg>
+      <span>Share</span>
+    </button>
+    <button id="nrWaBtn" class="wa-t">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+      <span>WhatsApp</span>
     </button>
   </div>
   <div class="nr-full" id="nrFull" aria-hidden="true">
@@ -5646,8 +5764,13 @@ var nrEl = {
   root:document.getElementById('newsReader'), stage:document.getElementById('nrStage'),
   card:document.getElementById('nrCard'), peek:document.getElementById('nrPeek'),
   empty:document.getElementById('nrEmpty'), prog:document.getElementById('nrProg'),
-  navRow:document.getElementById('nrNavRow'), prev:document.getElementById('nrPrevBtn'),
-  next:document.getElementById('nrNextBtn'), full:document.getElementById('nrFull'),
+  toolbar:document.getElementById('nrToolbar'), hint:document.getElementById('nrSwipeHint'),
+  saveBtn:document.getElementById('nrSaveBtn'), shareBtn:document.getElementById('nrShareBtn'),
+  waBtn:document.getElementById('nrWaBtn'), moreBtn:document.getElementById('nrMoreBtn'),
+  menu:document.getElementById('nrMenu'),
+  menuPrev:document.getElementById('nrMenuPrev'), menuNext:document.getElementById('nrMenuNext'),
+  menuFull:document.getElementById('nrMenuFull'), menuReport:document.getElementById('nrMenuReport'),
+  full:document.getElementById('nrFull'),
   fullBody:document.getElementById('nrFullBody'),
   light:document.getElementById('nrLight'), lightImg:document.getElementById('nrLightImg'),
   lightCap:document.getElementById('nrLightCap'),
@@ -5706,6 +5829,23 @@ function newsTimeLabel(iso){
   var h = d.getHours(), m = ('0'+d.getMinutes()).slice(-2), ap = h>=12 ? 'PM' : 'AM'; h = h%12 || 12;
   return h+':'+m+' '+ap+' · '+d.getDate()+' '+NR_MONTHS[d.getMonth()]+' '+d.getFullYear();
 }
+/* Reader byline, mockup format: "By {author} • Updated: {date, time}" —
+   built only from the article's real publisher and timestamp. */
+function nrUpdatedLabel(iso){
+  var d = new Date(iso); if(isNaN(d.getTime())) return '';
+  var h = d.getHours(), m = ('0'+d.getMinutes()).slice(-2), ap = h>=12 ? 'PM' : 'AM'; h = h%12 || 12;
+  return d.getDate()+' '+NR_MONTHS[d.getMonth()]+' '+d.getFullYear()+', '+h+':'+m+' '+ap;
+}
+function nrBylineHTML(a){
+  return '<div class="nr-meta"><span>By '+mkEsc(a.publisher||'Mana Khammam Newsroom')+'</span><span class="dot"></span><span>Updated: '+nrUpdatedLabel(a.publishedAt)+'</span></div>';
+}
+/* Summary as real paragraphs: blank-line breaks in the stored summary
+   become separate <p> elements; the full text is always kept. */
+function nrSummaryHTML(summary){
+  var parts = String(summary||'').split(/\n\s*\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+  if(!parts.length) return '';
+  return parts.map(function(s){ return '<p>'+mkEsc(s)+'</p>'; }).join('');
+}
 function storyText(a, lang){ return (lang==='te' ? a.te : a.en) || null; }
 function mediaItems(a){
   var m = a.media || {}, items = [];
@@ -5735,53 +5875,58 @@ function nrMediaHTML(a, interactive){
   }
   return html;
 }
+function nrKickerHTML(a){
+  var cat = a.category || a.newsCategory || '';
+  var locName = a.locality || '';
+  if(!cat && !locName) return '';
+  var pin = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>';
+  var h = '<div class="nr-kicker">';
+  if(cat) h += '<span class="cat">'+pin+mkEsc(cat)+'</span>';
+  if(cat && locName) h += '<span class="divider" aria-hidden="true"></span>';
+  if(locName) h += '<span class="loc">'+mkEsc(locName)+'</span>';
+  return h + '</div>';
+}
 function nrCardHTML(a, interactive, displayIdx){
-  var total = newsList().length;
-  var shown = (typeof displayIdx === 'number' ? displayIdx : NR.idx) + 1;
   var loc = storyText(a, NR.lang);
   var html = '';
   if(a.breaking) html += '<div class="nr-breaking"><i></i><span>Breaking News</span></div>';
   html += nrMediaHTML(a, interactive);
+  html += '<div class="nr-scroll">';
   if(!loc){
     if(NR.lang === 'en'){
       /* The story exists in Telugu only (e.g. an approved reader post
          written in Telugu) — point the reader at the version that
          exists instead of claiming the Telugu version is missing. */
-      html += '<div class="nr-nolang"><div class="nl-box">'
+      html += nrKickerHTML(a)
+        + '<div class="nr-nolang"><div class="nl-box">'
         + '<h3>Not available in English yet</h3>'
         + '<p>This story has been published in Telugu, in the words it was written in. Stories are never machine-translated here.</p>'
         + '<button class="btn-solid" data-nr-read-te style="flex:none;padding:10px 18px">Read in Telugu</button>'
         + '</div></div>'
-        + '<div class="nr-meta"><span>'+newsTimeLabel(a.publishedAt)+'</span><span class="dot"></span><span>'+mkEsc(a.publisher||'Mana Khammam Newsroom')+'</span>'
-        + '<span class="count">Story '+shown+' of '+total+'</span></div>'
-        + '<div style="padding:12px 16px 2px">' + waDetailBtn(waStoryHref(a)) + '</div>';
-      return html;
+        + nrBylineHTML(a);
+      return html + '</div>';
     }
-    html += '<div class="nr-nolang"><div class="nl-box">'
+    html += nrKickerHTML(a)
+      + '<div class="nr-nolang"><div class="nl-box">'
       + '<h3>Not available in Telugu yet</h3>'
       + '<p>This story has not been published in Telugu. Translations are added by the newsroom — nothing is machine-invented here.</p>'
       + '<button class="btn-solid" data-nr-read-en style="flex:none;padding:10px 18px">Read in English</button>'
       + '</div></div>'
-      + '<div class="nr-meta"><span>'+newsTimeLabel(a.publishedAt)+'</span><span class="dot"></span><span>'+mkEsc(a.publisher||'Mana Khammam Newsroom')+'</span>'
-      + '<span class="count">Story '+shown+' of '+total+'</span></div>'
-      + '<div style="padding:12px 16px 2px">' + waDetailBtn(waStoryHref(a)) + '</div>';
-    return html;
+      + nrBylineHTML(a);
+    return html + '</div>';
   }
-  html += '<div class="nr-body"><h2>'+mkEsc(loc.headline)+'</h2><p>'+mkEsc(clampWords(loc.summary, 60))+'</p></div>'
-    + '<div class="nr-meta"><span>'+newsTimeLabel(a.publishedAt)+'</span><span class="dot"></span><span>'+mkEsc(a.publisher||'Mana Khammam Newsroom')+'</span>'
-    + '<span class="count">Story '+shown+' of '+total+'</span></div>';
+  /* Order per the approved reader layout: category/locality, headline,
+     complete summary (never truncated), source/timestamp, then the
+     Read full story link low beneath the source information. */
+  html += nrKickerHTML(a)
+    + '<div class="nr-body"><h2>'+mkEsc(loc.headline)+'</h2>'+nrSummaryHTML(loc.summary)+'</div>'
+    + nrBylineHTML(a);
   if(a.source) html += '<div class="nr-source">Source: '+mkEsc(a.source)+'</div>';
-  if(interactive){
-    var marked = !!NR.bookmarks[a.id];
-    html += '<div class="nr-actions">'
-      + '<button data-nr-act="bookmark" class="'+(marked?'on':'')+'" aria-pressed="'+marked+'">'+(marked?NR_ICONS.bookmarkOn:NR_ICONS.bookmark)+'<span>Bookmark</span></button>'
-      + '<button data-nr-act="share" class="share-act">'+NR_ICONS.share+'<span>Share</span></button>'
-      + '<button data-nr-act="whatsapp" class="wa-act">'+WA_ICON+'<span>WhatsApp</span></button>'
-      + (loc.body ? '<button data-nr-act="full">'+NR_ICONS.full+'<span>Read Full Story</span></button>' : '')
-      + '<button data-nr-act="report">'+NR_ICONS.flag+'<span>Report Issue</span></button>'
-      + '</div>';
+  if(interactive && loc.body){
+    html += '<button class="nr-readfull" data-nr-readfull>Read full story'
+      + '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>';
   }
-  return html;
+  return html + '</div>';
 }
 function nrEndHTML(total){
   return '<div class="nr-card nr-endcard"><div>'
@@ -5805,23 +5950,58 @@ function nrSetPeek(showIdx){
   nrEl.peek.innerHTML = showIdx === total ? nrEndHTML(total) : '<div class="nr-card">' + nrCardHTML(L[showIdx], false, showIdx) + '</div>';
   NR.peekFor = showIdx;
 }
+function nrCloseMenu(){
+  if(!nrEl.menu) return;
+  nrEl.menu.classList.remove('open');
+  if(nrEl.moreBtn) nrEl.moreBtn.setAttribute('aria-expanded','false');
+}
+function nrPaintChrome(){
+  /* Toolbar + swipe hint reflect the current story — no counter, no
+     large Prev/Next row. The hint appears only when another story
+     actually follows this one. */
+  var L = newsList(), total = L.length;
+  var onStory = total > 0 && NR.idx < total;
+  if(nrEl.toolbar) nrEl.toolbar.style.display = onStory ? '' : 'none';
+  if(nrEl.hint){
+    var hasNextStory = onStory && NR.idx < total - 1;
+    nrEl.hint.classList.toggle('show', hasNextStory);
+    nrEl.hint.setAttribute('aria-hidden', hasNextStory ? 'false' : 'true');
+  }
+  if(!onStory) return;
+  var a = L[NR.idx];
+  var marked = !!NR.bookmarks[a.id];
+  if(nrEl.saveBtn){
+    nrEl.saveBtn.classList.toggle('on', marked);
+    nrEl.saveBtn.setAttribute('aria-pressed', String(marked));
+    nrEl.saveBtn.querySelector('span').textContent = marked ? 'Saved' : 'Save';
+    nrEl.saveBtn.querySelector('svg').setAttribute('fill', marked ? 'currentColor' : 'none');
+  }
+  var locAny = storyText(a, NR.lang) || storyText(a, 'en') || storyText(a, 'te');
+  if(nrEl.menuPrev) nrEl.menuPrev.disabled = NR.idx <= 0;
+  if(nrEl.menuNext) nrEl.menuNext.disabled = NR.idx >= total;
+  if(nrEl.menuFull) nrEl.menuFull.style.display = (locAny && locAny.body) ? '' : 'none';
+}
 function nrRender(){
   var L = newsList(), total = L.length;
   var end = nrEnsureEnd();
+  nrCloseMenu();
   nrEl.card.classList.remove('enter-next','enter-prev');
   nrEl.card.style.transition = ''; nrEl.card.style.transform = ''; nrEl.card.style.opacity = '';
   if(!total){
     nrEl.card.style.display = 'none'; nrEl.peek.style.display = 'none'; end.style.display = 'none';
-    nrEl.empty.classList.add('show'); nrEl.navRow.style.display = 'none';
+    nrEl.empty.classList.add('show');
+    if(nrEl.toolbar) nrEl.toolbar.style.display = 'none';
+    if(nrEl.hint) nrEl.hint.classList.remove('show');
     nrEl.prog.style.width = '0'; return;
   }
-  nrEl.empty.classList.remove('show'); nrEl.navRow.style.display = '';
+  nrEl.empty.classList.remove('show');
   if(NR.idx >= total){ /* end-of-feed card */
     nrEl.card.style.display = 'none'; nrEl.peek.style.display = 'none';
     end.innerHTML = nrEndHTML(total); end.style.display = '';
     end.querySelector('[data-nr-restart]').addEventListener('click', function(){ nrGoTo(0, 'prev'); });
     nrEl.prog.style.width = '100%';
-    nrEl.prev.disabled = false; nrEl.next.disabled = true;
+    if(nrEl.toolbar) nrEl.toolbar.style.display = 'none';
+    if(nrEl.hint) nrEl.hint.classList.remove('show');
     return;
   }
   end.style.display = 'none';
@@ -5830,8 +6010,7 @@ function nrRender(){
   nrBindCardActions(L[NR.idx]);
   nrEl.prog.style.width = ((NR.idx+1)/total*100) + '%';
   nrSetPeek(NR.idx + 1); /* adjacent-story prefetch: next card is already rendered underneath */
-  nrEl.prev.disabled = NR.idx <= 0;
-  nrEl.next.disabled = false;
+  nrPaintChrome();
 }
 function nrPauseVideos(){
   nrEl.card.querySelectorAll('video').forEach(function(v){ try{ v.pause(); }catch(e){} });
@@ -5875,19 +6054,40 @@ function nrFlip(dir){ /* dir: +1 next, -1 previous — animated card flip */
     NR.animating = false;
   }, 305);
 }
-/* ---- gestures: pointer drag with distance + velocity thresholds ---- */
+/* ---- gestures: pointer drag with distance + velocity thresholds ----
+   One deliberate gesture = one story. Guards: multi-touch / pinch zoom,
+   text selection, interactive controls and video never start a flip;
+   when the article text itself can still scroll in the swipe direction,
+   the swipe scrolls the text instead of flipping the story. */
 (function(){
-  var dragging = false, startY = 0, startT = 0, dy = 0, pid = null;
-  function isInteractive(t){ return t.closest('button, a, video, .nr-actions, .nr-thumbs, input, textarea'); }
+  var dragging = false, startY = 0, lastY = 0, startT = 0, dy = 0, pid = null;
+  var scroller = null, scrolled = false;
+  function isInteractive(t){ return t.closest('button, a, video, input, textarea, select, [data-nr-thumb]'); }
   nrEl.stage.addEventListener('pointerdown', function(e){
     if(NR.fullOpen || NR.animating || !newsList().length) return;
+    if(!e.isPrimary) return; /* pinch / second finger — browser zoom */
     if(e.target.closest('#nrEndCard')) return;
     if(isInteractive(e.target)) return;
-    dragging = true; pid = e.pointerId; startY = e.clientY; startT = performance.now(); dy = 0;
+    var sel = window.getSelection ? window.getSelection() : null;
+    if(sel && String(sel).length > 0) return; /* text selection in progress */
+    dragging = true; pid = e.pointerId; startY = e.clientY; lastY = e.clientY; startT = performance.now(); dy = 0; scrolled = false;
+    scroller = e.target.closest('.nr-scroll');
+    if(scroller && scroller.scrollHeight <= scroller.clientHeight + 4) scroller = null;
   });
   nrEl.stage.addEventListener('pointermove', function(e){
     if(!dragging || e.pointerId !== pid) return;
+    var step = e.clientY - lastY; lastY = e.clientY;
     dy = e.clientY - startY;
+    /* Scroll the overflowing article first; flip only at its edge. */
+    if(scroller){
+      var canDown = scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 2;
+      var canUp = scroller.scrollTop > 2;
+      if((dy < 0 && canDown) || (dy > 0 && canUp)){
+        scroller.scrollTop -= step; scrolled = true;
+        nrEl.card.style.transform = ''; nrEl.peek.style.transform = ''; nrEl.peek.style.opacity = '';
+        return;
+      }
+    }
     var total = newsList().length;
     var want = dy < 0 ? NR.idx + 1 : NR.idx - 1;
     if(want !== NR.peekFor && want >= 0 && want <= total) nrSetPeek(want);
@@ -5896,17 +6096,18 @@ function nrFlip(dir){ /* dir: +1 next, -1 previous — animated card flip */
     nrEl.card.style.transition = 'none';
     nrEl.card.style.transform = 'translateY(' + eff + 'px) rotateX(' + Math.max(-6, Math.min(6, -eff/28)) + 'deg)';
     var p = Math.min(1, Math.abs(eff) / 160);
-    nrEl.peek.style.transform = 'scale(' + (0.965 + 0.035*p) + ')';
+    nrEl.peek.style.transform = 'scale(' + (0.985 + 0.015*p) + ')';
     nrEl.peek.style.opacity = String(0.5 + 0.5*p);
   });
   function endDrag(commit){
     if(!dragging) return; dragging = false;
+    var wasScrolled = scrolled; scroller = null; scrolled = false;
     var dt = Math.max(1, performance.now() - startT);
     var vel = Math.abs(dy) / dt;
     var total = newsList().length;
     var dir = dy < 0 ? 1 : -1;
     var atBoundary = (dir < 0 && NR.idx === 0) || (dir > 0 && NR.idx >= total);
-    if(commit && !atBoundary && (Math.abs(dy) > 72 || (Math.abs(dy) > 24 && vel > 0.45))){
+    if(commit && !wasScrolled && !atBoundary && (Math.abs(dy) > 72 || (Math.abs(dy) > 24 && vel > 0.45))){
       nrFlip(dir);
     } else {
       nrEl.card.style.transition = 'transform .28s cubic-bezier(.32,.9,.3,1)';
@@ -5920,13 +6121,21 @@ function nrFlip(dir){ /* dir: +1 next, -1 previous — animated card flip */
   }
   nrEl.stage.addEventListener('pointerup', function(){ endDrag(true); });
   nrEl.stage.addEventListener('pointercancel', function(){ endDrag(false); });
-  /* wheel: one flip per gesture burst */
-  var wheelLock = false, wheelAcc = 0;
+  /* wheel: one flip per gesture burst — trackpad momentum is absorbed
+     by the lock and the accumulator resets when the burst ends. */
+  var wheelLock = false, wheelAcc = 0, wheelIdle = null;
   nrEl.root.addEventListener('wheel', function(e){
     if(NR.fullOpen || !nrEl.root.classList.contains('open')) return;
+    var sc = e.target.closest ? e.target.closest('.nr-scroll') : null;
+    if(sc && sc.scrollHeight > sc.clientHeight + 4){
+      var atBottom = sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2;
+      var atTop = sc.scrollTop <= 2;
+      if((e.deltaY > 0 && !atBottom) || (e.deltaY < 0 && !atTop)) return; /* let the article scroll */
+    }
     e.preventDefault();
     if(wheelLock) return;
     wheelAcc += e.deltaY;
+    clearTimeout(wheelIdle); wheelIdle = setTimeout(function(){ wheelAcc = 0; }, 180);
     if(Math.abs(wheelAcc) > 50){
       nrFlip(wheelAcc > 0 ? 1 : -1);
       wheelAcc = 0; wheelLock = true;
@@ -5935,13 +6144,15 @@ function nrFlip(dir){ /* dir: +1 next, -1 previous — animated card flip */
   }, {passive:false});
   document.addEventListener('keydown', function(e){
     if(!nrEl.root.classList.contains('open')) return;
+    var tag = (e.target && e.target.tagName) || '';
+    if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
     if(NR.fullOpen){
       if(e.key === 'Escape'){ closeNrFull(); e.preventDefault(); }
       return;
     }
     if(e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' '){ nrFlip(1); e.preventDefault(); }
     else if(e.key === 'ArrowUp' || e.key === 'PageUp'){ nrFlip(-1); e.preventDefault(); }
-    else if(e.key === 'Escape'){ closeNews(); }
+    else if(e.key === 'Escape'){ if(nrEl.menu && nrEl.menu.classList.contains('open')) nrCloseMenu(); else closeNews(); }
   });
 })();
 function nrBindCardActions(a){
@@ -5963,21 +6174,46 @@ function nrBindCardActions(a){
   if(readEn) readEn.addEventListener('click', function(){ setNewsLang('en'); });
   var readTe = nrEl.card.querySelector('[data-nr-read-te]');
   if(readTe) readTe.addEventListener('click', function(){ setNewsLang('te'); });
-  nrEl.card.querySelectorAll('[data-nr-act]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var act = b.getAttribute('data-nr-act');
-      if(act === 'bookmark'){
-        if(NR.bookmarks[a.id]){ delete NR.bookmarks[a.id]; showToast('Bookmark removed.'); }
-        else { NR.bookmarks[a.id] = true; showToast('<b>Bookmarked.</b> Saved in this session — find it here when you come back to the story.'); }
-        nrRender();
-      }
-      else if(act === 'share'){ shareStory(a); }
-      else if(act === 'whatsapp'){ window.open(waStoryHref(a), '_blank', 'noopener'); }
-      else if(act === 'full'){ openNrFull(a); }
-      else if(act === 'report'){ openReport(a); }
-    });
-  });
+  var readFull = nrEl.card.querySelector('[data-nr-readfull]');
+  if(readFull) readFull.addEventListener('click', function(){ openNrFull(a); });
 }
+/* ---- bottom toolbar: Save / Share / WhatsApp + overflow menu ----
+   These reuse the same handlers the card buttons used before
+   (bookmarks, shareStory, waStoryHref, openReport, openNrFull) and
+   always act on the story currently on screen. */
+function nrCurrentStory(){
+  var L = newsList();
+  return (NR.idx >= 0 && NR.idx < L.length) ? L[NR.idx] : null;
+}
+if(nrEl.saveBtn) nrEl.saveBtn.addEventListener('click', function(){
+  var a = nrCurrentStory(); if(!a) return;
+  if(NR.bookmarks[a.id]){ delete NR.bookmarks[a.id]; showToast('Removed from saved stories.'); }
+  else { NR.bookmarks[a.id] = true; showToast('<b>Saved.</b> This story stays marked as saved while you read.'); }
+  nrPaintChrome();
+});
+if(nrEl.shareBtn) nrEl.shareBtn.addEventListener('click', function(){
+  var a = nrCurrentStory(); if(a) shareStory(a);
+});
+if(nrEl.waBtn) nrEl.waBtn.addEventListener('click', function(){
+  var a = nrCurrentStory(); if(a) window.open(waStoryHref(a), '_blank', 'noopener');
+});
+if(nrEl.moreBtn) nrEl.moreBtn.addEventListener('click', function(e){
+  e.stopPropagation();
+  var open = nrEl.menu.classList.toggle('open');
+  nrEl.moreBtn.setAttribute('aria-expanded', String(open));
+  if(open) nrPaintChrome();
+});
+document.addEventListener('click', function(e){
+  if(nrEl.menu && nrEl.menu.classList.contains('open') && !e.target.closest('#nrMenu') && !e.target.closest('#nrMoreBtn')) nrCloseMenu();
+});
+if(nrEl.menuPrev) nrEl.menuPrev.addEventListener('click', function(){ nrCloseMenu(); nrFlip(-1); });
+if(nrEl.menuNext) nrEl.menuNext.addEventListener('click', function(){ nrCloseMenu(); nrFlip(1); });
+if(nrEl.menuFull) nrEl.menuFull.addEventListener('click', function(){
+  var a = nrCurrentStory(); nrCloseMenu(); if(a) openNrFull(a);
+});
+if(nrEl.menuReport) nrEl.menuReport.addEventListener('click', function(){
+  var a = nrCurrentStory(); nrCloseMenu(); if(a) openReport(a);
+});
 function shareStory(a){
   var loc = storyText(a, NR.lang) || storyText(a, 'en');
   if(!loc) return;
@@ -6055,14 +6291,12 @@ function openNews(i){
   document.documentElement.style.overflow = 'hidden';
 }
 function closeNews(){
-  nrPauseVideos(); closeNrFull(true);
+  nrPauseVideos(); closeNrFull(true); nrCloseMenu();
   nrEl.root.classList.remove('open'); nrEl.root.setAttribute('aria-hidden','true');
   document.documentElement.style.overflow = '';
 }
 document.getElementById('nrBack').addEventListener('click', closeNews);
 document.getElementById('nrEmptyBack').addEventListener('click', closeNews);
-nrEl.prev.addEventListener('click', function(){ nrFlip(-1); });
-nrEl.next.addEventListener('click', function(){ nrFlip(1); });
 document.getElementById('nrLightClose').addEventListener('click', function(){
   nrEl.light.classList.remove('open'); nrEl.light.setAttribute('aria-hidden','true');
 });
@@ -6283,6 +6517,8 @@ function mkMapArticle(row){
     publisher: row.publisher_name || 'Mana Khammam Newsroom',
     source: row.source_attribution || '',
     correctionNote: row.correction_note || '',
+    category: row.category || row.news_category || '',
+    locality: row.locality || '',
     city: 'khammam',
     media: media,
     en: tr('en'), te: tr('te')
@@ -8102,20 +8338,20 @@ function mpRenderAuth(why){
     });
     return;
   }
-  body.innerHTML = '<div class="f-card"><h3>' + (MP.authMode === 'signup' ? 'Create your account' : 'Sign in') + '</h3>'
-    + '<p>' + (why ? mkEsc(why) + ' ' : '') + 'One free account for buying and selling in Khammam. Only your display name and locality are ever public.</p>'
-    + (MP.authMode === 'signup'
-        ? '<div class="f-field"><label for="mpAuthName">Display name</label><input class="f-input" id="mpAuthName" type="text" placeholder="e.g. Demo User"/></div>'
-        + '<div class="f-field"><label for="mpAuthLoc">Your locality</label><select class="mp-select" id="mpAuthLoc">' + MP_LOCALITIES.map(function(l){ return '<option>' + l + '</option>'; }).join('') + '</select></div>'
-        : '')
+  body.innerHTML = '<div class="f-card"><h3>Sign in</h3>'
+    + '<p>' + (why ? mkEsc(why) + ' ' : '') + 'Sign in with your email and password \u2014 returning users never need a verification code. One free account for buying and selling in Khammam. Only your display name and locality are ever public.</p>'
     + '<div class="f-field"><label for="mpAuthEmail">Email</label><input class="f-input" id="mpAuthEmail" type="email" autocomplete="email" placeholder="you@example.com"/></div>'
-    + '<div class="f-field"><label for="mpAuthPass">Password</label><input class="f-input" id="mpAuthPass" type="password" autocomplete="' + (MP.authMode === 'signup' ? 'new-password' : 'current-password') + '" placeholder="Password"/></div>'
+    + '<div class="f-field"><label for="mpAuthPass">Password</label><input class="f-input" id="mpAuthPass" type="password" autocomplete="current-password" placeholder="Password"/></div>'
     + '<div class="f-err" id="mpAuthErr"></div><div class="f-ok" id="mpAuthOk"></div>'
-    + '<button class="btn-solid" id="mpAuthGo" style="width:100%;margin-top:6px">' + (MP.authMode === 'signup' ? 'Create account' : 'Sign in') + '</button>'
-    + '<button class="btn-ghost" id="mpAuthSwap" style="width:100%;margin-top:10px">' + (MP.authMode === 'signup' ? 'Already have an account? Sign in' : 'New here? Create a free account') + '</button>'
+    + '<button class="btn-solid" id="mpAuthGo" style="width:100%;margin-top:6px">Sign in</button>'
+    + '<button class="btn-ghost" id="mpAuthSwap" style="width:100%;margin-top:10px">New here? Create a free account</button>'
     + '</div>';
   document.getElementById('mpAuthSwap').addEventListener('click', function(){
-    MP.authMode = MP.authMode === 'signup' ? 'signin' : 'signup'; mpRenderAuth(why);
+    /* One signup flow for the whole app: verify the email with a
+       6-digit code, then set username + password (the AU flow). */
+    var prev = MP.pendingAfterAuth;
+    MP.pendingAfterAuth = function(){ if(prev) prev(); else mpShowTab('auth'); };
+    auOpenSignup('marketplace');
   });
   document.getElementById('mpAuthGo').addEventListener('click', function(){
     var err = document.getElementById('mpAuthErr'), ok = document.getElementById('mpAuthOk');
@@ -8124,41 +8360,17 @@ function mpRenderAuth(why){
     var pass = document.getElementById('mpAuthPass').value;
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent = 'Enter a complete email address.'; err.classList.add('show'); return; }
     if(pass.length < 6){ err.textContent = 'Password needs at least 6 characters.'; err.classList.add('show'); return; }
-    var btn = this; btn.disabled = true; btn.textContent = 'Please wait…';
+    var btn = this; btn.disabled = true; btn.textContent = 'Please wait\u2026';
     var c = mpClient();
-    if(MP.authMode === 'signup'){
-      var name = document.getElementById('mpAuthName').value.trim();
-      var loc = document.getElementById('mpAuthLoc').value;
-      if(name.length < 2){ err.textContent = 'Enter a display name — this is what sellers and buyers will see.'; err.classList.add('show'); btn.disabled = false; btn.textContent = 'Create account'; return; }
-      c.auth.signUp({ email:email, password:pass }).then(function(r){
-        btn.disabled = false; btn.textContent = 'Create account';
-        if(r.error){ err.textContent = 'Sign-up failed: ' + (r.error.message || ''); err.classList.add('show'); return; }
-        var user = r.data && r.data.user, session = r.data && r.data.session;
-        if(!user){ err.textContent = 'Sign-up did not complete. Try signing in instead.'; err.classList.add('show'); return; }
-        if(!session){
-          ok.textContent = 'Account created. Check your email to confirm it, then sign in here.'; ok.classList.add('show');
-          MP.authMode = 'signin'; return;
-        }
-        c.from('profiles').insert({ id:user.id, display_name:name, locality:loc }).then(function(){
-          MP.pendingProfile = null;
-          mpSyncAuth().then(function(){
-            showToast('<b>Welcome to the Marketplace.</b> Your account is ready.');
-            var after = MP.pendingAfterAuth; MP.pendingAfterAuth = null;
-            if(after) after(); else mpShowTab('browse');
-          });
-        });
-      }).catch(function(){ btn.disabled = false; btn.textContent = 'Create account'; err.textContent = 'Sign-up could not reach the backend.'; err.classList.add('show'); });
-    } else {
-      c.auth.signInWithPassword({ email:email, password:pass }).then(function(r){
-        btn.disabled = false; btn.textContent = 'Sign in';
-        if(r.error){ err.textContent = 'Sign-in failed: ' + (r.error.message || 'check the email and password.'); err.classList.add('show'); return; }
-        mpSyncAuth().then(function(){
-          showToast('<b>Signed in.</b> Welcome back to the Marketplace.');
-          var after = MP.pendingAfterAuth; MP.pendingAfterAuth = null;
-          if(after) after(); else mpShowTab('browse');
-        });
-      }).catch(function(){ btn.disabled = false; btn.textContent = 'Sign in'; err.textContent = 'Sign-in could not reach the backend.'; err.classList.add('show'); });
-    }
+    c.auth.signInWithPassword({ email:email, password:pass }).then(function(r){
+      btn.disabled = false; btn.textContent = 'Sign in';
+      if(r.error){ err.textContent = 'Sign-in failed: ' + (r.error.message || 'check the email and password.'); err.classList.add('show'); return; }
+      mpSyncAuth().then(function(){
+        showToast('<b>Signed in.</b> Welcome back to the Marketplace.');
+        var after = MP.pendingAfterAuth; MP.pendingAfterAuth = null;
+        if(after) after(); else mpShowTab('browse');
+      });
+    }).catch(function(){ btn.disabled = false; btn.textContent = 'Sign in'; err.textContent = 'Sign-in could not reach the backend.'; err.classList.add('show'); });
   });
 }
 
@@ -12580,20 +12792,20 @@ function reRenderAuth(why){
     });
     return;
   }
-  body.innerHTML = '<div class="f-card"><h3>' + (RE.authMode === 'signup' ? 'Create your account' : 'Sign in') + '</h3>'
-    + '<p>' + (why ? mkEsc(why) + ' ' : '') + 'One free account for News, Marketplace and Real Estate in Khammam. Only your display name and locality are ever public — never your phone or email.</p>'
-    + (RE.authMode === 'signup'
-        ? '<div class="f-field"><label for="reAuthName">Display name</label><input class="f-input" id="reAuthName" type="text" placeholder="e.g. Demo User"/></div>'
-        + '<div class="f-field"><label for="reAuthLoc">Your locality</label><select class="mp-select" id="reAuthLoc">' + MP_LOCALITIES.map(function(l){ return '<option>' + l + '</option>'; }).join('') + '</select></div>'
-        : '')
+  body.innerHTML = '<div class="f-card"><h3>Sign in</h3>'
+    + '<p>' + (why ? mkEsc(why) + ' ' : '') + 'Sign in with your email and password \u2014 returning users never need a verification code. One free account for News, Marketplace and Real Estate in Khammam. Only your display name and locality are ever public \u2014 never your phone or email.</p>'
     + '<div class="f-field"><label for="reAuthEmail">Email</label><input class="f-input" id="reAuthEmail" type="email" autocomplete="email" placeholder="you@example.com"/></div>'
-    + '<div class="f-field"><label for="reAuthPass">Password</label><input class="f-input" id="reAuthPass" type="password" autocomplete="' + (RE.authMode === 'signup' ? 'new-password' : 'current-password') + '" placeholder="Password"/></div>'
+    + '<div class="f-field"><label for="reAuthPass">Password</label><input class="f-input" id="reAuthPass" type="password" autocomplete="current-password" placeholder="Password"/></div>'
     + '<div class="f-err" id="reAuthErr"></div><div class="f-ok" id="reAuthOk"></div>'
-    + '<button class="btn-solid" id="reAuthGo" style="width:100%;margin-top:6px">' + (RE.authMode === 'signup' ? 'Create account' : 'Sign in') + '</button>'
-    + '<button class="btn-ghost" id="reAuthSwap" style="width:100%;margin-top:10px">' + (RE.authMode === 'signup' ? 'Already have an account? Sign in' : 'New here? Create a free account') + '</button>'
+    + '<button class="btn-solid" id="reAuthGo" style="width:100%;margin-top:6px">Sign in</button>'
+    + '<button class="btn-ghost" id="reAuthSwap" style="width:100%;margin-top:10px">New here? Create a free account</button>'
     + '</div>';
   document.getElementById('reAuthSwap').addEventListener('click', function(){
-    RE.authMode = RE.authMode === 'signup' ? 'signin' : 'signup'; reRenderAuth(why);
+    /* One signup flow for the whole app: verify the email with a
+       6-digit code, then set username + password (the AU flow). */
+    var prev = RE.pendingAfterAuth;
+    RE.pendingAfterAuth = function(){ if(prev) prev(); else reShowTab('auth'); };
+    auOpenSignup('realestate');
   });
   document.getElementById('reAuthGo').addEventListener('click', function(){
     var err = document.getElementById('reAuthErr'), ok = document.getElementById('reAuthOk');
@@ -12602,40 +12814,17 @@ function reRenderAuth(why){
     var pass = document.getElementById('reAuthPass').value;
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent = 'Enter a complete email address.'; err.classList.add('show'); return; }
     if(pass.length < 6){ err.textContent = 'Password needs at least 6 characters.'; err.classList.add('show'); return; }
-    var btn = this; btn.disabled = true; btn.textContent = 'Please wait…';
+    var btn = this; btn.disabled = true; btn.textContent = 'Please wait\u2026';
     var c = reClient();
-    if(RE.authMode === 'signup'){
-      var name = document.getElementById('reAuthName').value.trim();
-      var loc = document.getElementById('reAuthLoc').value;
-      if(name.length < 2){ err.textContent = 'Enter a display name — this is what buyers and sellers will see.'; err.classList.add('show'); btn.disabled = false; btn.textContent = 'Create account'; return; }
-      c.auth.signUp({ email:email, password:pass }).then(function(r){
-        btn.disabled = false; btn.textContent = 'Create account';
-        if(r.error){ err.textContent = 'Sign-up failed: ' + (r.error.message || ''); err.classList.add('show'); return; }
-        var user = r.data && r.data.user, session = r.data && r.data.session;
-        if(!user){ err.textContent = 'Sign-up did not complete. Try signing in instead.'; err.classList.add('show'); return; }
-        if(!session){
-          ok.textContent = 'Account created. Check your email to confirm it, then sign in here.'; ok.classList.add('show');
-          RE.authMode = 'signin'; return;
-        }
-        c.from('profiles').insert({ id:user.id, display_name:name, locality:loc }).then(function(){
-          reSyncAuth().then(function(){
-            showToast('<b>Welcome to Mana Khammam.</b> Your account is ready.');
-            var after = RE.pendingAfterAuth; RE.pendingAfterAuth = null;
-            if(after) after(); else reShowTab('browse');
-          });
-        });
-      }).catch(function(){ btn.disabled = false; btn.textContent = 'Create account'; err.textContent = 'Sign-up could not reach the backend.'; err.classList.add('show'); });
-    } else {
-      c.auth.signInWithPassword({ email:email, password:pass }).then(function(r){
-        btn.disabled = false; btn.textContent = 'Sign in';
-        if(r.error){ err.textContent = 'Sign-in failed: ' + (r.error.message || 'check the email and password.'); err.classList.add('show'); return; }
-        reSyncAuth().then(function(){
-          showToast('<b>Signed in.</b> Welcome back.');
-          var after = RE.pendingAfterAuth; RE.pendingAfterAuth = null;
-          if(after) after(); else reShowTab('browse');
-        });
-      }).catch(function(){ btn.disabled = false; btn.textContent = 'Sign in'; err.textContent = 'Sign-in could not reach the backend.'; err.classList.add('show'); });
-    }
+    c.auth.signInWithPassword({ email:email, password:pass }).then(function(r){
+      btn.disabled = false; btn.textContent = 'Sign in';
+      if(r.error){ err.textContent = 'Sign-in failed: ' + (r.error.message || 'check the email and password.'); err.classList.add('show'); return; }
+      reSyncAuth().then(function(){
+        showToast('<b>Signed in.</b> Welcome back.');
+        var after = RE.pendingAfterAuth; RE.pendingAfterAuth = null;
+        if(after) after(); else reShowTab('browse');
+      });
+    }).catch(function(){ btn.disabled = false; btn.textContent = 'Sign in'; err.textContent = 'Sign-in could not reach the backend.'; err.classList.add('show'); });
   });
 }
 /* ---------- DEEP LINKS: #/property/<id> ---------- */
@@ -13233,25 +13422,23 @@ function bkSyncAuth(){
   }).catch(function(){});
 }
 function bkAuthFormHTML(why){
-  return '<div class="f-card"><h3>' + (BK.authMode === 'signup' ? 'Create your account' : 'Sign in') + '</h3>'
-    + '<p>' + (why ? mkEsc(why) + ' ' : '') + 'One free Mana Khammam account works for bookings, the marketplace and real estate. Only your display name is ever public — your phone number is shared only with a business you actually book with.</p>'
-    + (BK.authMode === 'signup'
-        ? '<div class="f-field"><label>Display name</label><input class="f-input" data-bk-auth="name" type="text" placeholder="e.g. Demo User"/></div>'
-        + '<div class="f-field"><label>Your locality</label><select class="mp-select" data-bk-auth="loc">' + BK_LOCALITIES.map(function(l){ return '<option>' + l + '</option>'; }).join('') + '</select></div>'
-        : '')
+  return '<div class="f-card"><h3>Sign in</h3>'
+    + '<p>' + (why ? mkEsc(why) + ' ' : '') + 'Sign in with your email and password \u2014 returning users never need a verification code. One free Mana Khammam account works for bookings, the marketplace and real estate. Only your display name is ever public \u2014 your phone number is shared only with a business you actually book with.</p>'
     + '<div class="f-field"><label>Email</label><input class="f-input" data-bk-auth="email" type="email" autocomplete="email" placeholder="you@example.com"/></div>'
-    + '<div class="f-field"><label>Password</label><input class="f-input" data-bk-auth="pass" type="password" autocomplete="' + (BK.authMode === 'signup' ? 'new-password' : 'current-password') + '" placeholder="Password"/></div>'
+    + '<div class="f-field"><label>Password</label><input class="f-input" data-bk-auth="pass" type="password" autocomplete="current-password" placeholder="Password"/></div>'
     + '<div class="f-err" data-bk-auth="err"></div><div class="f-ok" data-bk-auth="ok"></div>'
-    + '<button class="btn-solid" data-bk-auth="go" style="width:100%;margin-top:6px">' + (BK.authMode === 'signup' ? 'Create account' : 'Sign in') + '</button>'
-    + '<button class="btn-ghost" data-bk-auth="swap" style="width:100%;margin-top:10px">' + (BK.authMode === 'signup' ? 'Already have an account? Sign in' : 'New here? Create a free account') + '</button>'
+    + '<button class="btn-solid" data-bk-auth="go" style="width:100%;margin-top:6px">Sign in</button>'
+    + '<button class="btn-ghost" data-bk-auth="swap" style="width:100%;margin-top:10px">New here? Create a free account</button>'
     + '</div>';
 }
 function bkBindAuthForm(root, onDone){
   if(!root) return;
   var swap = root.querySelector('[data-bk-auth="swap"]');
   if(swap) swap.addEventListener('click', function(){
-    BK.authMode = BK.authMode === 'signup' ? 'signin' : 'signup';
-    root.innerHTML = bkAuthFormHTML(''); bkBindAuthForm(root, onDone);
+    /* One signup flow for the whole app: verify the email with a
+       6-digit code, then set username + password (the AU flow). */
+    BK.pendingAfterAuth = function(){ if(onDone) onDone(); };
+    auOpenSignup('bookings');
   });
   var go = root.querySelector('[data-bk-auth="go"]');
   if(!go) return;
@@ -13263,28 +13450,14 @@ function bkBindAuthForm(root, onDone){
     err.textContent = ''; err.classList.remove('show');
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent = 'Enter a complete email address.'; err.classList.add('show'); return; }
     if(pass.length < 6){ err.textContent = 'Password must be at least 6 characters.'; err.classList.add('show'); return; }
-    go.textContent = 'Please wait…'; go.disabled = true;
+    go.textContent = 'Please wait\u2026'; go.disabled = true;
     var c = bkClient();
-    var p = BK.authMode === 'signup'
-      ? c.auth.signUp({ email:email, password:pass })
-      : c.auth.signInWithPassword({ email:email, password:pass });
-    p.then(function(r){
-      go.disabled = false; go.textContent = BK.authMode === 'signup' ? 'Create account' : 'Sign in';
+    c.auth.signInWithPassword({ email:email, password:pass }).then(function(r){
+      go.disabled = false; go.textContent = 'Sign in';
       if(r.error){ err.textContent = 'Sign-in failed: ' + (r.error.message || ''); err.classList.add('show'); return; }
-      var user = (r.data && (r.data.user || (r.data.session && r.data.session.user))) || null;
-      if(BK.authMode === 'signup' && user){
-        var nameEl = root.querySelector('[data-bk-auth="name"]');
-        var locEl = root.querySelector('[data-bk-auth="loc"]');
-        var nm = nameEl ? nameEl.value.trim() : '';
-        if(nm.length >= 2){
-          c.from('profiles').upsert({ id:user.id, display_name:nm, locality:locEl ? locEl.value : '' })
-            .then(function(){ bkSyncAuth().then(function(){ onDone && onDone(); }); });
-          return;
-        }
-      }
       bkSyncAuth().then(function(){ onDone && onDone(); });
     }).catch(function(){
-      go.disabled = false;
+      go.disabled = false; go.textContent = 'Sign in';
       err.textContent = 'Could not reach the backend. Check the connection and try again.'; err.classList.add('show');
     });
   });
@@ -19951,13 +20124,20 @@ function deRouteHash(){
 <script>
 /* =====================================================================
    UNIFIED AUTH (AU) — one Supabase Auth system for the whole app.
-   Journey (founder directive §1–§6): Welcome → Continue with Email →
-   OTP (Supabase Auth signInWithOtp + verifyOtp, server-side,
-   single-use, expiring — no custom OTP tables, no custom crypto) →
-   Create Account (verified email carried forward and shown read-only;
-   only username + password are asked, saved via auth.updateUser) →
-   Account Ready (locality only). Sign-in uses
-   email + password; recovery uses resetPasswordForEmail.
+   Journey (founder directive §1–§6, revised Nov 2026): Welcome leads
+   with password sign-in for returning users — email verification
+   happens ONCE, at signup, never on return visits — and offers two
+   signup options: (1) direct username + password signup (Supabase
+   signUp; if email confirmation is on, the user verifies once on the
+   check-mail step via the Confirm-signup code, verifyOtp 'signup'),
+   and (2) verify-email-first signup: OTP (Supabase Auth
+   signInWithOtp + verifyOtp, server-side, single-use, expiring — no
+   custom OTP tables, no custom crypto) → Create Account (verified
+   email carried forward and shown read-only; only username +
+   password are asked, saved via auth.updateUser) → Account Ready
+   (locality only). Sign-in uses email + password; an unconfirmed
+   account attempting password sign-in is routed to the verify-once
+   screen, and only there. Recovery uses resetPasswordForEmail.
    V1 is EMAIL OTP ONLY: phone/SMS signup is cancelled for launch, so
    no public screen offers it and AU.method is pinned to 'email'.
    Public content (news, weather, panchangam, rates, alerts) never
@@ -19976,7 +20156,8 @@ var AU = {
   ret:'profile', why:'', step:'welcome', flow:'signup',
   method:'email', identifier:'', phoneE164:'', username:'',
   attempts:0, lockedUntil:0, resendAt:0, timer:null,
-  pendingAfter:null, legalFrom:'profile', profile:null
+  pendingAfter:null, legalFrom:'profile', profile:null,
+  pendingProfile:null
 };
 var AU_LOCALITIES_FALLBACK = ['Wyra Road','Rotary Nagar','Bonakal Road','Mamillagudem','Ballepalli','Kaviraj Nagar','Mustafa Nagar','Pakabanda','Gandhi Chowk','Zaffergudem','Other'];
 
@@ -20048,8 +20229,45 @@ function auSessionUser(){
 function auOpen(ret, why){
   AU.ret = ret || 'profile';
   AU.why = why || '';
-  AU.step = 'welcome'; AU.flow = 'signup'; AU.attempts = 0; AU.lockedUntil = 0;
+  AU.attempts = 0; AU.lockedUntil = 0;
   if(AU.timer){ clearInterval(AU.timer); AU.timer = null; }
+  /* Returning users who are already signed in never see a verification
+     screen again — their session carries them straight through. Email
+     verification happens ONCE, at signup; after that it is password only. */
+  if(auSessionUser()){
+    showToast('<b>You are already signed in.</b> No verification needed — welcome back.');
+    auReturn();
+    return;
+  }
+  AU.step = 'welcome'; AU.flow = 'signup';
+  showView('auth');
+  document.querySelectorAll('.tab[data-goto]').forEach(function(t){ t.classList.remove('on'); });
+  window.scrollTo({ top:0 });
+  auRender();
+  /* Double-check the live session too (covers a session restored after
+     this page loaded): if one exists, skip the auth screens entirely. */
+  var c0 = auClient();
+  if(c0){
+    c0.auth.getSession().then(function(res){
+      var s = res && res.data ? res.data.session : null;
+      if(s && s.user){
+        MK.session = s; MK.user = s.user;
+        var v = document.getElementById('view-auth');
+        if(v && v.classList.contains('active')){ auSyncProfileCard(); auReturn(); }
+      }
+    }).catch(function(){});
+  }
+}
+/* Open the ONE signup flow directly at its first step (email → 6-digit
+   code → username + password). Used by Profile and by the Marketplace /
+   Real Estate / Bookings sign-in cards, so account creation exists in
+   exactly one place in the whole app. */
+function auOpenSignup(ret){
+  AU.ret = ret || 'profile'; AU.why = '';
+  AU.attempts = 0; AU.lockedUntil = 0;
+  if(AU.timer){ clearInterval(AU.timer); AU.timer = null; }
+  if(auSessionUser()){ auReturn(); return; }
+  AU.method = 'email'; AU.flow = 'signup'; AU.step = 'id';
   showView('auth');
   document.querySelectorAll('.tab[data-goto]').forEach(function(t){ t.classList.remove('on'); });
   window.scrollTo({ top:0 });
@@ -20065,12 +20283,12 @@ function auRender(){
   AU.method = 'email'; /* V1 launch rule: email OTP only — phone signup is not offered anywhere */
   var body = auEl('auBody'); if(!body) return;
   if(AU.step === 'welcome') auStepWelcome(body);
+  else if(AU.step === 'checkmail') auStepCheckMail(body);
   else if(AU.step === 'id') auStepId(body);
   else if(AU.step === 'otp') auStepOtp(body);
   else if(AU.step === 'password') auStepPassword(body);
   else if(AU.step === 'signin') auStepSignin(body);
   else if(AU.step === 'forgot') auStepForgot(body);
-  else if(AU.step === 'done') auStepDone(body);
   window.scrollTo({ top:0 });
 }
 
@@ -20078,15 +20296,21 @@ function auRender(){
 function auStepWelcome(body){
   body.innerHTML = auBrandHTML()
     + (AU.why ? '<div class="news-note" style="margin-top:14px">' + mkEsc(AU.why) + '</div>' : '')
-    + '<button class="au-opt" id="auOptEmail"><span class="au-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>'
-    + '<span><h4>Continue with Email</h4><p>We email you a one-time code. Gmail and every other provider work — we never ask for your inbox or its password.</p></span>'
+    + '<div class="f-card" style="margin-top:16px"><h3>Already have an account?</h3>'
+    + '<p>Sign in with your email and password. <b>No verification code is needed</b> — email verification happens only once, when an account is created. After that, your password is all you need, every time you come back.</p>'
+    + '<button class="btn-solid" id="auGoSignIn" style="width:100%;margin-top:6px">Sign in with password</button>'
+    + '<div class="au-links" style="margin-top:12px"><button id="auGoForgot">Forgot Password</button></div></div>'
+    + '<div class="f-card"><h3>New here? Create a free account</h3>'
+    + '<p>One simple signup — nothing else is asked:</p>'
+    + '<button class="au-opt" id="auOptEmail" style="margin-top:4px"><span class="au-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>'
+    + '<span><h4>Create an account</h4><p>Verify your email with a one-time 6-digit code, then set your username and password. That is the whole signup — after that you sign in with your password only, and are never asked for a code again.</p></span>'
     + '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>'
-    + '<div class="au-links"><button id="auGoSignIn">Sign In</button><button id="auGoForgot">Forgot Password</button></div>'
+    + '</div>'
     + '<button class="au-explore" id="auExplore">Explore without an account →</button>'
     + '<p class="au-fine">By continuing you agree to the <button id="auTermsLink">Terms of Service</button> and <button id="auPrivacyLink">Privacy Policy</button>. Your email address is never shown to other users.</p>';
-  auEl('auOptEmail').addEventListener('click', function(){ AU.method = 'email'; AU.flow = 'signup'; AU.step = 'id'; auRender(); });
   auEl('auGoSignIn').addEventListener('click', function(){ AU.step = 'signin'; auRender(); });
   auEl('auGoForgot').addEventListener('click', function(){ AU.step = 'forgot'; auRender(); });
+  auEl('auOptEmail').addEventListener('click', function(){ AU.method = 'email'; AU.flow = 'signup'; AU.step = 'id'; auRender(); });
   auEl('auExplore').addEventListener('click', function(){ auReturn(); });
   auEl('auTermsLink').addEventListener('click', function(){ AU.legalFrom = 'auth'; showView('terms'); window.scrollTo({ top:0 }); });
   auEl('auPrivacyLink').addEventListener('click', function(){ AU.legalFrom = 'auth'; showView('privacy'); window.scrollTo({ top:0 }); });
@@ -20103,7 +20327,7 @@ function auStepId(body){
   body.innerHTML = auBrandHTML()
     + '<div class="f-card" style="margin-top:16px"><h3>' + (isEmail ? 'Your email address' : 'Your mobile number') + '</h3>'
     + '<p>' + (isEmail
-        ? 'We will send a 6-digit one-time code to this address. The code expires quickly and can be used only once.'
+        ? 'We will send a 6-digit one-time code to this address. The code expires quickly and can be used only once. This verification is only for creating your account — once your password is set, you sign in with your password and are never asked for a code again.'
         : 'We will text a 6-digit one-time code to this number. Standard SMS charges from your carrier may apply.') + '</p>'
     + (isEmail
         ? '<div class="f-field"><label for="auIdInput">Email</label><input class="f-input" id="auIdInput" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" /></div>'
@@ -20288,8 +20512,11 @@ function auVerifiedEmailHTML(){
   var u = auSessionUser();
   var mail = AU.identifier || (u ? (u.email || '') : '');
   if(!mail) return '';
+  /* The only signup is the code-first one, so by the time this row is
+     shown the email really was verified in this journey. */
+  var k = 'Email · Verified';
   return '<div class="au-verified"><span class="au-vtick"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>'
-    + '<span class="au-vmail"><span class="k">Email · Verified</span><span class="v" style="display:block">' + mkEsc(mail) + '</span></span></div>';
+    + '<span class="au-vmail"><span class="k">' + k + '</span><span class="v" style="display:block">' + mkEsc(mail) + '</span></span></div>';
 }
 function auStepPassword(body){
   body.innerHTML = auBrandHTML()
@@ -20334,9 +20561,15 @@ function auStepPassword(body){
     auClient().auth.updateUser({ password: pw1 }).then(function(r){
       auBusy(btn, false, 'Create account');
       if(r.error){ auErr('auPwErr', 'The password could not be saved (' + (r.error.message || 'provider error') + '). Your verified session is still active — try again.'); return; }
-      /* Carry the username forward — the finish step shows it, never re-asks it. */
+      /* Signup ends here — email verified, username + password set,
+         nothing else is asked. Save the username to the profile and
+         finish; from now on it is password-only sign-in. */
       AU.username = name;
-      AU.step = 'done'; auRender();
+      var u2 = auSessionUser();
+      function finishSignup(){ auAfterAuth('Your account is ready, ' + name.split(' ')[0] + '.'); }
+      if(u2){
+        auClient().from('profiles').upsert({ id:u2.id, display_name:name }, { onConflict:'id' }).then(finishSignup).catch(finishSignup);
+      } else finishSignup();
     }).catch(function(){
       auBusy(btn, false, 'Create account');
       auErr('auPwErr', 'Could not reach the sign-in service. Your verified session is still active — try again.');
@@ -20344,39 +20577,89 @@ function auStepPassword(body){
   });
 }
 
-/* ---------- STEP: profile finish (locality only — email + username carried forward) ---------- */
+/* ---------- STEP: verify email ONCE (legacy unconfirmed accounts) ----------
+   Signup itself now always verifies the email first, so this screen is
+   only reached from password sign-in when an older account never
+   finished its one-time email confirmation. Accepts the 6-digit code
+   from the "Confirm signup" email (verifyOtp, type 'signup'). Once
+   verified, the account signs in with its password — this screen never
+   appears for it again. */
+function auStepCheckMail(body){
+  if(!auClient()){
+    body.innerHTML = auBrandHTML() + auNotConnHTML();
+    auEl('auNcExplore').addEventListener('click', function(){ auReturn(); });
+    return;
+  }
+  body.innerHTML = auBrandHTML()
+    + '<div class="f-card" style="margin-top:16px"><h3>One last step — verify your email once</h3>'
+    + '<p>Your account was created for <b>' + mkEsc(AU.identifier) + '</b>. Enter the 6-digit code from the signup email to confirm this email is yours. <b>You only do this once</b> — from then on you sign in with your username and password, with no code and no verification.</p>'
+    + auOtpBoxesHTML('auCmOtpRow')
+    + '<div class="f-err" id="auCmErr"></div><div class="f-ok" id="auCmOk"></div>'
+    + '<button class="btn-solid" id="auCmBtn" style="width:100%;margin-top:10px">Verify email &amp; finish</button>'
+    + '<div class="au-resend"><span id="auResendWrap">Didn’t get it? <button id="auCmResendBtn" disabled>Resend code</button> <span id="auResendTimer"></span></span></div>'
+    + '<p class="f-note" style="margin-top:12px;text-align:center">Already verified it earlier, or closed this screen? <button id="auCmSignIn" style="background:none;border:none;font-family:inherit;font-weight:700;color:var(--accent-deep);cursor:pointer;padding:0">Sign in with your password</button> — returning users never verify again.</p>'
+    + '<p class="f-note">Email can take a minute or two — check spam/promotions before resending.</p>'
+    + '</div>';
+  auWireOtpBoxes(auEl('auCmOtpRow'), null);
+  var first = auEl('auCmOtpRow').querySelector('input'); if(first) first.focus();
+  if(!AU.resendAt || Date.now() > AU.resendAt) AU.resendAt = Date.now() + 30000;
+  auStartResendTimer();
+  /* The resend timer helper drives #auResendBtn; this screen names its
+     button #auCmResendBtn, so mirror the countdown state onto it. */
+  var mirror = setInterval(function(){
+    var b = auEl('auCmResendBtn'), t = auEl('auResendTimer');
+    if(!b){ clearInterval(mirror); return; }
+    var left = Math.ceil((AU.resendAt - Date.now()) / 1000);
+    b.disabled = left > 0;
+    if(t) t.textContent = left > 0 ? '· ' + left + 's' : '';
+    if(left <= 0) clearInterval(mirror);
+  }, 500);
+  auEl('auCmSignIn').addEventListener('click', function(){ AU.step = 'signin'; auRender(); });
+  auEl('auCmResendBtn').addEventListener('click', function(){
+    if(Date.now() < AU.resendAt) return;
+    var p = AU.pendingProfile || {};
+    /* Resend the confirmation by repeating the signup request; Supabase
+       re-sends the confirmation email for an unconfirmed account. */
+    auOk('auCmOk', 'Requesting a new code…');
+    auClient().auth.resend({ type:'signup', email:AU.identifier }).then(function(r){
+      if(r.error){ auOk('auCmOk', ''); auErr('auCmErr', 'A new code could not be sent yet. Wait for the countdown and try again.'); return; }
+      AU.resendAt = Date.now() + 30000;
+      auErr('auCmErr', ''); auOk('auCmOk', 'A new code is on its way. The previous code no longer works.');
+      auRender();
+    }).catch(function(){ auOk('auCmOk', ''); auErr('auCmErr', 'Could not reach the sign-in service.'); });
+    void p;
+  });
+  auEl('auCmBtn').addEventListener('click', function(){
+    var code = auOtpValue(auEl('auCmOtpRow'));
+    if(!/^\d{6}$/.test(code)){
+      auErr('auCmErr', 'Enter all 6 digits of the code from your signup email.');
+      auEl('auCmOtpRow').querySelectorAll('input').forEach(function(x){ x.classList.add('err'); });
+      return;
+    }
+    auErr('auCmErr', '');
+    var btn = this; auBusy(btn, true, 'Verifying…');
+    auClient().auth.verifyOtp({ email:AU.identifier, token:code, type:'signup' }).then(function(r){
+      auBusy(btn, false, 'Verify email & finish');
+      if(r.error || !r.data || !r.data.session){
+        auErr('auCmErr', 'That code did not work. It may be incorrect, expired, or already used. Check it and try again, or resend a fresh code.');
+        auEl('auCmOtpRow').querySelectorAll('input').forEach(function(x){ x.classList.add('err'); });
+        return;
+      }
+      MK.session = r.data.session; MK.user = r.data.session.user; MK.founderCheckedFor = '';
+      AU.pendingProfile = null; AU.flow = 'signup';
+      auAfterAuth('Email verified — you are signed in.');
+    }).catch(function(){
+      auBusy(btn, false, 'Verify email & finish');
+      auErr('auCmErr', 'Verification could not reach the sign-in service. Your code is still valid — try again.');
+    });
+  });
+}
+
+/* ---------- Localities list (shared by account settings) ---------- */
 function auLocalities(){
   try{ if(typeof MP_LOCALITIES !== 'undefined' && MP_LOCALITIES.length) return MP_LOCALITIES; }catch(e){}
   return AU_LOCALITIES_FALLBACK;
 }
-function auStepDone(body){
-  var u = auSessionUser();
-  /* Carry-forward: email and username were already given and are shown
-     read-only here — the only new thing this step asks for is locality. */
-  body.innerHTML = auBrandHTML()
-    + '<div class="f-card" style="margin-top:16px"><h3>Account ready</h3>'
-    + '<p>Everything you entered is saved below — nothing to type again. Buyers and sellers will only ever see your username and locality — never your email.</p>'
-    + auVerifiedEmailHTML()
-    + (AU.username ? '<div class="au-setrow"><span class="k">Username</span><span class="v">' + mkEsc(AU.username) + '</span></div>' : '')
-    + '<div class="f-field" style="margin-top:14px"><label for="auDoneLoc">Your locality in Khammam</label><select class="mp-select" id="auDoneLoc">'
-    + auLocalities().map(function(l){ return '<option>' + mkEsc(l) + '</option>'; }).join('') + '</select></div>'
-    + '<div class="f-err" id="auDoneErr"></div>'
-    + '<button class="btn-solid" id="auDoneBtn" style="width:100%;margin-top:6px">Save &amp; continue</button>'
-    + '<button class="btn-ghost" id="auDoneSkip" style="width:100%;margin-top:10px">Skip for now</button>'
-    + '</div>';
-  auEl('auDoneSkip').addEventListener('click', function(){ auAfterAuth('Your account is ready.'); });
-  auEl('auDoneBtn').addEventListener('click', function(){
-    var btn = this; auBusy(btn, true, 'Saving…');
-    var row = { id:u.id, locality:auEl('auDoneLoc').value };
-    if(AU.username) row.display_name = AU.username;
-    auClient().from('profiles').upsert(row, { onConflict:'id' }).then(function(r){
-      auBusy(btn, false, 'Save & continue');
-      if(r.error){ auErr('auDoneErr', 'Profile could not be saved (' + (r.error.message || '') + '). You can set it later in Profile → Account & privacy.'); return; }
-      auAfterAuth(AU.username ? 'Your account is ready, ' + AU.username.split(' ')[0] + '.' : 'Your account is ready.');
-    }).catch(function(){ auBusy(btn, false, 'Save & continue'); auErr('auDoneErr', 'Profile save could not reach the backend.'); });
-  });
-}
-
 /* ---------- STEP: sign in (password, or code) ---------- */
 function auStepSignin(body){
   if(!auClient()){
@@ -20386,12 +20669,12 @@ function auStepSignin(body){
   }
   body.innerHTML = auBrandHTML()
     + '<div class="f-card" style="margin-top:16px"><h3>Sign in</h3>'
-    + '<p>Use the email address you registered with, and your password.</p>'
-    + '<div class="f-field"><label for="auSiId">Email</label><input class="f-input" id="auSiId" type="email" inputmode="email" autocomplete="username" placeholder="you@example.com" /></div>'
+    + '<p>Use the email address you registered with, and your password. Returning users sign in with their password only — no verification code, no email check, every time.</p>'
+    + '<div class="f-field"><label for="auSiId">Email</label><input class="f-input" id="auSiId" type="email" inputmode="email" autocomplete="username" placeholder="you@example.com" value="' + mkEsc(AU.identifier || '') + '" /></div>'
     + '<div class="f-field"><label for="auSiPw">Password</label><div class="au-passwrap"><input class="f-input" id="auSiPw" type="password" autocomplete="current-password" placeholder="Password" /><button type="button" class="au-eye" id="auSiEye">Show</button></div></div>'
     + '<div class="f-err" id="auSiErr"></div>'
     + '<button class="btn-solid" id="auSiBtn" style="width:100%;margin-top:6px">Sign in</button>'
-    + '<div class="au-links" style="margin-top:14px"><button id="auSiForgot">Forgot Password</button><button id="auSiCode">Sign in with a code instead</button></div>'
+    + '<div class="au-links" style="margin-top:14px"><button id="auSiForgot">Forgot Password</button><button id="auSiCode">No password handy? Use a one-time code</button></div>'
     + '<p class="f-note" style="margin-top:10px;text-align:center">New here? <button id="auSiNew" style="background:none;border:none;font-family:inherit;font-weight:700;color:var(--accent-deep);cursor:pointer;padding:0">Create an account</button></p>'
     + '</div>';
   auEl('auSiEye').addEventListener('click', function(){
@@ -20411,7 +20694,20 @@ function auStepSignin(body){
     var btn = this; auBusy(btn, true, 'Signing in…');
     auClient().auth.signInWithPassword(payload).then(function(r){
       auBusy(btn, false, 'Sign in');
-      if(r.error){ auErr('auSiErr', 'Sign-in failed. Check the email and password and try again.'); return; }
+      if(r.error){
+        var em = (r.error.message || '').toLowerCase();
+        if(em.indexOf('not confirmed') >= 0 || em.indexOf('confirm') >= 0){
+          /* The one case a returning user may still owe the ONE-TIME
+             signup verification: they created the account but never
+             finished confirming the email. Send them to the verify-once
+             screen — after that, password-only sign-in forever. */
+          AU.identifier = idRaw.toLowerCase(); AU.flow = 'verifyonce';
+          AU.step = 'checkmail'; auRender();
+          return;
+        }
+        auErr('auSiErr', 'Sign-in failed. Check the email and password and try again. If you have not created an account yet, use “Create an account” — verification is needed only that one time.');
+        return;
+      }
       MK.session = r.data.session; MK.user = r.data.user; MK.founderCheckedFor = ''; MK.lastReauth = Date.now();
       auAfterAuth('Signed in. Welcome back.');
     }).catch(function(){ auBusy(btn, false, 'Sign in'); auErr('auSiErr', 'Sign-in could not reach the backend.'); });
@@ -20459,6 +20755,7 @@ function auAfterAuth(toastText){
     var after = null;
     try{ if(typeof MP !== 'undefined' && MP.pendingAfterAuth){ after = MP.pendingAfterAuth; MP.pendingAfterAuth = null; } }catch(e){}
     try{ if(!after && typeof RE !== 'undefined' && RE.pendingAfterAuth){ after = RE.pendingAfterAuth; RE.pendingAfterAuth = null; } }catch(e){}
+    try{ if(!after && typeof BK !== 'undefined' && BK.pendingAfterAuth){ after = BK.pendingAfterAuth; BK.pendingAfterAuth = null; } }catch(e){}
     if(after){ auReturn(); setTimeout(after, 60); }
     else auReturn();
   });
@@ -20472,9 +20769,14 @@ function auRequireAuth(after, why){
 /* ---------- Profile tab card ---------- */
 function auSyncProfileCard(){
   var nameEl = auEl('profName'), subEl = auEl('profSub'), avEl = auEl('profAvatar'),
-      cta = auEl('profAuthCta'), row = auEl('profAccountRow');
+      cta = auEl('profAuthCta'), row = auEl('profAccountRow'),
+      soWrap = auEl('profSignOutWrap');
   if(!nameEl) return;
   var u = auSessionUser();
+  /* Founder rule: signed out, the Profile view shows ONLY the sign-in
+     card; signed in, the full Profile shows exactly as before. */
+  var pv = document.getElementById('view-profile');
+  if(pv) pv.classList.toggle('prof-signed-out', !u);
   var prof = null;
   try{ if(typeof MP !== 'undefined' && MP.profile) prof = MP.profile; }catch(e){}
   try{ if(!prof && typeof RE !== 'undefined' && RE.profile) prof = RE.profile; }catch(e){}
@@ -20485,12 +20787,14 @@ function auSyncProfileCard(){
     subEl.textContent = 'Signed in · ' + (u.email || u.phone || '') + '. Your contact details stay private.';
     if(cta) cta.style.display = 'none';
     if(row) row.style.display = '';
+    if(soWrap) soWrap.style.display = '';
   } else {
     nameEl.textContent = 'Guest';
     avEl.textContent = 'G';
     subEl.textContent = 'Browsing without an account — that’s fine here.';
     if(cta) cta.style.display = '';
     if(row) row.style.display = 'none';
+    if(soWrap) soWrap.style.display = 'none';
   }
 }
 
@@ -20792,11 +21096,85 @@ function mkStartMfaEnroll(){
   function bind(id, fn){ var el = document.getElementById(id); if(el) el.addEventListener('click', fn); }
   bind('auBackBtn', function(){
     if(AU.step === 'otp'){ AU.step = 'id'; auRender(); return; }
+    if(AU.step === 'checkmail'){ AU.step = 'signin'; auRender(); return; }
     if(AU.step === 'id' || AU.step === 'signin' || AU.step === 'forgot'){ AU.step = 'welcome'; auRender(); return; }
     if(AU.step === 'password'){ AU.step = 'welcome'; auRender(); return; }
     auReturn();
   });
   bind('profSignInBtn', function(){ auOpen('profile'); });
+  /* --- Profile Log out button (prominent, top of the signed-in
+     Profile). Signs out on this device, clears every module's session
+     state, and auSyncProfileCard() flips the Profile view straight
+     back to the simple sign-in card. --- */
+  bind('profSignOutBtn', function(){
+    var c = auClient(); if(!c) return;
+    var btn = this; auBusy(btn, true, 'Logging out…');
+    c.auth.signOut({ scope:'local' }).then(function(){
+      MK.session = null; MK.user = null; MK.isFounder = false; MK.founderCheckedFor = ''; MK.lastReauth = 0;
+      try{ if(typeof MP !== 'undefined'){ MP.user = null; MP.profile = null; } }catch(e){}
+      try{ if(typeof RE !== 'undefined'){ RE.user = null; RE.profile = null; } }catch(e){}
+      auBusy(btn, false, 'Log out');
+      auSyncProfileCard();
+      showToast('<b>Logged out.</b> You are signed out on this device.');
+      showView('profile');
+      window.scrollTo({ top:0 });
+    }).catch(function(){
+      auBusy(btn, false, 'Log out');
+      showToast('<b>Log out did not finish.</b> Check your connection and try again.');
+    });
+  });
+  /* --- Signed-out Profile sign-in card (the ONLY thing Profile shows
+     while signed out). Same password sign-in as the auth screen, run
+     in place; its links hand off to the existing auth steps. --- */
+  function pfGoAuth(step, setup){
+    AU.ret = 'profile'; AU.why = '';
+    if(setup) setup();
+    AU.step = step;
+    showView('auth');
+    document.querySelectorAll('.tab[data-goto]').forEach(function(t){ t.classList.remove('on'); });
+    auRender();
+  }
+  function pfDoSignIn(){
+    var idEl = auEl('pfSiId'), pwEl = auEl('pfSiPw');
+    var idRaw = idEl ? (idEl.value || '').trim() : '';
+    var pw = pwEl ? pwEl.value : '';
+    if(!auClient()){ auErr('pfSiErr', 'Sign-in could not reach the backend.'); return; }
+    if(!idRaw || !pw){ auErr('pfSiErr', 'Enter your email address and your password.'); return; }
+    if(!auValidEmail(idRaw)){ auErr('pfSiErr', 'That does not look like a complete email address.'); return; }
+    auErr('pfSiErr', '');
+    var btn = auEl('pfSiBtn'); auBusy(btn, true, 'Signing in…');
+    auClient().auth.signInWithPassword({ email:idRaw.toLowerCase(), password:pw }).then(function(r){
+      auBusy(btn, false, 'Sign in');
+      if(r.error){
+        var em = (r.error.message || '').toLowerCase();
+        if(em.indexOf('not confirmed') >= 0 || em.indexOf('confirm') >= 0){
+          /* Never confirmed the signup email: verify ONCE, then
+             password-only sign-in forever (same rule as the auth screen). */
+          AU.identifier = idRaw.toLowerCase(); AU.flow = 'verifyonce';
+          pfGoAuth('checkmail');
+          return;
+        }
+        auErr('pfSiErr', 'Sign-in failed. Check the email and password and try again. If you have not created an account yet, use “Create an account” — verification is needed only that one time.');
+        return;
+      }
+      MK.session = r.data.session; MK.user = r.data.user; MK.founderCheckedFor = ''; MK.lastReauth = Date.now();
+      AU.ret = 'profile';
+      auAfterAuth('Signed in. Welcome back.');
+    }).catch(function(){ auBusy(btn, false, 'Sign in'); auErr('pfSiErr', 'Sign-in could not reach the backend.'); });
+  }
+  bind('pfSiBtn', pfDoSignIn);
+  bind('pfSiEye', function(){
+    var inp = auEl('pfSiPw'); if(!inp) return;
+    var show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password'; this.textContent = show ? 'Hide' : 'Show';
+  });
+  bind('pfSiForgot', function(){ pfGoAuth('forgot'); });
+  bind('pfSiCode', function(){ pfGoAuth('id', function(){ AU.flow = 'code'; AU.method = 'email'; }); });
+  bind('pfSiNew', function(){ auOpen('profile'); });
+  ['pfSiId', 'pfSiPw'].forEach(function(id){
+    var el = auEl(id);
+    if(el) el.addEventListener('keydown', function(e){ if(e.key === 'Enter') pfDoSignIn(); });
+  });
   bind('profAccountRow', function(){ acOpen(); });
   bind('profPrivacyRow', function(){ AU.legalFrom = 'profile'; showView('privacy'); window.scrollTo({ top:0 }); });
   bind('profTermsRow', function(){ AU.legalFrom = 'profile'; showView('terms'); window.scrollTo({ top:0 }); });
