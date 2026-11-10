@@ -9053,7 +9053,7 @@ function mpModerate(listingId, action, reason){
     : { status:'rejected', rejection_reason:reason };
   c.from('listings').update(patch).eq('id', listingId).eq('status', 'pending')
     .then(function(r){
-      if(r.error){ showToast('That decision was rejected by the database: ' + (r.error.message || '')); return; }
+      if(r.error) throw r.error;
       return c.from('moderation_actions').insert({ listing_id:listingId, moderator_id:MP.user.id, action:action === 'approve' ? 'approved' : 'rejected', reason:reason || null })
         .then(function(){}, function(){});
     })
@@ -9061,7 +9061,7 @@ function mpModerate(listingId, action, reason){
       showToast(action === 'approve' ? '<b>Approved — the listing is public now.</b> The seller has been notified.' : '<b>Rejected.</b> The seller sees your reason and can resubmit.');
       mpLoadQueue(); mpRefreshQueueBadge();
     })
-    .catch(function(){ showToast('The decision did not complete — try again.'); });
+    .catch(function(e){ showToast('That decision was rejected by the database: ' + ((e && e.message) || 'it did not complete — try again.')); });
 }
 function mpRenderReports(){
   var body = document.getElementById('mpReportsBody');
@@ -12215,9 +12215,10 @@ function reRenderQueue(){
         registration_checked_at:new Date().toISOString(), registration_checked_by:RE.user.id,
         registration_check_note:'Manual check recorded by founder against the stated registration number.'
       }).eq('user_id', sellerId).then(function(r){
-        if(r.error){ showToast('The check could not be recorded: ' + (r.error.message || '')); return; }
+        if(r.error) throw r.error;
         return reClient().from('property_moderation_actions').insert({ property_id:null, moderator_id:RE.user.id, action:'registration_checked', reason:'Seller ' + sellerId.slice(0, 8) }).then(function(){}, function(){});
-      }).then(function(){ showToast('<b>Check recorded.</b> This records that the stated number was checked — it does not verify title.'); reLoadQueue(); });
+      }).then(function(){ showToast('<b>Check recorded.</b> This records that the stated number was checked — it does not verify title.'); reLoadQueue(); })
+      .catch(function(e){ showToast('The check could not be recorded: ' + ((e && e.message) || '')); });
     });
   });
 }
@@ -12231,7 +12232,7 @@ function reModerate(propId, action, text){
   var modAction = action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'changes_requested';
   c.from('properties').update(patch).eq('id', propId).eq('status', 'pending_review')
     .then(function(r){
-      if(r.error){ showToast('That decision was rejected by the database: ' + (r.error.message || '')); return; }
+      if(r.error) throw r.error;
       return c.from('property_moderation_actions').insert({ property_id:propId, moderator_id:RE.user.id, action:modAction, reason:text || null })
         .then(function(){}, function(){});
     })
@@ -12239,7 +12240,7 @@ function reModerate(propId, action, text){
       showToast(action === 'approve' ? '<b>Approved — the property is public now.</b> The seller has been notified. Approval is not a title verification.' : action === 'reject' ? '<b>Rejected.</b> The seller sees your reason and can resubmit.' : '<b>Changes requested.</b> The seller sees exactly what to fix.');
       reLoadQueue(); reRefreshQueueBadge();
     })
-    .catch(function(){ showToast('The decision did not complete — try again.'); });
+    .catch(function(e){ showToast('That decision was rejected by the database: ' + ((e && e.message) || 'it did not complete — try again.')); });
 }
 function reRenderFieldAdmin(){
   var body = document.getElementById('reFieldBody');
@@ -19575,7 +19576,16 @@ function deVal(id){ var el = document.getElementById(id); return el ? el.value.t
 function deSetMsg(id, text, ok){
   var el = document.getElementById(id); if(!el) return;
   el.textContent = text || '';
+  /* .f-err is display:none until it carries .show (the pattern every other
+     error helper in this app uses). Without toggling it, every publish
+     validation/database message was written into an invisible element —
+     the Publish button appeared to do nothing at all. */
+  el.classList.toggle('show', !!text);
   el.style.color = ok ? '#1F7A4D' : '';
+  if(text && !ok && typeof showToast === 'function'){
+    try{ showToast('<b>Not published.</b> ' + mkEsc(text)); }catch(e){}
+  }
+  if(text && el.scrollIntoView){ try{ el.scrollIntoView({ block:'nearest', behavior:'smooth' }); }catch(e){} }
 }
 function deProcessPhoto(file){
   return new Promise(function(resolve, reject){
@@ -19627,6 +19637,7 @@ function deResolveCommodity(name, category, unit){
   });
 }
 function deSaveRate(){
+  if(!deClient() || !deUser()){ deSetMsg('daRateMsg', 'Your founder session has ended — sign in again from the founder entry, then publish.'); return; }
   var data = {
     marketName: deVal('daRateMarket'), marketType: deVal('daRateMktType'), locality: deVal('daRateLocality'),
     commodityName: deVal('daRateCommodity'), category: deVal('daRateCategory'), variety: deVal('daRateVariety'),
@@ -19670,6 +19681,7 @@ function deSaveRate(){
     deSetMsg('daRateMsg', 'Rate published: ' + data.commodityName + ' — ' + deFmtINR(price) + ' / ' + data.unit + ' at ' + data.marketName + ' (' + data.observedDate + ').', true);
     showToast('<b>Rate published.</b> It now appears in Market Rates as a locally verified report.');
     btn.disabled = false; btn.textContent = 'Publish verified rate';
+    DE.mkt.loaded = false; /* refetch Market Rates — the cached list would otherwise keep showing the pre-publish state */
     deLoadAdminData();
   }).catch(function(err){
     deSetMsg('daRateMsg', (err && err.message) || 'Could not publish — check the connection and try again.');
@@ -19677,6 +19689,7 @@ function deSaveRate(){
   });
 }
 function deSaveFuel(){
+  if(!deClient() || !deUser()){ deSetMsg('daFuelMsg', 'Your founder session has ended — sign in again from the founder entry, then publish.'); return; }
   var price = deParseNum(deVal('daFuelPrice'));
   var data = { type: deVal('daFuelType'), coverage: deVal('daFuelCoverage'), at: deVal('daFuelAt'),
                sourceName: deVal('daFuelSourceName'), sourceRef: deVal('daFuelSourceRef') };
@@ -19694,10 +19707,12 @@ function deSaveFuel(){
     deAudit('fuel.create', 'de_fuel_observations', r.data.id, { fuel: data.type, price: price });
     deSetMsg('daFuelMsg', 'Fuel price published: ' + data.type + ' ' + deFmtINR(price) + '/litre.', true);
     showToast('<b>Fuel price published.</b>');
+    DE.mkt.loaded = false; /* refetch Market Rates — the cached list would otherwise keep showing the pre-publish state */
     deLoadAdminData();
   }).catch(function(){ btn.disabled = false; btn.textContent = 'Publish fuel price'; deSetMsg('daFuelMsg', 'Could not publish — check the connection.'); });
 }
 function deSaveBullion(){
+  if(!deClient() || !deUser()){ deSetMsg('daBulMsg', 'Your founder session has ended — sign in again from the founder entry, then publish.'); return; }
   var rate = deParseNum(deVal('daBulRate'));
   var data = { metal: deVal('daBulMetal'), purity: deVal('daBulPurity'), unit: deVal('daBulUnit'),
                session: deVal('daBulSession'), date: deVal('daBulDate'),
@@ -19715,6 +19730,7 @@ function deSaveBullion(){
     deAudit('bullion.create', 'de_bullion_observations', r.data.id, { metal: data.metal, purity: data.purity, rate: rate });
     deSetMsg('daBulMsg', 'Benchmark published: ' + data.metal + ' ' + data.purity + ' — ' + deFmtINR(rate) + ' / ' + data.unit + ' (' + data.session + ', ' + data.date + ').', true);
     showToast('<b>Benchmark published.</b>');
+    DE.mkt.loaded = false; /* refetch Market Rates — the cached list would otherwise keep showing the pre-publish state */
     deLoadAdminData();
   }).catch(function(){ btn.disabled = false; btn.textContent = 'Publish benchmark'; deSetMsg('daBulMsg', 'Could not publish — check the connection.'); });
 }
@@ -19724,6 +19740,7 @@ function deNoticeLocalitiesSelected(){
   return out;
 }
 function deSaveNotice(){
+  if(!deClient() || !deUser()){ deSetMsg('daNtMsg', 'Your founder session has ended — sign in again from the founder entry, then publish.'); return; }
   var locs = deNoticeLocalitiesSelected();
   var data = {
     type: deVal('daNtType'), title: deVal('daNtTitle'), feeder: deVal('daNtFeeder'), reason: deVal('daNtReason'),
@@ -19785,7 +19802,7 @@ function deSaveNotice(){
     DE.al.loaded = false;
     deLoadAdminData();
   }).catch(function(err){
-    btn.disabled = false; btn.textContent = 'Save notice';
+    btn.disabled = false; btn.textContent = DE.adm.editNoticeId ? 'Save changes (marks notice Updated)' : 'Publish notice';
     deSetMsg('daNtMsg', (err && err.message) || 'Could not save the notice.');
   });
 }
