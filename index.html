@@ -1113,6 +1113,22 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .f-input.err{border-color:#B3261E}
 textarea.f-input{resize:vertical;min-height:64px;line-height:1.5;font-size:15px}
 textarea.f-input.tall{min-height:120px}
+/* Post News Telugu preview — a mini news sheet (reader type: 19px
+   headline, 16px body) showing the Telugu version before sending. */
+.np-preview{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:16px;margin-top:12px}
+.np-preview .np-pv-kicker{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-deep);margin-bottom:8px}
+.np-preview h4{font-weight:800;font-size:19px;line-height:1.28;letter-spacing:-.01em;margin:0 0 10px;color:var(--ink)}
+.np-preview p{font-size:16px;line-height:1.5;color:var(--ink);margin:0;white-space:pre-wrap}
+.np-preview p+p{margin-top:12px}
+.np-preview .np-pv-foot{font-size:12.5px;color:var(--muted);line-height:1.55;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
+.np-preview .np-pv-foot.stale{color:#B3261E;font-weight:700}
+/* Post News word caps — live counter under each capped field. The caps
+   are sized to one news sheet (see NP_HEADLINE_MAX / NP_BODY_MAX). */
+.wc-line{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:6px;font-size:12.5px;color:var(--muted);line-height:1.45}
+.wc-line .wc-count{font-variant-numeric:tabular-nums;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.wc-line.over .wc-count,.wc-line.over .wc-msg{color:#B3261E}
+.f-input.over{border-color:#B3261E}
+#npSubmitBtn[disabled]{opacity:.55;pointer-events:none}
 .f-row{display:flex;gap:10px}
 .f-row>*{flex:1}
 .f-note{font-size:12.5px;color:var(--muted);line-height:1.55}
@@ -2406,7 +2422,17 @@ body.mk-lock{overflow:hidden}
 .remap-canvas{position:absolute;inset:0}
 .remap-canvas .leaflet-container{font-family:var(--font-ui);background:#E7EEE8}
 .osm-div-icon{background:transparent;border:none}
-.osm-pill{transform:translate(-50%,calc(-100% - 4px))}
+/* Map marker: a stacked unit anchored at the property point — the
+   label pill sits entirely ABOVE a teardrop pin whose tip is the
+   point, so the pin can never cover the label text (the old single
+   centred label let the pin sit on top of its middle words). The
+   wrapper is centred on the point and lifted by its full height;
+   the label sizes to its text (type + price, plus size zoomed in). */
+.osm-marker{transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;width:max-content;max-width:82vw;cursor:pointer}
+.osm-marker .osm-pin{width:24px;height:30px;flex:none;margin-top:-2px;color:var(--forest);line-height:0;filter:drop-shadow(0 3px 5px rgba(16,43,36,.4))}
+.osm-marker .osm-pin svg{width:100%;height:100%;display:block}
+.osm-marker.sel{transform:translate(-50%,-100%) scale(1.06)}
+.osm-marker.sel .osm-pin{color:#8A6D2F}
 .osm-cluster-wrap{background:transparent;border:none}
 .marker-cluster{background:transparent}
 .leaflet-control-attribution{font-size:10px!important;background:rgba(255,255,255,.85)!important;color:var(--muted)}
@@ -2421,12 +2447,10 @@ body.mk-lock{overflow:hidden}
 .remap-loading{font-size:13.5px;font-weight:700;color:var(--muted)}
 .remap-search-area{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;background:var(--forest);color:#fff;font-size:13px;font-weight:800;padding:10px 18px;border-radius:999px;box-shadow:0 6px 18px rgba(16,43,36,.32);min-height:40px}
 .remap-search-area:active{transform:translateX(-50%) scale(.96)}
-.osm-pill{background:var(--forest);color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:12.5px;font-weight:800;letter-spacing:-.01em;padding:7px 11px;border-radius:999px;border:2px solid #fff;box-shadow:0 4px 12px rgba(16,43,36,.35);white-space:nowrap;cursor:pointer;position:relative;line-height:1.25}
-.osm-pill::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--forest);border-bottom:0}
-.osm-pill.sel{background:#fff;color:var(--forest);border-color:var(--gold);transform:translate(-50%,calc(-100% - 4px)) scale(1.07)}
-.osm-pill.sel::after{border-top-color:var(--gold)}
-.osm-pill.sold{background:#5C6B63}
-.osm-pill.sold::after{border-top-color:#5C6B63}
+.osm-pill{background:var(--forest);color:#fff;font-family:'Plus Jakarta Sans','Noto Sans Telugu',system-ui,sans-serif;font-size:13px;font-weight:800;letter-spacing:0;padding:8px 13px;border-radius:999px;border:2px solid #fff;box-shadow:0 6px 16px rgba(16,43,36,.42),0 0 0 1px rgba(16,43,36,.25);white-space:nowrap;line-height:1.3;text-align:center}
+.osm-marker.sel .osm-pill{background:#fff;color:var(--forest);border-color:var(--gold)}
+.osm-marker.sold .osm-pill{background:#5C6B63}
+.osm-marker.sold .osm-pin{color:#5C6B63}
 .osm-cluster{width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;font-weight:800;display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 4px 14px rgba(16,43,36,.35);cursor:pointer}
 .remap-side-head h3{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--forest)}
 .remap-side-head span{font-size:12.5px;color:var(--muted)}
@@ -4317,15 +4341,6 @@ table.ng-table td b{color:var(--ink)}
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
       <span>Home</span>
     </button>
-    <div class="re-hero">
-      <p class="re-hero-eyebrow">Real Estate</p>
-      <h2>Find Your Property</h2>
-      <p class="re-hero-sub">Discover trusted homes, plots, and commercial spaces in Khammam.</p>
-      <p class="re-hero-context">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
-        <span>Khammam, Telangana</span><span class="dotsep" aria-hidden="true"></span><span class="sale-only">For sale only</span>
-      </p>
-    </div>
     <!-- Property shortcuts: one hamburger menu (same pattern as the
          Marketplace menu — dropdown anchored to the button on desktop,
          bottom sheet on mobile). The four actions keep their reQuick*
@@ -8211,7 +8226,7 @@ document.getElementById('fdUploadBtn').addEventListener('click', function(){
    no backend connection the screen says the post cannot be sent, and
    every failure is reported as a failure.
    ===================================================================== */
-var NP = { posterBlob:null, busy:false };
+var NP = { posterBlob:null, busy:false, previewOk:false, previewHash:'' };
 function npEl(id){ return document.getElementById(id); }
 function npMsg(errText, okText){
   var e = npEl('npErr'), o = npEl('npOk');
@@ -8238,18 +8253,40 @@ function npSignInHTML(){
     + '<button class="btn-solid" id="npSignInBtn" style="width:100%">Sign in / Create account</button>'
     + '<p class="f-note" style="margin-top:10px">Your post will not appear publicly when you send it — it waits for the founder’s approval first.</p></div>';
 }
+/* Word caps for the Post News form, sized from the news reader's
+   flip-sheet layers: the hero photo takes the top 42% of a sheet and
+   the footer (time + “N of M Pages” row and the toolbar, ~68px plus
+   safe area) takes the bottom, leaving roughly 46% of the screen —
+   about 390px on a typical phone — for text. At the reader's type
+   (headline 19px / 1.28, story 16px / 1.5, 16px side padding) that
+   area holds a headline of 2 lines (≈12 words at ~6 words a line in
+   English or Telugu) and about 13 story lines at ~7–8 words a line
+   (≈95–100 words). So: headline ≤ 12 words, story ≤ 100 words, per
+   language. Words are counted the same way for English and Telugu —
+   separated by spaces. */
+var NP_HEADLINE_MAX = 12;
+var NP_BODY_MAX = 100;
+function npCountWords(text){
+  var t = String(text || '').trim();
+  return t ? t.split(/\s+/).filter(Boolean).length : 0;
+}
 function npFormHTML(){
   return '<div class="f-card">'
     + '<h3>Write your news post</h3>'
-    + '<p>Write the headline and the story in English, in Telugu, or in both — in your own words. At least one language needs both its headline and its story. Nothing is translated automatically.</p>'
-    + '<div class="f-field"><label for="npHeadEn">Headline — English</label>'
-    + '<input class="f-input" id="npHeadEn" type="text" placeholder="Main heading in English" /></div>'
-    + '<div class="f-field"><label for="npBodyEn">Story — English</label>'
-    + '<textarea class="f-input tall" id="npBodyEn" placeholder="The full matter in English. Blank lines separate paragraphs."></textarea></div>'
-    + '<div class="f-field"><label for="npHeadTe">Headline — Telugu</label>'
-    + '<input class="f-input" id="npHeadTe" type="text" placeholder="తెలుగులో హెడ్‌లైన్" /></div>'
-    + '<div class="f-field"><label for="npBodyTe">Story — Telugu</label>'
-    + '<textarea class="f-input tall" id="npBodyTe" placeholder="తెలుగులో పూర్తి వార్త"></textarea></div>'
+    + '<p>Write the headline and the story in English, in Telugu, or in both — in your own words. Readers see the <b>Telugu version only</b>: after writing, tap <b>Preview</b> to see the Telugu version exactly as readers will see it, then send it. Please note: no translation tool is connected in this app yet, so English is <b>not</b> converted to Telugu automatically — if you write in English, also write the Telugu headline and story in the Telugu boxes below; that Telugu text is what the preview shows and what gets published.</p>'
+    + '<p class="f-note" style="margin-bottom:12px">Sized to fit one news sheet: the photo takes the top 42% of the reader and the time row and toolbar take the bottom, so each language gets a headline of up to <b>12 words</b> and a story of up to <b>100 words</b>. The counter under each box shows words used and words left as you type; a post over the limit cannot be sent.</p>'
+    + '<div class="f-field"><label for="npHeadEn">Headline — English (max 12 words)</label>'
+    + '<input class="f-input" id="npHeadEn" type="text" placeholder="Main heading in English" />'
+    + '<div class="wc-line" id="npWcHeadEn"><span class="wc-msg">Fits 2 lines on the news sheet</span><span class="wc-count">0 / 12 words · 12 left</span></div></div>'
+    + '<div class="f-field"><label for="npBodyEn">Story — English (max 100 words)</label>'
+    + '<textarea class="f-input tall" id="npBodyEn" placeholder="The full matter in English, up to 100 words. Blank lines separate paragraphs."></textarea>'
+    + '<div class="wc-line" id="npWcBodyEn"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 100 words · 100 left</span></div></div>'
+    + '<div class="f-field"><label for="npHeadTe">Headline — Telugu (max 12 words)</label>'
+    + '<input class="f-input" id="npHeadTe" type="text" placeholder="తెలుగులో హెడ్‌లైన్" />'
+    + '<div class="wc-line" id="npWcHeadTe"><span class="wc-msg">Fits 2 lines on the news sheet</span><span class="wc-count">0 / 12 words · 12 left</span></div></div>'
+    + '<div class="f-field"><label for="npBodyTe">Story — Telugu (max 100 words)</label>'
+    + '<textarea class="f-input tall" id="npBodyTe" placeholder="తెలుగులో పూర్తి వార్త — గరిష్ఠంగా 100 పదాలు"></textarea>'
+    + '<div class="wc-line" id="npWcBodyTe"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 100 words · 100 left</span></div></div>'
     + '<span class="micro" style="color:var(--accent);display:block;margin:18px 0 4px">Photos &amp; video (optional)</span>'
     + '<p class="f-note" style="margin-bottom:10px">Photos go to the news-photos bucket (up to 10 MB each), the video to news-videos (up to 100 MB). A poster frame is captured from the video automatically. Only attach media you have the right to share.</p>'
     + '<div class="f-field"><label for="npPhotos">Photos</label>'
@@ -8259,8 +8296,10 @@ function npFormHTML(){
     + '<p class="f-note" id="npPosterNote" style="margin-top:6px"></p></div>'
     + '<div class="prog-wrap" id="npProgWrap"><div class="prog-track"><i id="npProgBar"></i></div><div class="prog-label" id="npProgLabel">Sending…</div></div>'
     + '<div class="f-err" id="npErr"></div><div class="f-ok" id="npOk"></div>'
+    + '<button class="btn-ghost" id="npPreviewBtn" style="width:100%;margin-top:12px">Preview — Telugu version</button>'
+    + '<div id="npPreview"></div>'
     + '<button class="btn-solid" id="npSubmitBtn" style="width:100%;margin-top:12px">Send for founder approval</button>'
-    + '<p class="f-note" style="margin-top:10px">Sending does not publish your post. It stays visible only to you and the founder until the founder approves it.</p>'
+    + '<p class="f-note" style="margin-top:10px">Sending does not publish your post. It stays visible only to you and the founder until the founder approves it — and only its Telugu version is sent, so published posts appear in Telugu only.</p>'
     + '</div>'
     + '<div class="f-card"><h3>Your submissions</h3><div id="npMine"><p class="f-note">Loading…</p></div></div>';
 }
@@ -8281,7 +8320,96 @@ function npRender(){
     npLoadMine(s.user);
   }).catch(function(){ body.innerHTML = npNotConnHTML(); });
 }
+var NP_WC_FIELDS = [
+  { input:'npHeadEn', line:'npWcHeadEn', max:NP_HEADLINE_MAX, label:'English headline' },
+  { input:'npBodyEn', line:'npWcBodyEn', max:NP_BODY_MAX, label:'English story' },
+  { input:'npHeadTe', line:'npWcHeadTe', max:NP_HEADLINE_MAX, label:'Telugu headline' },
+  { input:'npBodyTe', line:'npWcBodyTe', max:NP_BODY_MAX, label:'Telugu story' }
+];
+function npPaintWcField(f){
+  var input = npEl(f.input), line = npEl(f.line);
+  if(!input || !line) return 0;
+  var n = npCountWords(input.value), left = f.max - n, over = n > f.max;
+  var count = line.querySelector('.wc-count'), msg = line.querySelector('.wc-msg');
+  if(count) count.textContent = over
+    ? n + ' / ' + f.max + ' words · ' + (-left) + ' over'
+    : n + ' / ' + f.max + ' words · ' + left + ' left';
+  if(msg && f.input.indexOf('Head') === 2) msg.textContent = over ? 'Too long for the headline lines — shorten it' : 'Fits 2 lines on the news sheet';
+  if(msg && f.input.indexOf('Body') === 2) msg.textContent = over ? 'Too long for one news sheet — shorten it' : 'Fits the story area of one news sheet';
+  line.classList.toggle('over', over);
+  input.classList.toggle('over', over);
+  return over ? n : 0;
+}
+function npPaintAllWc(){
+  var anyOver = false;
+  NP_WC_FIELDS.forEach(function(f){ if(npPaintWcField(f)) anyOver = true; });
+  var btn = npEl('npSubmitBtn');
+  if(btn && !NP.busy) btn.disabled = anyOver;
+  return anyOver;
+}
+function npOverCapMessage(){
+  for(var i = 0; i < NP_WC_FIELDS.length; i++){
+    var f = NP_WC_FIELDS[i], input = npEl(f.input);
+    if(!input) continue;
+    var n = npCountWords(input.value);
+    if(n > f.max) return 'Your ' + f.label + ' is ' + n + ' words — the limit for one news sheet is ' + f.max + ' words. Shorten it by ' + (n - f.max) + (n - f.max === 1 ? ' word' : ' words') + ' and send again.';
+  }
+  return '';
+}
+/* ---------- Telugu preview (before submit) ----------
+   Readers see the Telugu version only, so the preview renders the
+   Telugu headline + story exactly as they will appear (reader type:
+   19px headline, 16px body). HONESTY RULE: no translation service is
+   connected anywhere in this app — there is no endpoint, key or call
+   for one in this file — so English text is NEVER converted here.
+   When only English has been written, the preview says so plainly
+   and asks for the Telugu text instead of inventing a translation. */
+function npPreviewHash(){
+  var h = npEl('npHeadTe'), b = npEl('npBodyTe');
+  return ((h ? h.value.trim() : '') + '\n' + (b ? b.value.trim() : ''));
+}
+function npInvalidatePreview(){
+  if(!NP.previewOk) return;
+  NP.previewOk = false;
+  var foot = document.getElementById('npPvFoot');
+  if(foot){ foot.textContent = 'You edited the text after previewing — tap Preview again to see the updated Telugu version before sending.'; foot.classList.add('stale'); }
+}
+function npShowPreview(){
+  var box = npEl('npPreview'); if(!box) return false;
+  npMsg('', '');
+  var overMsg = npOverCapMessage();
+  if(overMsg){ npPaintAllWc(); box.innerHTML = ''; NP.previewOk = false; npMsg(overMsg, ''); return false; }
+  var headTe = npEl('npHeadTe').value.trim(), bodyTe = npEl('npBodyTe').value.trim();
+  var headEn = npEl('npHeadEn').value.trim(), bodyEn = npEl('npBodyEn').value.trim();
+  if(!(headTe && bodyTe)){
+    NP.previewOk = false;
+    if(headEn || bodyEn){
+      box.innerHTML = '<div class="np-preview"><div class="np-pv-kicker">Preview — Telugu version</div>'
+        + '<p style="font-size:14.5px">Your English text cannot be previewed in Telugu yet: <b>no translation tool is connected in this app</b>, so nothing is converted automatically and no translation will be invented. Write the Telugu headline and story in the Telugu boxes above — the preview will show them here, and that Telugu version is the one readers will see.</p></div>';
+    } else {
+      box.innerHTML = '';
+      npMsg('Write the headline and the story first — in Telugu, or in English with the Telugu version in the Telugu boxes — then preview.', '');
+    }
+    return false;
+  }
+  var paras = bodyTe.split(/\n\s*\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+  if(!paras.length) paras = [bodyTe];
+  box.innerHTML = '<div class="np-preview"><div class="np-pv-kicker">Preview — what readers will see · Telugu</div>'
+    + '<h4>' + mkEsc(headTe) + '</h4>'
+    + paras.map(function(p){ return '<p>' + mkEsc(p) + '</p>'; }).join('')
+    + '<div class="np-pv-foot" id="npPvFoot">Telugu only — readers will not see an English version of this post. Headline ' + npCountWords(headTe) + ' / ' + NP_HEADLINE_MAX + ' words · Story ' + npCountWords(bodyTe) + ' / ' + NP_BODY_MAX + ' words. If this looks right, tap “Send for founder approval”.</div></div>';
+  NP.previewOk = true;
+  NP.previewHash = npPreviewHash();
+  return true;
+}
 function npWireForm(u){
+  NP_WC_FIELDS.forEach(function(f){
+    var input = npEl(f.input);
+    if(input) input.addEventListener('input', function(){ npPaintAllWc(); npInvalidatePreview(); });
+  });
+  npPaintAllWc();
+  var pvBtn = npEl('npPreviewBtn');
+  if(pvBtn) pvBtn.addEventListener('click', function(){ npShowPreview(); });
   npEl('npPhotos').addEventListener('change', function(){
     var files = this.files || [];
     for(var i = 0; i < files.length; i++){
@@ -8315,6 +8443,21 @@ function npSubmit(u){
   npMsg('', '');
   if(!((headEn && bodyEn) || (headTe && bodyTe))){
     npMsg('Write the headline and the story in at least one language — English or Telugu (or both). Each language you use needs its headline and its story.', '');
+    return;
+  }
+  var overMsg = npOverCapMessage();
+  if(overMsg){ npPaintAllWc(); npMsg(overMsg, ''); return; }
+  /* Published reader posts are Telugu only. No translation tool is
+     connected in this app, so an English-only post cannot be sent as
+     Telugu — the Telugu version must be written in the Telugu boxes. */
+  if(!(headTe && bodyTe)){
+    npShowPreview();
+    npMsg('This post needs its Telugu version before it can be sent: readers see Telugu only, and no translation tool is connected in this app to convert English automatically. Write the Telugu headline and story in the Telugu boxes, preview them, then send.', '');
+    return;
+  }
+  if(!NP.previewOk || NP.previewHash !== npPreviewHash()){
+    npShowPreview();
+    npMsg('Check the Telugu preview below — it is exactly what readers will see. If it looks right, tap “Send for founder approval” again.', '');
     return;
   }
   var photoFiles = Array.prototype.slice.call(npEl('npPhotos').files || []);
@@ -8374,8 +8517,11 @@ function npSubmit(u){
     if(r.error) throw r.error;
     articleId = r.data.id;
     var jobs = [];
-    if(headEn && bodyEn) jobs.push(MK.client.from('article_translations').insert({ article_id:articleId, lang:'en', headline:headEn, summary_60_words:clampWords(bodyEn, 60), body_full:bodyEn }));
-    if(headTe && bodyTe) jobs.push(MK.client.from('article_translations').insert({ article_id:articleId, lang:'te', headline:headTe, summary_60_words:clampWords(bodyTe, 60), body_full:bodyTe }));
+    /* Telugu only: reader posts are stored with their Telugu version
+       alone, so the published story exists in Telugu and no English
+       version of it can be shown. (The English draft boxes are a
+       writing aid only; nothing is auto-translated.) */
+    jobs.push(MK.client.from('article_translations').insert({ article_id:articleId, lang:'te', headline:headTe, summary_60_words:clampWords(bodyTe, 60), body_full:bodyTe }));
     media.forEach(function(m, idx){
       jobs.push(MK.client.from('article_media').insert({ article_id:articleId, kind:m.kind, storage_path:m.storage_path, poster_path:m.poster_path, position:idx }));
     });
@@ -8390,6 +8536,9 @@ function npSubmit(u){
     npEl('npHeadTe').value = ''; npEl('npBodyTe').value = '';
     npEl('npPhotos').value = ''; npEl('npVideo').value = '';
     npEl('npPosterNote').textContent = ''; NP.posterBlob = null;
+    NP.previewOk = false; NP.previewHash = '';
+    var pvBox = npEl('npPreview'); if(pvBox) pvBox.innerHTML = '';
+    npPaintAllWc();
     npMsg('', 'Sent — your post is now waiting for founder approval. It appears in Local News only if the founder approves it; its state is tracked under Your submissions below.');
     npLoadMine(u);
   }).catch(function(e){
@@ -11410,8 +11559,9 @@ function osmRefreshMarkers(items){
   var arr = [];
   items.forEach(function(p){
     var l = reMapLoc(p); if(!l) return;
-    var cls = 'osm-pill' + (OSM.selectedId === p.id ? ' sel' : '') + (p.status === 'sold' ? ' sold' : '');
-    var icon = L.divIcon({ className:'osm-div-icon', html:'<div class="' + cls + '">' + mkEsc(reMarkerText(p, tier)) + '</div>', iconSize:[0,0] });
+    var cls = 'osm-marker' + (OSM.selectedId === p.id ? ' sel' : '') + (p.status === 'sold' ? ' sold' : '');
+    var pinSvg = '<svg viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29.2S2.8 19.4 2.8 11.4C2.8 6.3 6.9 2.2 12 2.2s9.2 4.1 9.2 9.2C21.2 19.4 12 29.2 12 29.2Z" fill="currentColor" stroke="#fff" stroke-width="1.6"/><circle cx="12" cy="11.2" r="3.6" fill="#fff"/></svg>';
+    var icon = L.divIcon({ className:'osm-div-icon', html:'<div class="' + cls + '"><div class="osm-pill">' + mkEsc(reMarkerText(p, tier)) + '</div><span class="osm-pin" aria-hidden="true">' + pinSvg + '</span></div>', iconSize:[0,0] });
     var mk = L.marker([ +l.lat, +l.lng ], { icon:icon, title:reMarkerText(p, 2) + ' \u2014 ' + p.title, zIndexOffset:(OSM.selectedId === p.id ? 1000 : 0) });
     (function(prop){ mk.on('click', function(){ reMapSelect(prop.id, { center:false }); reOpenDetail(prop.id); }); })(p);
     OSM.markers[p.id] = mk; arr.push(mk);
