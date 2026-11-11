@@ -756,7 +756,7 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .btn-logout:active{transform:scale(.98)}
 .btn-logout[disabled]{opacity:.55;pointer-events:none}
 .nreader{
-  position:fixed;inset:0;z-index:80;max-width:430px;margin:0 auto;background:#FFFFFF;
+  position:fixed;inset:0;height:100dvh;z-index:80;max-width:430px;margin:0 auto;background:#FFFFFF;
   display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateY(16px);
   transition:opacity .26s ease,transform .26s cubic-bezier(.22,.8,.3,1),visibility 0s linear .26s;
   --nr-pad:16px;
@@ -799,7 +799,11 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-page[data-nr-slot="1"]{top:100%}
 .nr-page[hidden]{display:none}
 .nr-page img{-webkit-user-drag:none}
-.nr-pg-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;scrollbar-width:none}
+/* touch-action:none on the scroller itself (not just the stage) so the
+   drag engine owns every vertical gesture deterministically on real
+   touch browsers: no native-scroll takeover, no pointercancel race —
+   the engine scrolls this element by hand and flips only at its edge. */
+.nr-pg-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;scrollbar-width:none;touch-action:none}
 .nr-pg-scroll::-webkit-scrollbar{display:none}
 .nr-pg-inner{display:flex;flex-direction:column;min-height:100%}
 .nr-pg-foot{margin-top:auto}
@@ -904,7 +908,7 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-pg-bar{
   flex:none;position:relative;display:flex;align-items:flex-end;gap:2px;
   border-top:1px solid var(--line);background:#FFFFFF;
-  padding:15px 6px calc(5px + env(safe-area-inset-bottom));
+  padding:15px 6px calc(12px + env(safe-area-inset-bottom));
 }
 .nr-tbtn{
   flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
@@ -976,7 +980,7 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-comments .nc-signin p{flex:1;font-size:13.5px;color:var(--muted);margin:0;line-height:1.45}
 .nr-comments .nc-signin button{flex:none;background:var(--accent);color:#FFFFFF;font-weight:800;font-size:14px;padding:10px 16px;border-radius:999px}
 .nr-menu{
-  position:absolute;right:10px;bottom:calc(88px + env(safe-area-inset-bottom));top:auto;z-index:20;min-width:224px;
+  position:absolute;right:10px;bottom:calc(96px + env(safe-area-inset-bottom));top:auto;z-index:20;min-width:224px;
   background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
   padding:6px;display:none;
 }
@@ -1022,21 +1026,26 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-endcard h3{font-weight:800;font-size:21px;margin:0 0 7px}
 .nr-endcard p{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 18px;max-width:28ch}
 .nr-endcard .btn-solid{flex:none;padding:12px 22px}
+/* Full story view — matched to the recording: NO pinned top bar (the
+   same small floating back chevron as the preview floats over the
+   hero), the hero is ~36% of the viewport, the article scrolls under
+   it, and the SAME bottom toolbar as the preview stays visible the
+   whole time (a fixed flex row under the scrolling body). */
 .nr-full{
   position:absolute;inset:0;background:#FFFFFF;z-index:6;display:flex;flex-direction:column;
   transform:translateY(103%);transition:transform .32s cubic-bezier(.32,.9,.3,1);
 }
 .nr-full.open{transform:none}
-.nr-full-head{
-  flex:none;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) var(--gutter) 10px;
-  border-bottom:1px solid var(--line);
-}
-.nr-full-head .t{font-weight:800;font-size:15.5px}
-.nr-full-body{overflow-y:auto;padding:18px var(--gutter) calc(30px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
-.nr-full-body h2{font-weight:800;font-size:24px;line-height:1.16;letter-spacing:-.01em;margin:0 0 10px}
-.nr-full-body .fm{font-size:12.5px;color:var(--muted);margin-bottom:16px}
-.nr-full-body p{font-size:16px;line-height:1.75;color:var(--ink-2);margin:0 0 15px}
-.nr-full-body img{width:100%;border-radius:14px;margin:4px 0 6px}
+.nr-full .nr-float-back{z-index:12}
+.nreader.full-open #nrBack{display:none}
+.nr-full-body{flex:1;min-height:0;overflow-y:auto;padding:0 0 calc(28px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.nr-full-body img.hero{display:block;width:100%;height:36dvh;object-fit:cover;background:#101613}
+.nr-full-text{padding:16px var(--gutter) 0}
+.nr-full-text.nohero{padding-top:calc(58px + env(safe-area-inset-top))}
+.nr-full-body h2{font-weight:800;font-size:25px;line-height:1.25;letter-spacing:-.01em;margin:0 0 10px}
+.nr-full-body .fm{font-size:12.5px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.nr-full-body p{font-size:18.5px;line-height:1.68;color:var(--ink);margin:0 0 15px;white-space:pre-wrap}
+#nrFullBar{flex:none;background:#FFFFFF}
 .nr-light{position:fixed;inset:0;z-index:95;background:rgba(8,13,11,.95);display:none;flex-direction:column}
 .nr-light.open{display:flex}
 .nr-light .ll-bar{flex:none;display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) var(--gutter) 10px;color:#F4F8F5}
@@ -5167,13 +5176,11 @@ table.ng-table td b{color:var(--ink)}
     </div>
   </div>
   <div class="nr-full" id="nrFull" aria-hidden="true">
-    <div class="nr-full-head">
-      <button class="nr-back" id="nrFullBack" aria-label="Back to story">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
-      </button>
-      <span class="t">Full story</span>
-    </div>
     <div class="nr-full-body" id="nrFullBody"></div>
+    <div id="nrFullBar"></div>
+    <button class="nr-float-back" id="nrFullBack" aria-label="Back to story">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
   </div>
 </div>
 
@@ -5902,6 +5909,7 @@ var nrEl = {
   menuSave:document.getElementById('nrMenuSave'),
   full:document.getElementById('nrFull'),
   fullBody:document.getElementById('nrFullBody'),
+  fullBar:document.getElementById('nrFullBar'),
   light:document.getElementById('nrLight'), lightImg:document.getElementById('nrLightImg'),
   lightCap:document.getElementById('nrLightCap'),
   langEn:document.getElementById('nrLangEn'), langTe:document.getElementById('nrLangTe')
@@ -5996,6 +6004,25 @@ function nrSummaryHTML(summary){
   var parts = String(summary||'').split(/\n\s*\n/).map(function(s){ return s.trim(); }).filter(Boolean);
   if(!parts.length) return '';
   return parts.map(function(s){ return '<p>'+mkEsc(s)+'</p>'; }).join('');
+}
+/* The flip card carries the story's COMPLETE text — never a truncated
+   preview. The stored summary is capped at ~60 words by design
+   (summary_60_words) and the rest of the article lives in body_full,
+   so the card renders summary + body as one continuous text and the
+   reader scrolls through ALL of it inside the card. When the summary
+   is simply the body's own opening (auto-derived for reader posts, or
+   pasted into both fields), the body alone is rendered so nothing is
+   ever printed twice. */
+function nrArticleTextHTML(loc){
+  var sum = String((loc && loc.summary) || '').trim();
+  var body = String((loc && loc.body) || '').trim();
+  if(!body) return nrSummaryHTML(sum);
+  if(!sum) return nrSummaryHTML(body);
+  var norm = function(s){ return s.replace(/\s+/g, ' ').trim(); };
+  var sumN = norm(sum).replace(/(…|\.{3})+$/, '').trim();
+  var bodyN = norm(body);
+  var text = (sumN.length >= 30 && bodyN.indexOf(sumN) === 0) ? body : (sum + '\n\n' + body);
+  return nrSummaryHTML(text);
 }
 function storyText(a, lang){ return (lang==='te' ? a.te : a.en) || null; }
 function mediaItems(a){
@@ -6196,9 +6223,11 @@ function nrPageHTML(a, interactive){
     html += '<div class="nr-pg-foot">' + nrBylineHTML(a) + '</div>';
     return html + '</div></div>' + nrToolbarHTML();
   }
-  /* Headline first under the image, then the complete summary (never
-     truncated), then the meta foot — the recording's order. */
-  html += '<div class="nr-body"><h2>' + mkEsc(loc.headline) + '</h2>' + nrSummaryHTML(loc.summary) + '</div>';
+  /* Headline first under the image, then the story's COMPLETE text
+     (summary + full body — see nrArticleTextHTML), then the meta foot
+     — the recording's order. The page's own scroll area carries it
+     all; nothing is cut off behind the Read full story link. */
+  html += '<div class="nr-body"><h2>' + mkEsc(loc.headline) + '</h2>' + nrArticleTextHTML(loc) + '</div>';
   html += '<div class="nr-pg-foot">' + nrBylineHTML(a);
   if(a.source) html += '<div class="nr-source">Source: ' + mkEsc(a.source) + '</div>';
   if(interactive && loc.body){
@@ -6285,6 +6314,10 @@ function nrRender(){
     slot.innerHTML = nrPageHTML(a, s === 0);
     if(s === 0) nrBindPage(a, slot);
   });
+  /* A re-render under the open full-story view (e.g. a language
+     switch) rebinds nrEl to the page's strip — point it back at the
+     full view's strip, the one the reader actually sees. */
+  if(NR.fullOpen && nrEl.fullBar) nrPointBar(nrEl.fullBar);
   nrPaintChrome();
 }
 function nrPauseVideos(){
@@ -6553,20 +6586,29 @@ function nrGoTo(i, dir){
     else if(e.key === 'Escape'){ if(nrEl.menu && nrEl.menu.classList.contains('open')) nrCloseMenu(); else closeNews(); }
   });
 })();
+/* Point the shared toolbar references (nrEl) at one toolbar instance
+   — a story page's strip, or the full-story view's strip while that
+   view is open. The engagement module paints counts and reaction
+   states through nrEl, so whichever strip the reader can actually see
+   is always the one that stays live. */
+function nrPointBar(scope){
+  if(!scope){ return; }
+  nrEl.likeBtn = scope.querySelector('[data-nr-act="like"]');
+  nrEl.dislikeBtn = scope.querySelector('[data-nr-act="dislike"]');
+  nrEl.likeCnt = scope.querySelector('.cnt-like');
+  nrEl.dislikeCnt = scope.querySelector('.cnt-dislike');
+  nrEl.commentBtn = scope.querySelector('[data-nr-act="comments"]');
+  nrEl.commentCnt = scope.querySelector('.cnt-comments');
+  nrEl.shareBtn = scope.querySelector('[data-nr-act="share"]');
+  nrEl.waBtn = scope.querySelector('[data-nr-act="wa"]');
+  nrEl.moreBtn = scope.querySelector('[data-nr-act="more"]');
+}
 /* Bind everything interactive on the CURRENT page: its toolbar (the
    engagement module paints through nrEl, so the references move to
    this page's strip), the video poster, gallery thumbs, photo zoom,
    calendar month nav and the full-story link. */
 function nrBindPage(a, page){
-  nrEl.likeBtn = page.querySelector('[data-nr-act="like"]');
-  nrEl.dislikeBtn = page.querySelector('[data-nr-act="dislike"]');
-  nrEl.likeCnt = page.querySelector('.cnt-like');
-  nrEl.dislikeCnt = page.querySelector('.cnt-dislike');
-  nrEl.commentBtn = page.querySelector('[data-nr-act="comments"]');
-  nrEl.commentCnt = page.querySelector('.cnt-comments');
-  nrEl.shareBtn = page.querySelector('[data-nr-act="share"]');
-  nrEl.waBtn = page.querySelector('[data-nr-act="wa"]');
-  nrEl.moreBtn = page.querySelector('[data-nr-act="more"]');
+  nrPointBar(page);
   if(nrEl.likeBtn) nrEl.likeBtn.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('like'); });
   if(nrEl.dislikeBtn) nrEl.dislikeBtn.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('dislike'); });
   if(nrEl.commentBtn) nrEl.commentBtn.addEventListener('click', function(){ if(window.mkNrOpenComments) window.mkNrOpenComments(); });
@@ -6628,6 +6670,30 @@ function nrBindPage(a, page){
   var readFull = page.querySelector('[data-nr-readfull]');
   if(readFull) readFull.addEventListener('click', function(){ openNrFull(a); });
 }
+/* The full-story view carries the SAME bottom toolbar as the preview
+   (the recording keeps it on screen while reading). It is built once
+   from the same nrToolbarHTML and wired to the same actions; while
+   the full view is open, nrEl points at this strip so reaction counts
+   and states paint here. */
+(function nrBuildFullBar(){
+  if(!nrEl.fullBar) return;
+  nrEl.fullBar.innerHTML = nrToolbarHTML();
+  var q = function(sel){ return nrEl.fullBar.querySelector(sel); };
+  var like = q('[data-nr-act="like"]'), dislike = q('[data-nr-act="dislike"]'),
+      comments = q('[data-nr-act="comments"]'), share = q('[data-nr-act="share"]'),
+      wa = q('[data-nr-act="wa"]'), more = q('[data-nr-act="more"]');
+  if(like) like.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('like'); });
+  if(dislike) dislike.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('dislike'); });
+  if(comments) comments.addEventListener('click', function(){ if(window.mkNrOpenComments) window.mkNrOpenComments(); });
+  if(share) share.addEventListener('click', function(){ var s = nrCurrentStory(); if(s) shareStory(s); });
+  if(wa) wa.addEventListener('click', function(){ var s = nrCurrentStory(); if(s) window.open(waStoryHref(s), '_blank', 'noopener'); });
+  if(more) more.addEventListener('click', function(e){
+    e.stopPropagation();
+    var open = nrEl.menu.classList.toggle('open');
+    more.setAttribute('aria-expanded', String(open));
+    if(open) nrPaintChrome();
+  });
+})();
 /* ---- overflow menu: Save lives here, with Previous / Next, the full
    story, the language switch and Report. Handlers always act on the
    story currently on screen (nrCurrentStory). ---- */
@@ -6677,24 +6743,40 @@ function openNrFull(a){
   if(!loc || !loc.body) return;
   NR.fullOpen = true;
   var items = mediaItems(a);
+  var it = items.length ? items[0] : null;
+  var heroSrc = it ? (it.video ? (it.poster || '') : it.src) : '';
   /* Story text is other people's writing (founder- or reader-authored):
      it is escaped before it becomes markup, always — a story is text,
-     never HTML. */
+     never HTML. The full view shows the article body under a ~36dvh
+     edge-to-edge hero, with NO pinned top bar — the floating back
+     chevron and the persistent bottom toolbar frame it, exactly like
+     the preview (and the recording). */
   var paras = String(loc.body).split(/\n\s*\n/).map(function(p){ return '<p>'+mkEsc(p)+'</p>'; }).join('');
   nrEl.fullBody.innerHTML =
-    (a.breaking ? '<div class="nr-breaking" style="border-radius:10px;margin-bottom:14px"><i></i><span>Breaking News</span></div>' : '')
+    (heroSrc ? '<img class="hero" src="'+mkEsc(heroSrc)+'" alt="'+mkEsc(it.alt || '')+'"/>' : '')
+    + '<div class="nr-full-text' + (heroSrc ? '' : ' nohero') + '">'
+    + (a.breaking ? '<div class="nr-breaking" style="border-radius:10px;margin-bottom:14px"><i></i><span>Breaking News</span></div>' : '')
     + '<h2>'+mkEsc(loc.headline)+'</h2>'
-    + '<div class="fm">'+newsTimeLabel(a.publishedAt)+' · '+mkEsc(a.publisher||'Mana Khammam Newsroom')+(a.source ? ' · Source: '+mkEsc(a.source) : '')+'</div>'
-    + (items.length ? '<img src="'+mkEsc(items[0].src)+'" alt="'+mkEsc(items[0].alt)+'"/>' + (items[0].credit ? '<div class="fm">Photo: '+mkEsc(items[0].credit)+'</div>' : '') : '')
+    + '<div class="fm">'+newsTimeLabel(a.publishedAt)+' · '+mkEsc(a.publisher||'Mana Khammam Newsroom')+(a.source ? ' · Source: '+mkEsc(a.source) : '')+(it && it.credit ? ' · Photo: '+mkEsc(it.credit) : '')+'</div>'
     + paras
-    + '<div style="margin-top:20px">' + waDetailBtn(waStoryHref(a)) + '</div>';
+    + '</div>';
   nrEl.fullBody.scrollTop = 0;
   nrEl.full.classList.add('open'); nrEl.full.setAttribute('aria-hidden','false');
+  nrEl.root.classList.add('full-open');
+  /* The visible toolbar is now the full view's strip — point nrEl at
+     it and repaint so counts / reaction states show here. */
+  if(nrEl.fullBar){ nrPointBar(nrEl.fullBar); if(window.mkEngPaint) window.mkEngPaint(a); }
 }
 function closeNrFull(instant){
   if(!NR.fullOpen && !nrEl.full.classList.contains('open')) return;
   NR.fullOpen = false;
   nrEl.full.classList.remove('open'); nrEl.full.setAttribute('aria-hidden','true');
+  nrEl.root.classList.remove('full-open');
+  /* Hand the toolbar references back to the story page underneath. */
+  var page = nrCurPage();
+  if(page) nrPointBar(page);
+  var a = nrCurrentStory();
+  if(a && window.mkEngPaint) window.mkEngPaint(a);
 }
 document.getElementById('nrFullBack').addEventListener('click', function(){ closeNrFull(); });
 function openReport(a){
