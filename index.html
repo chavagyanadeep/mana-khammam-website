@@ -779,13 +779,13 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
   flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--paper-2);color:var(--ink);
 }
 .nr-back:active{transform:scale(.92)}
-/* ---- the flip: a vertical track of full-screen pages, no gaps ----
-   Pages sit at top:-100% / 0 / +100% inside the track; the track's
-   translateY moves the whole stack as one solid unit, so the incoming
-   page is always attached directly to the outgoing one. Pure
-   translation: no fade, no scale, no 3D. The toolbar lives INSIDE each
-   page, so it travels with the page exactly as recorded. */
-.nr-stage{position:relative;flex:1;overflow:hidden;touch-action:none;min-height:0;background:#FFFFFF}
+/* ---- the flip: a page turn, after the reference DOM reader ----
+   Pages sit at top:-100% / 0 / +100% inside the track so the drag
+   engine can follow the finger; on release (or a key / wheel flip)
+   the incoming page is placed under the current one and the current
+   sheet turns away with a rotateX page turn (see .turning below).
+   The toolbar lives INSIDE each page, so it travels with the page. */
+.nr-stage{position:relative;flex:1;overflow:hidden;touch-action:none;min-height:0;background:#FFFFFF;perspective:1100px}
 .nr-track{position:absolute;inset:0;will-change:transform}
 @media (min-width:700px){
   .nr-track{left:0;right:0;margin:0 auto;width:480px;box-shadow:0 0 0 1px var(--line)}
@@ -799,6 +799,38 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-page[data-nr-slot="1"]{top:100%}
 .nr-page[hidden]{display:none}
 .nr-page img{-webkit-user-drag:none}
+/* Page turn (reference DOM reader): the outgoing sheet rotates away on
+   the X axis — origin at the top edge going forward, the bottom edge
+   going back — dimming as it turns, revealing the next sheet beneath. */
+.nr-page.turning{z-index:5;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.nr-page.turning.forward{transform-origin:top center}
+.nr-page.turning.backward{transform-origin:bottom center}
+/* Sheet layout (reference DOM reader): a fixed hero taking 42% of the
+   page, the story text scrolling beneath it, then meta + toolbar. */
+.nr-hero{position:relative;flex:none;height:42%;background:#252525;overflow:hidden}
+.nr-hero img.main,.nr-hero video.main{width:100%;height:100%;object-fit:cover;background:#101613;display:block}
+.nr-hero .nr-vposter{height:100%}
+.nr-hero .nr-vposter img.main{height:100%}
+.nr-cat{
+  position:absolute;left:0;bottom:0;z-index:2;padding:.3em .65em;
+  background:rgba(23,23,23,.86);color:#FFFFFF;font-size:13px;font-weight:700;line-height:1.35;
+}
+/* Meta row inside the sheet footer: relative time left, page count
+   right — "3 of 12 Pages", as in the reference reader. */
+.nr-pg-meta{
+  flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:8px var(--nr-pad) 0;font-size:12.5px;color:var(--muted);
+}
+.nr-pg-meta .pg-num{font-variant-numeric:tabular-nums;white-space:nowrap}
+/* In-reader notice pill (reference reader): transient confirmation for
+   link-copied / saved, floating above the toolbar. */
+.nr-notice{
+  position:absolute;z-index:40;left:50%;bottom:calc(104px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);max-width:calc(100% - 40px);
+  padding:.5em .85em;border-radius:.5em;background:#111111;color:#FFFFFF;
+  font-size:13.5px;font-weight:600;text-align:center;pointer-events:none;
+}
+.nr-notice[hidden]{display:none}
 /* touch-action:none on the scroller itself (not just the stage) so the
    drag engine owns every vertical gesture deterministically on real
    touch browsers: no native-scroll takeover, no pointercancel race —
@@ -5144,6 +5176,7 @@ table.ng-table td b{color:var(--ink)}
       <span>Swipe up for more</span>
     </div>
   </div>
+  <output class="nr-notice" id="nrNotice" hidden aria-live="polite"></output>
   <button class="nr-float-back" id="nrBack" aria-label="Back to news list">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
   </button>
@@ -5876,14 +5909,14 @@ function renderSearch(raw){
   }
 }
 
-/* =================== NEWS READER — VERTICAL PAGE STACK ===================
-   One stream, one story per full-screen page. The pages sit in a
-   vertical track with NO gap between them; a swipe drags the whole
-   stack with the finger and the neighbouring page is revealed already
-   attached. Pure translation — no fade, scale or 3D. Inside a page,
-   the swipe first scrolls the story's own content (the image scrolls
-   up and away, all of the text is reachable); only at the content's
-   edge does the gesture become a page flip. One gesture = one story. */
+/* =================== NEWS READER — SHEET PAGE TURN ===================
+   One stream, one story per full-screen sheet, laid out after the
+   reference DOM reader: a fixed hero (42% of the page) with a category
+   badge, the story text scrolling beneath it, a time / page-number
+   meta row, and the toolbar inside the sheet's footer. A swipe first
+   scrolls the story's own text; only at the text's edge does the
+   gesture become a flip, and the flip itself is the reference's
+   rotateX page turn. One gesture = one story. */
 var NR = {
   lang:'en',            /* reader-only language preference, kept for the session */
   idx:0,                /* current story index; == list length = end-of-feed card */
@@ -6055,25 +6088,43 @@ function nrIsCalendar(a){
   var h = ((a.en && a.en.headline) || '') + ' ' + ((a.te && a.te.headline) || '');
   return /panchangam/i.test(h);
 }
+/* Category badge label for the hero — the story's own category (or
+   locality) from the feed; no badge when the feed gives neither. */
+function nrCatLabel(a){
+  return String((a && (a.category || a.newsCategory || a.locality)) || '').trim();
+}
+/* The sheet hero (reference DOM reader): the story's own photo fills
+   the top 42% of the page, with the category badge at its bottom-left.
+   Video stories keep the poster + play disc, inside the hero. */
 function nrMediaHTML(a, interactive){
   var items = mediaItems(a); if(!items.length) return '';
   var gi = interactive ? Math.min(NR.galleryIdx, items.length-1) : 0;
-  var it = items[gi], html = '<div class="nr-media">';
+  var it = items[gi], html = '<div class="nr-hero">';
   if(it.video){
     if(interactive){
-      /* Poster first, exactly like the recording: nothing downloads or
-         plays until the reader taps the play disc. The tap swaps in the
-         real <video> with native controls (see nrBindPage). */
+      /* Poster first: nothing downloads or plays until the reader taps
+         the play disc. The tap swaps in the real <video> with native
+         controls (see nrBindPage). */
       html += '<div class="nr-vposter" data-nr-play role="button" tabindex="0" aria-label="Play video">'
-        + (it.poster ? '<img class="main" src="'+mkEsc(it.poster)+'" alt="'+mkEsc(it.alt)+'" onerror="this.style.visibility=\'hidden\'"/>' : '<span class="main" style="display:block;width:100%;height:clamp(240px,38dvh,420px);background:#101613"></span>')
+        + (it.poster ? '<img class="main" src="'+mkEsc(it.poster)+'" alt="'+mkEsc(it.alt)+'" onerror="this.style.visibility=\'hidden\'"/>' : '<span class="main" style="display:block;width:100%;height:100%;background:#101613"></span>')
         + '<span class="nr-playbtn">'+NR_ICONS.playLg+'</span></div>';
     } else {
       html += '<img class="main" src="'+mkEsc(it.poster||it.src)+'" alt="'+mkEsc(it.alt)+'" loading="lazy"/>';
     }
   } else {
-    html += '<img class="main" src="'+mkEsc(it.src)+'" alt="'+mkEsc(it.alt)+'" '+(interactive && !nrIsPoster(a)?'data-nr-zoom':'')+' loading="'+(interactive?'eager':'lazy')+'" onerror="this.closest(\'.nr-media\').style.display=\'none\'"/>';
+    html += '<img class="main" src="'+mkEsc(it.src)+'" alt="'+mkEsc(it.alt)+'" '+(interactive && !nrIsPoster(a)?'data-nr-zoom':'')+' loading="'+(interactive?'eager':'lazy')+'" onerror="this.closest(\'.nr-hero\').style.display=\'none\'"/>';
   }
+  var cat = nrCatLabel(a);
+  if(cat) html += '<span class="nr-cat">'+mkEsc(cat)+'</span>';
   html += '</div>';
+  return html;
+}
+/* Photo credit + gallery thumbs — these ride at the top of the
+   scrolling story area, under the fixed hero. */
+function nrMediaExtrasHTML(a, interactive){
+  var items = mediaItems(a); if(!items.length) return '';
+  var gi = interactive ? Math.min(NR.galleryIdx, items.length-1) : 0;
+  var it = items[gi], html = '';
   if(it.credit) html += '<div class="nr-credit">Photo: '+mkEsc(it.credit)+'</div>';
   if(interactive && items.length > 1 && !nrIsPoster(a)){
     html += '<div class="nr-thumbs">' + items.map(function(g,i){
@@ -6081,6 +6132,13 @@ function nrMediaHTML(a, interactive){
     }).join('') + '</div>';
   }
   return html;
+}
+/* Sheet footer meta row (reference DOM reader): relative time on the
+   left, "N of M Pages" on the right. */
+function nrMetaHTML(a, pos, total){
+  var rel = nrRelTime(a.publishedAt);
+  return '<div class="nr-pg-meta"><span>' + (rel ? '◷ ' + mkEsc(rel) : '') + '</span>'
+    + '<span class="pg-num">' + (pos + 1) + ' of ' + total + ' Pages</span></div>';
 }
 /* Poster media: the artwork fills the page area. Several images swipe
    horizontally with dot indicators, as in the recording. */
@@ -6187,21 +6245,30 @@ function nrEndHTML(total){
    toolbar. The foot (meta / source / full-story link) is pinned to the
    bottom of the scroll area when the story is short, and follows the
    text when the story is long — nothing is ever cut off. */
-function nrPageHTML(a, interactive){
+function nrPageHTML(a, interactive, pos, total){
   var poster = nrIsPoster(a), cal = !poster && nrIsCalendar(a);
-  var html = '<div class="nr-pg-scroll"><div class="nr-pg-inner">';
-  if(a.breaking) html += '<div class="nr-breaking"><i></i><span>Breaking News</span></div>';
+  var meta = (typeof pos === 'number' && total) ? nrMetaHTML(a, pos, total) : '';
+  var html = '';
   if(poster){
+    html = '<div class="nr-pg-scroll"><div class="nr-pg-inner">';
+    if(a.breaking) html += '<div class="nr-breaking"><i></i><span>Breaking News</span></div>';
     html += nrPosterMediaHTML(a, interactive);
-    return html + '</div></div>' + nrToolbarHTML();
+    return html + '</div></div>' + meta + nrToolbarHTML();
   }
   if(cal){
+    html = '<div class="nr-pg-scroll"><div class="nr-pg-inner">';
+    if(a.breaking) html += '<div class="nr-breaking"><i></i><span>Breaking News</span></div>';
     html += nrCalHTML(a) + nrCalDetailsHTML(a);
     html += '<div class="nr-pg-foot">' + nrBylineHTML(a);
     if(a.source) html += '<div class="nr-source">Source: ' + mkEsc(a.source) + '</div>';
-    return html + '</div></div></div>' + nrToolbarHTML();
+    return html + '</div></div></div>' + meta + nrToolbarHTML();
   }
+  /* Standard sheet (reference DOM reader): breaking strip, then the
+     fixed 42% hero, then the scrolling story, then meta + toolbar. */
+  if(a.breaking) html += '<div class="nr-breaking"><i></i><span>Breaking News</span></div>';
   html += nrMediaHTML(a, interactive);
+  html += '<div class="nr-pg-scroll"><div class="nr-pg-inner">';
+  html += nrMediaExtrasHTML(a, interactive);
   var loc = storyText(a, NR.lang);
   if(!loc){
     if(NR.lang === 'en'){
@@ -6221,7 +6288,7 @@ function nrPageHTML(a, interactive){
       + '</div></div>';
     }
     html += '<div class="nr-pg-foot">' + nrBylineHTML(a) + '</div>';
-    return html + '</div></div>' + nrToolbarHTML();
+    return html + '</div></div>' + meta + nrToolbarHTML();
   }
   /* Headline first under the image, then the story's COMPLETE text
      (summary + full body — see nrArticleTextHTML), then the meta foot
@@ -6234,7 +6301,7 @@ function nrPageHTML(a, interactive){
     html += '<button class="nr-readfull" data-nr-readfull>Read full story'
       + '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>';
   }
-  return html + '</div></div></div>' + nrToolbarHTML();
+  return html + '</div></div></div>' + meta + nrToolbarHTML();
 }
 function nrCloseMenu(){
   if(!nrEl.menu) return;
@@ -6293,6 +6360,9 @@ function nrRender(){
   nrEl.empty.classList.remove('show');
   [-1, 0, 1].forEach(function(s){
     var slot = nrSlot(s); if(!slot) return;
+    /* Clear any page-turn leftovers from the previous flip. */
+    slot.style.top = ''; slot.style.zIndex = '';
+    slot.classList.remove('turning', 'forward', 'backward');
     var pi = NR.idx + s;
     if(pi < 0 || pi > total){
       slot.hidden = true; slot.innerHTML = ''; slot.classList.remove('poster');
@@ -6311,7 +6381,7 @@ function nrRender(){
     }
     var a = L[pi];
     slot.classList.toggle('poster', nrIsPoster(a));
-    slot.innerHTML = nrPageHTML(a, s === 0);
+    slot.innerHTML = nrPageHTML(a, s === 0, pi, total);
     if(s === 0) nrBindPage(a, slot);
   });
   /* A re-render under the open full-story view (e.g. a language
@@ -6352,17 +6422,44 @@ function nrLandOn(target){
   nrRender(); nrSyncHash();
   NR.animating = false;
 }
-function nrFlip(dir){ /* dir: +1 next, -1 previous — the whole stack slides */
+/* ---- page turn (reference DOM reader) ----
+   The incoming sheet is placed in the current sheet's position,
+   underneath it; the outgoing sheet then rotates away on the X axis
+   (360ms, the reference's easing and dim-to-.55), revealing the new
+   sheet beneath. Reduced motion (or a missing neighbour) lands
+   instantly, exactly as the reference does. */
+function nrRotateFlip(dir, target){
+  var cur = nrCurPage();
+  var inc = nrSlot(dir > 0 ? 1 : -1);
+  if(!cur || !inc || inc.hidden || NR_REDUCED){ nrLandOn(target); return; }
+  inc.style.top = '0'; inc.style.zIndex = '1';
+  cur.style.zIndex = '2';
+  cur.classList.add('turning', dir > 0 ? 'forward' : 'backward');
+  var anim = null;
+  try{
+    anim = cur.animate([
+      { transform:'rotateX(0deg)', filter:'brightness(1)' },
+      { transform:'rotateX(' + (dir > 0 ? '88' : '-88') + 'deg)', filter:'brightness(.55)' }
+    ], { duration:360, easing:'cubic-bezier(.22,.65,.24,1)' });
+  }catch(e){}
+  var finish = function(){
+    cur.classList.remove('turning', 'forward', 'backward');
+    cur.style.zIndex = ''; inc.style.top = ''; inc.style.zIndex = '';
+    nrLandOn(target);
+  };
+  if(anim && anim.finished) anim.finished.then(finish).catch(finish);
+  else finish();
+}
+function nrFlip(dir){ /* dir: +1 next, -1 previous — the sheet turns */
   var total = newsList().length;
   if(NR.animating || NR.fullOpen || NR.panelOpen || !total) return;
   var target = NR.idx + dir;
   if(target < 0 || target > total) return;
   NR.animating = true; nrPauseVideos(); closeNrFull(true); nrCloseMenu(); NR.hintSeen = true;
-  var H = nrEl.stage.clientHeight || 600;
-  nrAnimateTrack(dir > 0 ? -H : H, function(){ nrLandOn(target); });
+  nrRotateFlip(dir, target);
 }
-/* Settle after a drag: commit to the neighbouring page, or spring the
-   stack back to the current page. */
+/* Settle after a drag: commit to the neighbouring page with the page
+   turn, or spring the stack back to the current page. */
 function nrDragSettle(dir){
   var total = newsList().length;
   NR.animating = true;
@@ -6372,8 +6469,20 @@ function nrDragSettle(dir){
   }
   nrPauseVideos(); closeNrFull(true); NR.hintSeen = true;
   var target = Math.max(0, Math.min(total, NR.idx + dir));
-  var H = nrEl.stage.clientHeight || 600;
-  nrAnimateTrack(dir > 0 ? -H : H, function(){ nrLandOn(target); });
+  if(target === NR.idx){ nrAnimateTrack(0, function(){ NR.animating = false; }); return; }
+  nrTrackReset(); /* the turn starts from rest, as in the reference */
+  nrRotateFlip(dir, target);
+}
+/* In-reader notice (reference DOM reader): a small dark pill inside
+   the reader confirming link-copied / saved, gone after ~2.2s. */
+var nrNoticeTimer = 0;
+function nrShowNotice(text){
+  var n = document.getElementById('nrNotice');
+  if(!n) return;
+  n.textContent = text;
+  n.hidden = false;
+  clearTimeout(nrNoticeTimer);
+  nrNoticeTimer = setTimeout(function(){ n.hidden = true; }, 2200);
 }
 function nrGoTo(i, dir){
   var total = newsList().length;
@@ -6703,8 +6812,8 @@ function nrCurrentStory(){
 }
 function nrToggleSave(){
   var a = nrCurrentStory(); if(!a) return;
-  if(NR.bookmarks[a.id]){ delete NR.bookmarks[a.id]; showToast('Removed from saved stories.'); }
-  else { NR.bookmarks[a.id] = true; showToast('<b>Saved.</b> This story stays marked as saved while you read.'); }
+  if(NR.bookmarks[a.id]){ delete NR.bookmarks[a.id]; nrShowNotice(NR.lang === 'te' ? 'సేవ్ తీసివేయబడింది' : 'Removed from saved stories'); }
+  else { NR.bookmarks[a.id] = true; nrShowNotice(NR.lang === 'te' ? 'సేవ్ చేయబడింది' : 'Saved'); }
   nrPaintChrome();
 }
 if(nrEl.menuSave) nrEl.menuSave.addEventListener('click', function(){ nrCloseMenu(); nrToggleSave(); });
@@ -6727,15 +6836,21 @@ if(nrEl.menuReport) nrEl.menuReport.addEventListener('click', function(){
 function shareStory(a){
   var loc = storyText(a, NR.lang) || storyText(a, 'en');
   if(!loc) return;
-  var text = loc.headline + '\n\n' + clampWords(loc.summary, 60) + '\n\n— Mana Khammam News\nRead it here: https://mana-khammam.com/#/story/' + (a.slug || a.id);
+  /* Reference share flow: native share sheet with the story's own
+     #/story/<id> deep link; without it, copy the link and confirm
+     with the in-reader notice (Telugu when reading in Telugu). */
+  var url = 'https://mana-khammam.com/#/story/' + (a.slug || a.id);
+  var text = loc.headline + '\n\n' + clampWords(loc.summary, 60) + '\n\n— Mana Khammam News';
   if(navigator.share){
-    navigator.share({title: loc.headline, text: text}).catch(function(){});
+    navigator.share({title: loc.headline, text: text, url: url}).catch(function(err){
+      if(err && err.name !== 'AbortError') nrShowNotice(NR.lang === 'te' ? 'లింక్ షేర్ చేయడం సాధ్యం కాలేదు' : 'Could not share this link');
+    });
   } else if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(function(){
-      showToast('<b>Story copied.</b> Headline and summary are on your clipboard — paste them anywhere to share.');
-    }, function(){ showToast('Sharing is not available in this browser.'); });
+    navigator.clipboard.writeText(url).then(function(){
+      nrShowNotice(NR.lang === 'te' ? 'లింక్ కాపీ అయింది' : 'Link copied');
+    }, function(){ nrShowNotice(NR.lang === 'te' ? 'లింక్ షేర్ చేయడం సాధ్యం కాలేదు' : 'Could not share this link'); });
   } else {
-    showToast('Sharing is not available in this browser.');
+    nrShowNotice(NR.lang === 'te' ? 'లింక్ షేర్ చేయడం సాధ్యం కాలేదు' : 'Could not share this link');
   }
 }
 function openNrFull(a){
