@@ -759,135 +759,175 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
   position:fixed;inset:0;z-index:80;max-width:430px;margin:0 auto;background:#FFFFFF;
   display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateY(16px);
   transition:opacity .26s ease,transform .26s cubic-bezier(.22,.8,.3,1),visibility 0s linear .26s;
+  --nr-pad:16px;
 }
 .nreader.open{opacity:1;visibility:visible;transform:none;transition:opacity .26s ease,transform .26s cubic-bezier(.22,.8,.3,1)}
-.nr-head{
-  flex:none;position:relative;display:flex;align-items:center;gap:10px;
-  padding:calc(7px + env(safe-area-inset-top)) var(--gutter) 7px;
-  border-bottom:1px solid var(--line);background:#FFFFFF;
+/* No header bar inside the reader (as in the reference recording): the
+   story starts at the very top of the viewport. The only top chrome is
+   one small floating back chevron over the hero image. */
+.nr-float-back{
+  position:absolute;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:12;
+  width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(9,15,12,.46);color:#FFFFFF;
+  box-shadow:0 2px 10px rgba(9,15,12,.25);
 }
-.nr-head .nr-back{background:transparent;width:34px;height:34px}
-.nr-head .nr-back svg{width:21px;height:21px}
-.nr-more-head{
-  flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--ink);
-}
-.nr-more-head:active{background:var(--paper-2)}
-.nr-more-head svg{width:20px;height:20px}
+.nr-float-back:active{transform:scale(.92)}
+.nr-float-back svg{width:20px;height:20px}
+/* Shared round back button (full-story view, comments, marketplace
+   overlays) — unchanged from before. */
 .nr-back{
   flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--paper-2);color:var(--ink);
 }
 .nr-back:active{transform:scale(.92)}
-.nr-title{font-weight:800;font-size:17px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
-.nr-title span{color:var(--accent)}
-.nr-lang{flex:none;display:flex;background:#FFFFFF;border:1px solid #D9E4DC;border-radius:999px;padding:3px}
-.nr-lang button{font-size:12.5px;font-weight:700;padding:6px 11px;border-radius:999px;color:var(--muted);transition:all .18s ease}
-.nr-lang button.on{background:#DFF0E3;color:var(--ink);box-shadow:none}
-.nr-progress{flex:none;height:3px;background:var(--paper-2)}
-.nr-progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s ease}
-.nr-stage{position:relative;flex:1;overflow:hidden;touch-action:none;min-height:0}
-.nr-peek{position:absolute;inset:0;opacity:.5;pointer-events:none;transform:scale(.985)}
-.nr-card{
-  position:absolute;inset:0;background:#FFFFFF;border:0;border-radius:0;
-  overflow:hidden;display:flex;flex-direction:column;box-shadow:none;
-  transform-origin:50% 100%;will-change:transform;backface-visibility:hidden;
+/* ---- the flip: a vertical track of full-screen pages, no gaps ----
+   Pages sit at top:-100% / 0 / +100% inside the track; the track's
+   translateY moves the whole stack as one solid unit, so the incoming
+   page is always attached directly to the outgoing one. Pure
+   translation: no fade, no scale, no 3D. The toolbar lives INSIDE each
+   page, so it travels with the page exactly as recorded. */
+.nr-stage{position:relative;flex:1;overflow:hidden;touch-action:none;min-height:0;background:#FFFFFF}
+.nr-track{position:absolute;inset:0;will-change:transform}
+@media (min-width:700px){
+  .nr-track{left:0;right:0;margin:0 auto;width:480px;box-shadow:0 0 0 1px var(--line)}
 }
-.nr-peek .nr-card{position:absolute;inset:0}
-@keyframes nrInNext{from{transform:translateY(26px);opacity:.35}to{transform:none;opacity:1}}
-@keyframes nrInPrev{from{transform:translateY(-26px);opacity:.35}to{transform:none;opacity:1}}
-.nr-card.enter-next{animation:nrInNext .34s cubic-bezier(.22,.8,.3,1)}
-.nr-card.enter-prev{animation:nrInPrev .34s cubic-bezier(.22,.8,.3,1)}
+.nr-page{
+  position:absolute;left:0;right:0;height:100%;background:#FFFFFF;
+  display:flex;flex-direction:column;overflow:hidden;touch-action:none;
+}
+.nr-page[data-nr-slot="-1"]{top:-100%}
+.nr-page[data-nr-slot="0"]{top:0}
+.nr-page[data-nr-slot="1"]{top:100%}
+.nr-page[hidden]{display:none}
+.nr-page img{-webkit-user-drag:none}
+.nr-pg-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:none;scrollbar-width:none}
+.nr-pg-scroll::-webkit-scrollbar{display:none}
+.nr-pg-inner{display:flex;flex-direction:column;min-height:100%}
+.nr-pg-foot{margin-top:auto}
 .nr-breaking{
   flex:none;background:#9A6B2F;color:#FFFFFF;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
   padding:8px 16px;display:flex;align-items:center;gap:8px;
 }
 .nr-breaking i{width:7px;height:7px;border-radius:50%;background:#FFFFFF;flex:none}
 .nr-media{position:relative;flex:none;background:var(--paper-2)}
-.nr-media img.main,.nr-media video.main{width:100%;height:clamp(225px,36dvh,380px);object-fit:cover;background:#101613}
+.nr-media img.main,.nr-media video.main{width:100%;height:clamp(240px,38dvh,420px);object-fit:cover;background:#101613}
 .nr-media video.main{display:block}
-/* Video stories open as a poster with one large play disc (as in the
-   reference recording); tapping it swaps in the real <video> inline. */
+/* Video stories open as a poster with one large white play disc (as in
+   the reference recording); tapping it swaps in the real <video> inline. */
 .nr-vposter{position:relative;cursor:pointer}
 .nr-vposter .nr-playbtn{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-  width:68px;height:68px;border-radius:50%;border:3px solid #FFFFFF;
-  background:rgba(10,16,13,.42);color:#FFFFFF;display:grid;place-items:center;
+  width:78px;height:78px;border-radius:50%;border:3.5px solid #FFFFFF;
+  background:rgba(10,16,13,.28);color:#FFFFFF;display:grid;place-items:center;
   transition:transform .15s ease,background .15s ease;pointer-events:none;
 }
 .nr-vposter:active .nr-playbtn{transform:translate(-50%,-50%) scale(.93)}
-.nr-vposter .nr-playbtn svg{width:30px;height:30px;margin-left:3px}
+.nr-vposter .nr-playbtn svg{width:34px;height:34px;margin-left:4px}
 /* Full-image / poster stories (greetings, devotional art, infographics):
-   the artwork IS the story — it fills the stage contained, never cropped,
-   over a dark backdrop, with no text block beneath it. */
-.nr-card.poster .nr-media{position:absolute;inset:0;background:#101613}
-.nr-card.poster .nr-media img.main{height:100%;object-fit:contain;background:transparent}
-.nr-card.poster .nr-credit{position:absolute;left:0;right:0;bottom:0;padding:8px var(--gutter);color:rgba(244,248,245,.8);background:linear-gradient(transparent,rgba(8,13,11,.55))}
-.nr-credit{font-size:10.5px;color:var(--muted);padding:6px var(--gutter) 0;line-height:1.45}
-.nr-thumbs{display:flex;gap:7px;padding:9px var(--gutter) 0}
+   the artwork IS the story — it fills the page area contained, never
+   cropped, over a dark backdrop, above the page's bottom bar. */
+.nr-page.poster .nr-pg-scroll{overflow:hidden;background:#101613}
+.nr-page.poster .nr-pg-inner{min-height:100%;height:100%}
+.nr-pg-fullmedia{position:relative;flex:1;min-height:0;background:#101613}
+.nr-pg-fullmedia img.main{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.nr-pg-fullmedia .nr-credit{position:absolute;left:0;right:0;bottom:0;padding:8px var(--nr-pad);color:rgba(244,248,245,.8);background:linear-gradient(transparent,rgba(8,13,11,.55))}
+/* Multi-image posters swipe horizontally, with dot indicators. */
+.nr-pg-strip{position:absolute;inset:0;overflow:hidden}
+.nr-pg-strip-track{display:flex;height:100%;will-change:transform}
+.nr-pg-strip-track .slide{position:relative;flex:none;width:100%;height:100%}
+.nr-pg-strip-track .slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.nr-pg-dots{position:absolute;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:6px;z-index:3;pointer-events:none}
+.nr-pg-dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.45);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.nr-pg-dots i.on{background:#FFFFFF}
+.nr-credit{font-size:10.5px;color:var(--muted);padding:6px var(--nr-pad) 0;line-height:1.45}
+.nr-thumbs{display:flex;gap:7px;padding:9px var(--nr-pad) 0}
 .nr-thumbs button{width:54px;height:38px;border-radius:8px;overflow:hidden;border:2px solid transparent;padding:0;flex:none}
 .nr-thumbs button.on{border-color:var(--accent)}
 .nr-thumbs img{width:100%;height:100%;object-fit:cover}
-.nr-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:12px}
-.nr-kicker{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:11px var(--gutter) 0}
-.nr-kicker .cat{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--accent-deep);background:#E2F1E6;padding:4px 10px;border-radius:999px}
-.nr-kicker .cat svg{width:13px;height:13px;flex:none}
-.nr-kicker .divider{width:1px;height:16px;background:#C7D5CB;flex:none}
-.nr-kicker .loc{display:inline-flex;align-items:center;font-size:12px;font-weight:700;color:var(--accent-deep);background:#E2F1E6;padding:4px 10px;border-radius:999px}
-.nr-body{padding:10px var(--gutter) 0}
-.nr-body h2{font-weight:800;font-size:clamp(20px,5.6vw,24px);line-height:1.27;letter-spacing:-.01em;margin:0 0 9px;text-wrap:balance;color:var(--ink)}
-.nr-body p{font-size:16.5px;line-height:1.72;color:var(--ink);margin:0;white-space:pre-wrap}
-.nr-body p+p{margin-top:12px}
-.nr-meta{display:flex;flex-wrap:wrap;gap:5px 8px;align-items:center;font-size:12.5px;color:var(--muted);padding:12px var(--gutter) 0;line-height:1.5}
-.nr-meta svg{width:14px;height:14px;flex:none}
+/* Reading type, matched to the recording: big bold headline, big body
+   text, tight side padding, no wasted blank space. */
+.nr-body{padding:12px var(--nr-pad) 0}
+.nr-body h2{font-weight:800;font-size:27px;line-height:1.28;letter-spacing:-.01em;margin:0 0 10px;color:var(--ink)}
+.nr-body p{font-size:21px;line-height:1.55;color:var(--ink);margin:0;white-space:pre-wrap}
+.nr-body p+p{margin-top:14px}
+.nr-meta{display:flex;flex-wrap:wrap;gap:5px 8px;align-items:center;font-size:13px;color:var(--muted);padding:14px var(--nr-pad) 0;line-height:1.5}
+.nr-meta svg{width:15px;height:15px;flex:none}
 .nr-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--muted)}
-.nr-source{font-size:12px;color:var(--muted);padding:3px var(--gutter) 0;line-height:1.5}
+.nr-source{font-size:12.5px;color:var(--muted);padding:4px var(--nr-pad) 0;line-height:1.5}
 .nr-readfull{
-  display:inline-flex;align-items:center;gap:7px;margin:22px var(--gutter) 6px;
-  font-size:15px;font-weight:800;color:var(--accent-deep);padding:6px 0;
+  display:inline-flex;align-items:center;gap:7px;margin:14px var(--nr-pad) 16px;
+  font-size:15.5px;font-weight:800;color:var(--accent-deep);padding:6px 0;
   border-bottom:2px solid var(--mint);text-align:left;
 }
 .nr-readfull:active{transform:scale(.98)}
 .nr-readfull svg{flex:none}
-/* Bottom toolbar — Save / Share / WhatsApp anchored to the reader,
-   never overlapping the article (it is in normal flow below the stage). */
+/* Calendar / Panchangam stories: a dark month calendar (computed by
+   the app's own on-device Panchangam engine) with the story's white
+   details card below it. */
+.nr-cal{background:#14181D;color:#E9EDEA;padding:calc(56px + env(safe-area-inset-top)) 12px 16px}
+.nr-cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.nr-cal-head b{font-size:19px;font-weight:800;letter-spacing:.01em}
+.nr-cal-head .sub{font-size:12.5px;color:#9FB3A8;margin-top:1px}
+.nr-cal-nav{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.09);color:#E9EDEA;flex:none}
+.nr-cal-nav:active{background:rgba(255,255,255,.2)}
+.nr-cal-nav svg{width:16px;height:16px}
+.nr-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:8px}
+.nr-cal-grid .dow{text-align:center;font-size:11.5px;font-weight:700;color:#E4572E;padding:5px 0;min-width:0}
+.nr-cal-day{min-height:52px;min-width:0;overflow:hidden;border-radius:9px;padding:5px 2px 4px;text-align:center;background:rgba(255,255,255,.045)}
+.nr-cal-day .dn{font-size:16.5px;font-weight:700;line-height:1.15}
+.nr-cal-day .tt{font-size:8.5px;line-height:1.25;color:#A9B8AE;margin-top:2px;overflow-wrap:anywhere}
+.nr-cal-day.dim{background:transparent}
+.nr-cal-day.today .dn{color:#7BD88F}
+.nr-cal-day.sel{background:#1E4638;box-shadow:inset 0 0 0 1.5px #35B26F}
+.nr-cal-day.sel .tt{color:#CDE8D6}
+.nr-cal-details{padding:14px var(--nr-pad) 4px}
+.nr-cal-details h2{font-weight:800;font-size:24px;line-height:1.3;margin:0 0 8px;color:var(--ink)}
+.nr-cal-details p{font-size:19px;line-height:1.55;color:var(--ink);margin:0;white-space:pre-wrap}
+.nr-cal-rows{margin-top:14px;border-top:1px solid var(--line)}
+.nr-cal-rows .r{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.nr-cal-rows .r span{color:var(--muted)}
+.nr-cal-rows .r b{font-weight:700;text-align:right}
+/* Swipe hint — a small floating pill near the bottom, onboarding only;
+   it never takes layout space and retires after the first flip. */
 .nr-swipe-hint{
-  flex:none;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1px;
-  padding:10px var(--gutter) 8px;font-size:13.5px;font-weight:600;color:var(--muted);
-  background:#FFFFFF;
+  position:absolute;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:11;display:none;align-items:center;gap:6px;pointer-events:none;white-space:nowrap;
+  padding:7px 13px;border-radius:999px;background:rgba(13,22,18,.82);color:#EDF3EE;
+  font-size:12.5px;font-weight:700;
 }
 .nr-swipe-hint.show{display:flex}
-.nr-swipe-hint svg{flex:none;color:var(--accent);animation:nrHintNudge 2.2s ease-in-out infinite}
+.nr-swipe-hint svg{flex:none;color:var(--mint);animation:nrHintNudge 2.2s ease-in-out infinite}
 @keyframes nrHintNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-/* Bottom interaction strip, modelled on the reference recording:
-   like · dislike | raised WhatsApp disc | comments · overflow-adjacent
-   share. In normal flow under the stage, so it never covers a story,
-   and padded for the mobile safe area. */
-.nr-toolbar{
+/* Bottom interaction strip INSIDE each page (it flips with the story):
+   like · dislike | raised WhatsApp disc with SHARE caption | comments ·
+   overflow · blue share arrow — the recording's hierarchy. In normal
+   flow at the page's foot, so it never covers article content. */
+.nr-pg-bar{
   flex:none;position:relative;display:flex;align-items:flex-end;gap:2px;
   border-top:1px solid var(--line);background:#FFFFFF;
   padding:15px 6px calc(5px + env(safe-area-inset-bottom));
 }
 .nr-tbtn{
   flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
-  padding:9px 2px;font-size:14px;font-weight:700;color:var(--ink-2);border-radius:12px;
+  padding:9px 2px;font-size:14.5px;font-weight:700;color:var(--ink-2);border-radius:12px;
   transition:background .15s ease,color .15s ease;min-height:44px;font-variant-numeric:tabular-nums;
 }
-.nr-tbtn svg{width:22px;height:22px;flex:none}
+.nr-tbtn svg{width:23px;height:23px;flex:none}
 .nr-tbtn:active{background:var(--paper-2)}
 .nr-tbtn.on{color:var(--accent-deep)}
 .nr-tbtn.on svg{fill:currentColor}
 .nr-tbtn[disabled]{opacity:.45;pointer-events:none}
 .nr-tbtn .cnt:empty{display:none}
+.nr-tbtn-share{color:#1B74E4}
 .nr-wa-cell{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
 .nr-wa-fab{
-  width:52px;height:52px;border-radius:50%;background:#25D366;color:#FFFFFF;
-  display:grid;place-items:center;margin-top:-15px;flex:none;
+  width:54px;height:54px;border-radius:50%;background:#25D366;color:#FFFFFF;
+  display:grid;place-items:center;margin-top:-16px;flex:none;
   box-shadow:0 4px 14px rgba(18,140,60,.35);border:3px solid #FFFFFF;
   transition:transform .15s ease;
 }
 .nr-wa-fab:active{transform:scale(.93)}
-.nr-wa-fab svg{width:27px;height:27px}
+.nr-wa-fab svg{width:28px;height:28px}
 .nr-wa-cell .wa-cap{font-size:9.5px;font-weight:800;letter-spacing:.12em;color:var(--muted);margin-top:3px}
-#nrShareBtn{color:var(--accent-deep)}
 /* Comments panel — slides up inside the reader; the story and the
    reader position stay exactly where they were behind it. */
 .nr-comments{
@@ -936,7 +976,7 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-comments .nc-signin p{flex:1;font-size:13.5px;color:var(--muted);margin:0;line-height:1.45}
 .nr-comments .nc-signin button{flex:none;background:var(--accent);color:#FFFFFF;font-weight:800;font-size:14px;padding:10px 16px;border-radius:999px}
 .nr-menu{
-  position:absolute;right:10px;top:calc(100% + 6px);z-index:20;min-width:212px;
+  position:absolute;right:10px;bottom:calc(88px + env(safe-area-inset-bottom));top:auto;z-index:20;min-width:224px;
   background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
   padding:6px;display:none;
 }
@@ -949,19 +989,18 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-menu button[disabled]{opacity:.38;pointer-events:none}
 .nr-menu button svg{width:17px;height:17px;flex:none;color:var(--accent)}
 .nr-menu .sep{height:1px;background:var(--line);margin:5px 6px}
+.nr-menu .nr-mcheck{margin-left:auto;font-weight:800;color:var(--accent-deep);opacity:0}
+.nr-menu button.on .nr-mcheck{opacity:1}
 @media (max-width:380px){
-  .nr-title{font-size:16px}
-  .nr-lang button{padding:6px 8px;font-size:12px}
-  .nr-head{gap:7px;padding-left:12px;padding-right:12px}
-  .nr-body p{font-size:15.5px}
+  .nr-body h2{font-size:25px}
+  .nr-body p{font-size:20px}
+  .nreader{--nr-pad:14px}
 }
 @media (max-height:640px){
-  .nr-media img.main,.nr-media video.main{height:clamp(180px,30dvh,250px)}
-  .nr-body p{font-size:15px}
+  .nr-media img.main,.nr-media video.main{height:clamp(200px,32dvh,280px)}
 }
 @media (prefers-reduced-motion: reduce){
   .nr-swipe-hint svg{animation:none}
-  .nr-card.enter-next,.nr-card.enter-prev{animation:none}
   .nr-comments{transition:none}
   .nr-wa-fab{transition:none}
 }
@@ -974,11 +1013,11 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-empty h3{font-weight:800;font-size:21px;margin:0 0 7px}
 .nr-empty p{color:var(--muted);font-size:14px;margin:0;line-height:1.6;max-width:30ch}
 .nr-empty .btn-solid{flex:none;margin-top:20px;padding:12px 22px}
-.nr-nolang{padding:16px var(--gutter)}
+.nr-nolang{padding:16px var(--nr-pad)}
 .nr-nolang .nl-box{background:var(--paper-2);border-radius:14px;padding:18px 16px;text-align:left}
 .nr-nolang h3{font-weight:800;font-size:18px;margin:0 0 6px}
 .nr-nolang p{font-size:13.5px;color:var(--muted);line-height:1.6;margin:0 0 14px}
-.nr-endcard{align-items:center;justify-content:center;text-align:center;padding:28px 22px}
+.nr-endcard{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 22px}
 .nr-endcard .e-disc{width:70px;height:70px;border-radius:24px;background:var(--green-tint);color:var(--accent);display:grid;place-items:center;margin-bottom:15px}
 .nr-endcard h3{font-weight:800;font-size:21px;margin:0 0 7px}
 .nr-endcard p{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 18px;max-width:28ch}
@@ -5071,33 +5110,18 @@ table.ng-table td b{color:var(--ink)}
   <div class="search-res" id="searchRes"></div>
 </section>
 
-<!-- ================= NEWS READER — ONE STREAM, VERTICAL FLIP ================= -->
+<!-- ================= NEWS READER — VERTICAL PAGE STACK =================
+     No header bar: the story starts at the very top of the screen. The
+     stage holds a track of full-screen pages (previous / current / next)
+     that slide as one solid unit; each page carries its own bottom
+     toolbar. The only top chrome is a floating back chevron. -->
 <div class="nreader" id="newsReader" role="dialog" aria-modal="true" aria-label="Mana Khammam News" aria-hidden="true">
-  <div class="nr-head">
-    <button class="nr-back" id="nrBack" aria-label="Back">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
-    </button>
-    <div class="nr-title">Mana Khammam <span>News</span></div>
-    <div class="nr-lang" role="group" aria-label="News language">
-      <button id="nrLangEn" class="on">English</button>
-      <button id="nrLangTe">తెలుగు</button>
-    </div>
-    <button class="nr-more-head" id="nrMoreBtn" aria-haspopup="menu" aria-expanded="false" aria-label="More options">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
-    </button>
-    <div class="nr-menu" id="nrMenu" role="menu" aria-label="Story options">
-      <button id="nrMenuPrev" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Previous story</button>
-      <button id="nrMenuNext" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Next story</button>
-      <button id="nrMenuFull" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11v16H5z"/><path d="M8 8h5M8 12h5M8 16h3"/></svg>Read full story</button>
-      <button id="nrMenuSave" role="menuitem" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.6L7 20z"/></svg><span>Save story</span></button>
-      <div class="sep"></div>
-      <button id="nrMenuReport" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 5h11l-2.5 3.5L17 12H6"/></svg>Report issue</button>
-    </div>
-  </div>
-  <div class="nr-progress"><i id="nrProg"></i></div>
   <div class="nr-stage" id="nrStage">
-    <div class="nr-peek" id="nrPeek"></div>
-    <article class="nr-card" id="nrCard"></article>
+    <div class="nr-track" id="nrTrack">
+      <article class="nr-page" data-nr-slot="-1" aria-hidden="true"></article>
+      <article class="nr-page" data-nr-slot="0"></article>
+      <article class="nr-page" data-nr-slot="1" aria-hidden="true"></article>
+    </div>
     <div class="nr-empty" id="nrEmpty">
       <div class="e-disc">
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11v16H5z"/><path d="M16 9h3v9a2 2 0 0 1-2 2"/><path d="M8 8h5M8 12h5M8 16h3"/></svg>
@@ -5106,33 +5130,24 @@ table.ng-table td b{color:var(--ink)}
       <p>No news published yet.<br/>Check back for the latest updates from Khammam.</p>
       <button class="btn-solid" id="nrEmptyBack">Back to home</button>
     </div>
-  </div>
-  <div class="nr-swipe-hint" id="nrSwipeHint" aria-hidden="true">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l6-6 6 6"/></svg>
-    <span>Swipe up for more</span>
-  </div>
-  <div class="nr-toolbar" id="nrToolbar">
-    <button class="nr-tbtn" id="nrLikeBtn" aria-pressed="false" aria-label="Like this story">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4.5A.5.5 0 0 1 4 19.5v-8A.5.5 0 0 1 4.5 11H7z"/><path d="M7 11l3.6-7.2c1.9 0 3 1.2 2.7 3.1L12.6 11H19a2 2 0 0 1 2 2.4l-.9 4.6a2 2 0 0 1-2 1.6H7"/></svg>
-      <span class="cnt" id="nrLikeCnt"></span>
-    </button>
-    <button class="nr-tbtn" id="nrDislikeBtn" aria-pressed="false" aria-label="Dislike this story">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h2.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-.5.5H17z"/><path d="M17 13l-3.6 7.2c-1.9 0-3-1.2-2.7-3.1L11.4 13H5a2 2 0 0 1-2-2.4l.9-4.6a2 2 0 0 1 2-1.6H17"/></svg>
-      <span class="cnt" id="nrDislikeCnt"></span>
-    </button>
-    <div class="nr-wa-cell">
-      <button class="nr-wa-fab" id="nrWaBtn" aria-label="Share this story on WhatsApp">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-      </button>
-      <span class="wa-cap" aria-hidden="true">SHARE</span>
+    <div class="nr-swipe-hint" id="nrSwipeHint" aria-hidden="true">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l6-6 6 6"/></svg>
+      <span>Swipe up for more</span>
     </div>
-    <button class="nr-tbtn" id="nrCommentBtn" aria-label="Comments on this story">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3-.4-4.2-1.1L3 20l1.1-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg>
-      <span class="cnt" id="nrCommentCnt"></span>
-    </button>
-    <button class="nr-tbtn" id="nrShareBtn" aria-label="Share this story">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5.5C7 7 4 11 3.5 17 6 13.5 9 11.8 13 11.3V15l8-5.5L13 4z"/></svg>
-    </button>
+  </div>
+  <button class="nr-float-back" id="nrBack" aria-label="Back to news list">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <div class="nr-menu" id="nrMenu" role="menu" aria-label="Story options">
+    <button id="nrMenuPrev" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Previous story</button>
+    <button id="nrMenuNext" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Next story</button>
+    <button id="nrMenuFull" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11v16H5z"/><path d="M8 8h5M8 12h5M8 16h3"/></svg>Read full story</button>
+    <button id="nrMenuSave" role="menuitem" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.6L7 20z"/></svg><span>Save story</span></button>
+    <div class="sep"></div>
+    <button id="nrLangEn" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.3 3.8 5.2 3.8 8.5s-1.3 6.2-3.8 8.5c-2.5-2.3-3.8-5.2-3.8-8.5s1.3-6.2 3.8-8.5z"/></svg>English<span class="nr-mcheck">✓</span></button>
+    <button id="nrLangTe" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.3 3.8 5.2 3.8 8.5s-1.3 6.2-3.8 8.5c-2.5-2.3-3.8-5.2-3.8-8.5s1.3-6.2 3.8-8.5z"/></svg>తెలుగు<span class="nr-mcheck">✓</span></button>
+    <div class="sep"></div>
+    <button id="nrMenuReport" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 5h11l-2.5 3.5L17 12H6"/></svg>Report issue</button>
   </div>
   <div class="nr-comments" id="nrComments" aria-hidden="true" role="dialog" aria-label="Story comments">
     <div class="nc-head">
@@ -5854,10 +5869,14 @@ function renderSearch(raw){
   }
 }
 
-/* =================== NEWS READER — VERTICAL FLIP ===================
-   One stream, one story at a time. Swipe up → next, swipe down → previous.
-   A gesture commits only past a distance (72px) or velocity (0.45px/ms)
-   threshold, and an animation lock guarantees one swipe = one story.   */
+/* =================== NEWS READER — VERTICAL PAGE STACK ===================
+   One stream, one story per full-screen page. The pages sit in a
+   vertical track with NO gap between them; a swipe drags the whole
+   stack with the finger and the neighbouring page is revealed already
+   attached. Pure translation — no fade, scale or 3D. Inside a page,
+   the swipe first scrolls the story's own content (the image scrolls
+   up and away, all of the text is reachable); only at the content's
+   edge does the gesture become a page flip. One gesture = one story. */
 var NR = {
   lang:'en',            /* reader-only language preference, kept for the session */
   idx:0,                /* current story index; == list length = end-of-feed card */
@@ -5866,19 +5885,17 @@ var NR = {
   panelOpen:false,      /* comments panel open — flips and gestures pause */
   hintSeen:false,       /* swipe hint retires after the first successful flip */
   bookmarks:{},         /* in-session bookmarks, keyed by article id */
-  galleryIdx:0,         /* photo currently shown on the front card */
-  peekFor:-1            /* story index currently rendered in the peek layer */
+  galleryIdx:0,         /* photo currently shown on the current page */
+  calView:null,         /* calendar story month being viewed {forId, y, m} */
+  dragMovedAt:0         /* timestamp of the last real drag — taps ignore it */
 };
 var nrEl = {
   root:document.getElementById('newsReader'), stage:document.getElementById('nrStage'),
-  card:document.getElementById('nrCard'), peek:document.getElementById('nrPeek'),
-  empty:document.getElementById('nrEmpty'), prog:document.getElementById('nrProg'),
-  toolbar:document.getElementById('nrToolbar'), hint:document.getElementById('nrSwipeHint'),
-  likeBtn:document.getElementById('nrLikeBtn'), dislikeBtn:document.getElementById('nrDislikeBtn'),
-  likeCnt:document.getElementById('nrLikeCnt'), dislikeCnt:document.getElementById('nrDislikeCnt'),
-  commentBtn:document.getElementById('nrCommentBtn'), commentCnt:document.getElementById('nrCommentCnt'),
-  shareBtn:document.getElementById('nrShareBtn'),
-  waBtn:document.getElementById('nrWaBtn'), moreBtn:document.getElementById('nrMoreBtn'),
+  track:document.getElementById('nrTrack'),
+  empty:document.getElementById('nrEmpty'),
+  hint:document.getElementById('nrSwipeHint'),
+  likeBtn:null, dislikeBtn:null, likeCnt:null, dislikeCnt:null,
+  commentBtn:null, commentCnt:null, shareBtn:null, waBtn:null, moreBtn:null,
   menu:document.getElementById('nrMenu'),
   menuPrev:document.getElementById('nrMenuPrev'), menuNext:document.getElementById('nrMenuNext'),
   menuFull:document.getElementById('nrMenuFull'), menuReport:document.getElementById('nrMenuReport'),
@@ -5889,6 +5906,8 @@ var nrEl = {
   lightCap:document.getElementById('nrLightCap'),
   langEn:document.getElementById('nrLangEn'), langTe:document.getElementById('nrLangTe')
 };
+function nrSlot(s){ return nrEl.track ? nrEl.track.querySelector('[data-nr-slot="' + s + '"]') : null; }
+function nrCurPage(){ return nrSlot(0); }
 var NR_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var NR_ICONS = {
   bookmark:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.6L7 20z"/></svg>',
@@ -5899,7 +5918,12 @@ var NR_ICONS = {
   check:'<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5 10 18 19.5 6.5"/></svg>',
   play:'<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
   playLg:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>',
-  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>'
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>',
+  like:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4.5A.5.5 0 0 1 4 19.5v-8A.5.5 0 0 1 4.5 11H7z"/><path d="M7 11l3.6-7.2c1.9 0 3 1.2 2.7 3.1L12.6 11H19a2 2 0 0 1 2 2.4l-.9 4.6a2 2 0 0 1-2 1.6H7"/></svg>',
+  dislike:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 13V4h2.5a.5.5 0 0 1 .5.5v8a.5.5 0 0 1-.5.5H17z"/><path d="M17 13l-3.6 7.2c-1.9 0-3-1.2-2.7-3.1L11.4 13H5a2 2 0 0 1-2-2.4l.9-4.6a2 2 0 0 1 2-1.6H17"/></svg>',
+  comment:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3-.4-4.2-1.1L3 20l1.1-5.3A8.5 8.5 0 1 1 21 11.5z"/></svg>',
+  more:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>',
+  shareArrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5.5C7 7 4 11 3.5 17 6 13.5 9 11.8 13 11.3V15l8-5.5L13 4z"/></svg>'
 };
 /* ---- WhatsApp sharing (every public card + detail view) ----
    A share carries only what is already public on the card — title,
@@ -5993,6 +6017,17 @@ function nrIsPoster(a){
   var en = a.en || {}, te = a.te || {};
   return !String(en.summary || en.body || '').trim() && !String(te.summary || te.body || '').trim();
 }
+/* A story is a calendar / Panchangam story when the publisher marks it
+   so — an explicit kind, a Panchangam/Calendar category, or a
+   Panchangam headline. Its calendar is computed by the app's own
+   on-device Panchangam engine; nothing is copied from any recording. */
+function nrIsCalendar(a){
+  if(!a) return false;
+  if(a.kind === 'calendar') return true;
+  if(/panchangam|calendar/i.test(a.category || a.newsCategory || '')) return true;
+  var h = ((a.en && a.en.headline) || '') + ' ' + ((a.te && a.te.headline) || '');
+  return /panchangam/i.test(h);
+}
 function nrMediaHTML(a, interactive){
   var items = mediaItems(a); if(!items.length) return '';
   var gi = interactive ? Math.min(NR.galleryIdx, items.length-1) : 0;
@@ -6001,9 +6036,9 @@ function nrMediaHTML(a, interactive){
     if(interactive){
       /* Poster first, exactly like the recording: nothing downloads or
          plays until the reader taps the play disc. The tap swaps in the
-         real <video> with native controls (see nrBindCardActions). */
+         real <video> with native controls (see nrBindPage). */
       html += '<div class="nr-vposter" data-nr-play role="button" tabindex="0" aria-label="Play video">'
-        + (it.poster ? '<img class="main" src="'+mkEsc(it.poster)+'" alt="'+mkEsc(it.alt)+'" onerror="this.style.visibility=\'hidden\'"/>' : '<span class="main" style="display:block;width:100%;height:clamp(225px,36dvh,380px);background:#101613"></span>')
+        + (it.poster ? '<img class="main" src="'+mkEsc(it.poster)+'" alt="'+mkEsc(it.alt)+'" onerror="this.style.visibility=\'hidden\'"/>' : '<span class="main" style="display:block;width:100%;height:clamp(240px,38dvh,420px);background:#101613"></span>')
         + '<span class="nr-playbtn">'+NR_ICONS.playLg+'</span></div>';
     } else {
       html += '<img class="main" src="'+mkEsc(it.poster||it.src)+'" alt="'+mkEsc(it.alt)+'" loading="lazy"/>';
@@ -6013,88 +6048,164 @@ function nrMediaHTML(a, interactive){
   }
   html += '</div>';
   if(it.credit) html += '<div class="nr-credit">Photo: '+mkEsc(it.credit)+'</div>';
-  if(interactive && items.length > 1){
+  if(interactive && items.length > 1 && !nrIsPoster(a)){
     html += '<div class="nr-thumbs">' + items.map(function(g,i){
       return '<button data-nr-thumb="'+i+'" class="'+(i===gi?'on':'')+'" aria-label="Photo '+(i+1)+'"><img src="'+mkEsc(g.poster||g.src)+'" alt=""/></button>';
     }).join('') + '</div>';
   }
   return html;
 }
-function nrKickerHTML(a){
-  var cat = a.category || a.newsCategory || '';
-  var locName = a.locality || '';
-  if(!cat && !locName) return '';
-  var pin = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>';
-  var h = '<div class="nr-kicker">';
-  if(cat) h += '<span class="cat">'+pin+mkEsc(cat)+'</span>';
-  if(cat && locName) h += '<span class="divider" aria-hidden="true"></span>';
-  if(locName) h += '<span class="loc">'+mkEsc(locName)+'</span>';
-  return h + '</div>';
+/* Poster media: the artwork fills the page area. Several images swipe
+   horizontally with dot indicators, as in the recording. */
+function nrPosterMediaHTML(a, interactive){
+  var items = mediaItems(a); if(!items.length) return '';
+  if(items.length === 1){
+    var it = items[0];
+    return '<div class="nr-pg-fullmedia"><img class="main" src="'+mkEsc(it.src)+'" alt="'+mkEsc(it.alt)+'" loading="'+(interactive?'eager':'lazy')+'" onerror="this.style.display=\'none\'"/>'
+      + (it.credit ? '<div class="nr-credit">Photo: '+mkEsc(it.credit)+'</div>' : '') + '</div>';
+  }
+  var gi = interactive ? Math.min(NR.galleryIdx, items.length-1) : 0;
+  var slides = items.map(function(g){
+    return '<div class="slide"><img src="'+mkEsc(g.src)+'" alt="'+mkEsc(g.alt)+'" loading="lazy"/></div>';
+  }).join('');
+  var dots = items.map(function(g,i){ return '<i class="'+(i===gi?'on':'')+'"></i>'; }).join('');
+  return '<div class="nr-pg-fullmedia"><div class="nr-pg-strip"><div class="nr-pg-strip-track" style="transform:translateX(' + (-gi*100) + '%)">'
+    + slides + '</div></div><div class="nr-pg-dots">' + dots + '</div></div>';
 }
-function nrCardHTML(a, interactive, displayIdx){
-  var loc = storyText(a, NR.lang);
-  var html = '';
+/* ---- Calendar / Panchangam page content ----
+   The dark month grid and the day's details all come from the app's
+   existing on-device Panchangam engine (deSunTimesMin / deStateAt /
+   dePanchCached) for Khammam — real computed data, never invented. */
+function nrIstParts(iso){
+  var d = new Date(iso || Date.now()); if(isNaN(d.getTime())) d = new Date();
+  var ist = new Date(d.getTime() + (330 + d.getTimezoneOffset()) * 60000);
+  return { y:ist.getFullYear(), m:ist.getMonth()+1, d:ist.getDate() };
+}
+function nrCalHTML(a){
+  if(typeof deDateKey !== 'function' || typeof deSunTimesMin !== 'function' || typeof deStateAt !== 'function') return '';
+  var sp = nrIstParts(a.publishedAt);
+  var view = (NR.calView && NR.calView.forId === a.id) ? NR.calView : { y:sp.y, m:sp.m };
+  var y = view.y, m = view.m;
+  var storyKey = deDateKey(sp.y, sp.m, sp.d), todayP = nrIstParts(Date.now());
+  var todayKey = deDateKey(todayP.y, todayP.m, todayP.d);
+  var monthName = (typeof DE_MONTHS_FULL !== 'undefined' && DE_MONTHS_FULL[m-1]) || NR_MONTHS[m-1];
+  var lunar = '';
+  try{ var pd = dePanchCached(storyKey); if(pd && pd.month) lunar = pd.month; }catch(e){}
+  var firstDow = new Date(Date.UTC(y, m-1, 1)).getUTCDay();
+  var dim = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  var cells = '';
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(function(x){ cells += '<span class="dow">' + x + '</span>'; });
+  for(var i = 0; i < firstDow; i++) cells += '<span class="nr-cal-day dim"></span>';
+  for(var dn = 1; dn <= dim; dn++){
+    var key = deDateKey(y, m, dn), tt = '';
+    try{
+      var st = deSunTimesMin(key);
+      var s = deStateAt(deJD(deKeyStartMs(key) + st.rise * 60000));
+      tt = (NR.lang === 'te' && typeof deTithiNameTe === 'function') ? deTithiNameTe(s.tithi) : deTithiFull(s.tithi);
+    }catch(e){}
+    cells += '<div class="nr-cal-day' + (key === todayKey ? ' today' : '') + (key === storyKey ? ' sel' : '') + '">'
+      + '<div class="dn">' + dn + '</div>' + (tt ? '<div class="tt">' + mkEsc(tt) + '</div>' : '') + '</div>';
+  }
+  var chevL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>';
+  var chevR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>';
+  return '<div class="nr-cal"><div class="nr-cal-head">'
+    + '<button class="nr-cal-nav" data-nr-cal="-1" aria-label="Previous month">' + chevL + '</button>'
+    + '<div style="text-align:center"><b>' + mkEsc(monthName) + ' ' + y + '</b>'
+    + (lunar ? '<div class="sub">' + mkEsc(lunar) + ' month · Khammam</div>' : '<div class="sub">Khammam</div>') + '</div>'
+    + '<button class="nr-cal-nav" data-nr-cal="1" aria-label="Next month">' + chevR + '</button></div>'
+    + '<div class="nr-cal-grid">' + cells + '</div></div>';
+}
+function nrCalDetailsHTML(a){
+  var loc = storyText(a, NR.lang) || storyText(a, 'en') || storyText(a, 'te');
+  var html = '<div class="nr-cal-details">';
+  if(loc){
+    html += '<h2>' + mkEsc(loc.headline) + '</h2>' + nrSummaryHTML(loc.summary);
+  }
+  try{
+    var sp = nrIstParts(a.publishedAt), key = deDateKey(sp.y, sp.m, sp.d);
+    var d = dePanchCached(key), at = d.atSunrise;
+    var tithi = deTithiFull(at.tithi) + (typeof deTithiNameTe === 'function' ? ' · ' + deTithiNameTe(at.tithi) : '');
+    html += '<div class="nr-cal-rows">'
+      + '<div class="r"><span>Tithi at sunrise</span><b>' + mkEsc(tithi) + '</b></div>'
+      + '<div class="r"><span>Nakshatra</span><b>' + mkEsc(DE_NAK[at.nakshatra]) + '</b></div>'
+      + '<div class="r"><span>Sunrise</span><b>' + mkEsc(deFmtClock(d.riseMs, false, key)) + '</b></div>'
+      + '<div class="r"><span>Sunset</span><b>' + mkEsc(deFmtClock(d.setMs, false, key)) + '</b></div>'
+      + '</div>';
+  }catch(e){}
+  return html + '</div>';
+}
+/* The bottom strip, built into every story page so it flips with the
+   page: like · dislike | raised WhatsApp SHARE disc | comments ·
+   overflow · blue share arrow. Counts start blank and are painted by
+   the engagement module for the story on screen — never faked. */
+function nrToolbarHTML(){
+  return '<div class="nr-pg-bar">'
+    + '<button class="nr-tbtn" data-nr-act="like" aria-pressed="false" aria-label="Like this story">' + NR_ICONS.like + '<span class="cnt cnt-like"></span></button>'
+    + '<button class="nr-tbtn" data-nr-act="dislike" aria-pressed="false" aria-label="Dislike this story">' + NR_ICONS.dislike + '<span class="cnt cnt-dislike"></span></button>'
+    + '<div class="nr-wa-cell"><button class="nr-wa-fab" data-nr-act="wa" aria-label="Share this story on WhatsApp">' + WA_ICON + '</button><span class="wa-cap" aria-hidden="true">SHARE</span></div>'
+    + '<button class="nr-tbtn" data-nr-act="comments" aria-label="Comments on this story">' + NR_ICONS.comment + '<span class="cnt cnt-comments"></span></button>'
+    + '<button class="nr-tbtn" data-nr-act="more" aria-haspopup="menu" aria-expanded="false" aria-label="More options">' + NR_ICONS.more + '</button>'
+    + '<button class="nr-tbtn nr-tbtn-share" data-nr-act="share" aria-label="Share this story">' + NR_ICONS.shareArrow + '</button>'
+    + '</div>';
+}
+function nrEndHTML(total){
+  return '<div class="nr-endcard">'
+    + '<div class="e-disc">' + NR_ICONS.check + '</div>'
+    + '<h3>You’re all caught up</h3>'
+    + '<p>You’ve read all ' + total + ' ' + (total===1?'story':'stories') + ' in the stream. New stories appear here as the newsroom publishes them.</p>'
+    + '<button class="btn-solid" data-nr-restart>Back to first story</button>'
+    + '</div>';
+}
+/* One full page of the stack: scrollable content + the page's own
+   toolbar. The foot (meta / source / full-story link) is pinned to the
+   bottom of the scroll area when the story is short, and follows the
+   text when the story is long — nothing is ever cut off. */
+function nrPageHTML(a, interactive){
+  var poster = nrIsPoster(a), cal = !poster && nrIsCalendar(a);
+  var html = '<div class="nr-pg-scroll"><div class="nr-pg-inner">';
   if(a.breaking) html += '<div class="nr-breaking"><i></i><span>Breaking News</span></div>';
+  if(poster){
+    html += nrPosterMediaHTML(a, interactive);
+    return html + '</div></div>' + nrToolbarHTML();
+  }
+  if(cal){
+    html += nrCalHTML(a) + nrCalDetailsHTML(a);
+    html += '<div class="nr-pg-foot">' + nrBylineHTML(a);
+    if(a.source) html += '<div class="nr-source">Source: ' + mkEsc(a.source) + '</div>';
+    return html + '</div></div></div>' + nrToolbarHTML();
+  }
   html += nrMediaHTML(a, interactive);
-  if(nrIsPoster(a)) return html; /* poster story: the image is the whole card */
-  html += '<div class="nr-scroll">';
+  var loc = storyText(a, NR.lang);
   if(!loc){
     if(NR.lang === 'en'){
       /* The story exists in Telugu only (e.g. an approved reader post
          written in Telugu) — point the reader at the version that
          exists instead of claiming the Telugu version is missing. */
-      html += nrKickerHTML(a)
-        + '<div class="nr-nolang"><div class="nl-box">'
+      html += '<div class="nr-nolang"><div class="nl-box">'
         + '<h3>Not available in English yet</h3>'
         + '<p>This story has been published in Telugu, in the words it was written in. Stories are never machine-translated here.</p>'
         + '<button class="btn-solid" data-nr-read-te style="flex:none;padding:10px 18px">Read in Telugu</button>'
-        + '</div></div>'
-        + nrBylineHTML(a);
-      return html + '</div>';
-    }
-    html += nrKickerHTML(a)
-      + '<div class="nr-nolang"><div class="nl-box">'
+        + '</div></div>';
+    } else {
+      html += '<div class="nr-nolang"><div class="nl-box">'
       + '<h3>Not available in Telugu yet</h3>'
       + '<p>This story has not been published in Telugu. Translations are added by the newsroom — nothing is machine-invented here.</p>'
       + '<button class="btn-solid" data-nr-read-en style="flex:none;padding:10px 18px">Read in English</button>'
-      + '</div></div>'
-      + nrBylineHTML(a);
-    return html + '</div>';
+      + '</div></div>';
+    }
+    html += '<div class="nr-pg-foot">' + nrBylineHTML(a) + '</div>';
+    return html + '</div></div>' + nrToolbarHTML();
   }
-  /* Order per the approved reader layout: category/locality, headline,
-     complete summary (never truncated), source/timestamp, then the
-     Read full story link low beneath the source information. */
-  html += nrKickerHTML(a)
-    + '<div class="nr-body"><h2>'+mkEsc(loc.headline)+'</h2>'+nrSummaryHTML(loc.summary)+'</div>'
-    + nrBylineHTML(a);
-  if(a.source) html += '<div class="nr-source">Source: '+mkEsc(a.source)+'</div>';
+  /* Headline first under the image, then the complete summary (never
+     truncated), then the meta foot — the recording's order. */
+  html += '<div class="nr-body"><h2>' + mkEsc(loc.headline) + '</h2>' + nrSummaryHTML(loc.summary) + '</div>';
+  html += '<div class="nr-pg-foot">' + nrBylineHTML(a);
+  if(a.source) html += '<div class="nr-source">Source: ' + mkEsc(a.source) + '</div>';
   if(interactive && loc.body){
     html += '<button class="nr-readfull" data-nr-readfull>Read full story'
       + '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>';
   }
-  return html + '</div>';
-}
-function nrEndHTML(total){
-  return '<div class="nr-card nr-endcard"><div>'
-    + '<div class="e-disc" style="margin:0 auto 15px">'+NR_ICONS.check+'</div>'
-    + '<h3>You’re all caught up</h3>'
-    + '<p>You’ve read all '+total+' '+(total===1?'story':'stories')+' in the stream. New stories appear here as the newsroom publishes them.</p>'
-    + '<button class="btn-solid" data-nr-restart>Back to first story</button>'
-    + '</div></div>';
-}
-function nrEnsureEnd(){
-  var end = document.getElementById('nrEndCard');
-  if(!end){
-    end = document.createElement('div'); end.id = 'nrEndCard'; nrEl.stage.appendChild(end);
-  }
-  return end;
-}
-function nrSetPeek(showIdx){
-  var L = newsList(), total = L.length;
-  if(showIdx < 0 || showIdx > total || !total){ nrEl.peek.style.display = 'none'; nrEl.peek.innerHTML = ''; NR.peekFor = -1; return; }
-  nrEl.peek.style.display = '';
-  nrEl.peek.innerHTML = showIdx === total ? nrEndHTML(total) : '<div class="nr-card' + (nrIsPoster(L[showIdx]) ? ' poster' : '') + '">' + nrCardHTML(L[showIdx], false, showIdx) + '</div>';
-  NR.peekFor = showIdx;
+  return html + '</div></div></div>' + nrToolbarHTML();
 }
 function nrCloseMenu(){
   if(!nrEl.menu) return;
@@ -6102,19 +6213,18 @@ function nrCloseMenu(){
   if(nrEl.moreBtn) nrEl.moreBtn.setAttribute('aria-expanded','false');
 }
 function nrPaintChrome(){
-  /* Toolbar + swipe hint reflect the current story — no counter, no
-     large Prev/Next row. The hint appears only when another story
-     actually follows this one. */
+  /* The swipe hint + overflow menu reflect the current story — no
+     counter, no large Prev/Next row. The hint appears only when
+     another story actually follows this one. */
   var L = newsList(), total = L.length;
   var onStory = total > 0 && NR.idx < total;
-  if(nrEl.toolbar) nrEl.toolbar.style.display = onStory ? '' : 'none';
   if(nrEl.hint){
-    /* Onboarding hint only: until the first successful flip, and only
-       when a next story actually exists. */
     var hasNextStory = onStory && NR.idx < total - 1 && !NR.hintSeen;
     nrEl.hint.classList.toggle('show', hasNextStory);
     nrEl.hint.setAttribute('aria-hidden', hasNextStory ? 'false' : 'true');
   }
+  if(nrEl.menuPrev) nrEl.menuPrev.disabled = NR.idx <= 0;
+  if(nrEl.menuNext) nrEl.menuNext.disabled = NR.idx >= total;
   if(!onStory) return;
   var a = L[NR.idx];
   var marked = !!NR.bookmarks[a.id];
@@ -6126,47 +6236,59 @@ function nrPaintChrome(){
     if(msSvg) msSvg.setAttribute('fill', marked ? 'currentColor' : 'none');
   }
   var locAny = storyText(a, NR.lang) || storyText(a, 'en') || storyText(a, 'te');
-  if(nrEl.menuPrev) nrEl.menuPrev.disabled = NR.idx <= 0;
-  if(nrEl.menuNext) nrEl.menuNext.disabled = NR.idx >= total;
   if(nrEl.menuFull) nrEl.menuFull.style.display = (locAny && locAny.body) ? '' : 'none';
   /* Reactions / comment counts for the story now on screen (Supabase
      module, second script — absent or offline leaves honest blanks). */
   if(window.mkEngPaint) window.mkEngPaint(a);
 }
+function nrTrackReset(){
+  if(!nrEl.track) return;
+  nrEl.track.style.transition = 'none';
+  nrEl.track.style.transform = '';
+}
+/* Render the three stack slots around NR.idx. Only the current page is
+   interactive; its toolbar is rebound into nrEl so the engagement
+   module paints counts onto the strip the reader actually sees. */
 function nrRender(){
   var L = newsList(), total = L.length;
-  var end = nrEnsureEnd();
   nrCloseMenu();
-  nrEl.card.classList.remove('enter-next','enter-prev');
-  nrEl.card.style.transition = ''; nrEl.card.style.transform = ''; nrEl.card.style.opacity = '';
+  nrTrackReset();
+  nrEl.likeBtn = nrEl.dislikeBtn = nrEl.likeCnt = nrEl.dislikeCnt = null;
+  nrEl.commentBtn = nrEl.commentCnt = nrEl.shareBtn = nrEl.waBtn = nrEl.moreBtn = null;
   if(!total){
-    nrEl.card.style.display = 'none'; nrEl.peek.style.display = 'none'; end.style.display = 'none';
+    [-1, 0, 1].forEach(function(s){ var slot = nrSlot(s); if(slot){ slot.hidden = true; slot.innerHTML = ''; } });
     nrEl.empty.classList.add('show');
-    if(nrEl.toolbar) nrEl.toolbar.style.display = 'none';
-    if(nrEl.hint) nrEl.hint.classList.remove('show');
-    nrEl.prog.style.width = '0'; return;
-  }
-  nrEl.empty.classList.remove('show');
-  if(NR.idx >= total){ /* end-of-feed card */
-    nrEl.card.style.display = 'none'; nrEl.peek.style.display = 'none';
-    end.innerHTML = nrEndHTML(total); end.style.display = '';
-    end.querySelector('[data-nr-restart]').addEventListener('click', function(){ nrGoTo(0, 'prev'); });
-    nrEl.prog.style.width = '100%';
-    if(nrEl.toolbar) nrEl.toolbar.style.display = 'none';
     if(nrEl.hint) nrEl.hint.classList.remove('show');
     return;
   }
-  end.style.display = 'none';
-  nrEl.card.style.display = '';
-  nrEl.card.classList.toggle('poster', nrIsPoster(L[NR.idx]));
-  nrEl.card.innerHTML = nrCardHTML(L[NR.idx], true, NR.idx);
-  nrBindCardActions(L[NR.idx]);
-  nrEl.prog.style.width = ((NR.idx+1)/total*100) + '%';
-  nrSetPeek(NR.idx + 1); /* adjacent-story prefetch: next card is already rendered underneath */
+  nrEl.empty.classList.remove('show');
+  [-1, 0, 1].forEach(function(s){
+    var slot = nrSlot(s); if(!slot) return;
+    var pi = NR.idx + s;
+    if(pi < 0 || pi > total){
+      slot.hidden = true; slot.innerHTML = ''; slot.classList.remove('poster');
+      slot.setAttribute('aria-hidden', 'true'); return;
+    }
+    slot.hidden = false;
+    slot.setAttribute('aria-hidden', s === 0 ? 'false' : 'true');
+    if(pi === total){ /* end-of-feed page */
+      slot.classList.remove('poster');
+      slot.innerHTML = nrEndHTML(total);
+      if(s === 0){
+        var rb = slot.querySelector('[data-nr-restart]');
+        if(rb) rb.addEventListener('click', function(){ nrGoTo(0, 'prev'); });
+      }
+      return;
+    }
+    var a = L[pi];
+    slot.classList.toggle('poster', nrIsPoster(a));
+    slot.innerHTML = nrPageHTML(a, s === 0);
+    if(s === 0) nrBindPage(a, slot);
+  });
   nrPaintChrome();
 }
 function nrPauseVideos(){
-  nrEl.card.querySelectorAll('video').forEach(function(v){ try{ v.pause(); }catch(e){} });
+  if(nrEl.track) nrEl.track.querySelectorAll('video').forEach(function(v){ try{ v.pause(); }catch(e){} });
 }
 /* Keep the address bar on the story actually on screen. replaceState
    only — flipping through twenty stories must not bury the reader
@@ -6179,125 +6301,214 @@ function nrSyncHash(){
     try{ history.replaceState(null, '', window.location.pathname + window.location.search + want); }catch(e){}
   }
 }
+var NR_REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function nrAnimateTrack(toY, done){
+  var track = nrEl.track;
+  if(NR_REDUCED){
+    track.style.transition = 'none';
+    track.style.transform = toY ? 'translateY(' + toY + 'px)' : '';
+    if(done) done();
+    return;
+  }
+  track.style.transition = 'transform .27s cubic-bezier(.25,.8,.3,1)';
+  track.style.transform = toY ? 'translateY(' + toY + 'px)' : '';
+  setTimeout(function(){ track.style.transition = ''; if(done) done(); }, 285);
+}
+function nrLandOn(target){
+  NR.idx = target; NR.galleryIdx = 0; NR.calView = null;
+  nrRender(); nrSyncHash();
+  NR.animating = false;
+}
+function nrFlip(dir){ /* dir: +1 next, -1 previous — the whole stack slides */
+  var total = newsList().length;
+  if(NR.animating || NR.fullOpen || NR.panelOpen || !total) return;
+  var target = NR.idx + dir;
+  if(target < 0 || target > total) return;
+  NR.animating = true; nrPauseVideos(); closeNrFull(true); nrCloseMenu(); NR.hintSeen = true;
+  var H = nrEl.stage.clientHeight || 600;
+  nrAnimateTrack(dir > 0 ? -H : H, function(){ nrLandOn(target); });
+}
+/* Settle after a drag: commit to the neighbouring page, or spring the
+   stack back to the current page. */
+function nrDragSettle(dir){
+  var total = newsList().length;
+  NR.animating = true;
+  if(!dir){
+    nrAnimateTrack(0, function(){ NR.animating = false; });
+    return;
+  }
+  nrPauseVideos(); closeNrFull(true); NR.hintSeen = true;
+  var target = Math.max(0, Math.min(total, NR.idx + dir));
+  var H = nrEl.stage.clientHeight || 600;
+  nrAnimateTrack(dir > 0 ? -H : H, function(){ nrLandOn(target); });
+}
 function nrGoTo(i, dir){
   var total = newsList().length;
   if(NR.animating || NR.panelOpen || !total) return;
   i = Math.max(0, Math.min(total, i));
   if(i === NR.idx) return;
-  NR.animating = true; nrPauseVideos(); closeNrFull(true);
-  NR.idx = i; NR.galleryIdx = 0; NR.hintSeen = true;
+  if(Math.abs(i - NR.idx) === 1){ nrFlip(i > NR.idx ? 1 : -1); return; }
+  NR.idx = i; NR.galleryIdx = 0; NR.calView = null;
   nrRender(); nrSyncHash();
-  if(dir && NR.idx < total) nrEl.card.classList.add(dir==='next' ? 'enter-next' : 'enter-prev');
-  setTimeout(function(){ NR.animating = false; }, 340);
 }
-var NR_REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-function nrFlip(dir){ /* dir: +1 next, -1 previous — vertical slide, as recorded */
-  var total = newsList().length;
-  if(NR.animating || NR.fullOpen || NR.panelOpen || !total) return;
-  var target = NR.idx + dir;
-  if(target < 0 || target > total) return;
-  NR.animating = true; nrPauseVideos(); closeNrFull(true); NR.hintSeen = true;
-  if(NR_REDUCED){ /* reduced motion: change the story, skip the travel */
-    NR.idx = target; NR.galleryIdx = 0; nrRender(); nrSyncHash();
-    NR.animating = false; return;
-  }
-  if(NR.idx >= total){ /* leaving the end-of-feed card: simple fade back in */
-    NR.idx = target; NR.galleryIdx = 0; nrRender(); nrSyncHash();
-    if(target < total) nrEl.card.classList.add('enter-prev');
-    setTimeout(function(){ NR.animating = false; }, 340);
-    return;
-  }
-  if(NR.peekFor !== target) nrSetPeek(target);
-  var card = nrEl.card, H = nrEl.stage.clientHeight || 600;
-  /* The peek underneath already shows the target story: slide the front
-     card straight up (next) or down (previous) to reveal it, then
-     promote it. Pure translation — the recording shows a flat vertical
-     slide, no page-curl or 3D flip. */
-  card.style.transition = 'transform .3s cubic-bezier(.32,.9,.3,1), opacity .3s ease';
-  card.style.transform = 'translateY(' + (dir>0 ? -H : H) + 'px)';
-  card.style.opacity = '0.25';
-  nrEl.peek.style.transition = 'transform .3s cubic-bezier(.32,.9,.3,1), opacity .3s ease';
-  nrEl.peek.style.transform = 'scale(1)'; nrEl.peek.style.opacity = '1';
-  setTimeout(function(){
-    NR.idx = target; NR.galleryIdx = 0;
-    nrEl.peek.style.transition = ''; nrEl.peek.style.transform = ''; nrEl.peek.style.opacity = '';
-    nrRender(); nrSyncHash();
-    NR.animating = false;
-  }, 305);
-}
-/* ---- gestures: pointer drag with distance + velocity thresholds ----
-   One deliberate gesture = one story. Guards: multi-touch / pinch zoom,
-   text selection, interactive controls and video never start a flip;
-   when the article text itself can still scroll in the swipe direction,
-   the swipe scrolls the text instead of flipping the story. */
+/* ---- gestures: one unified drag engine ----
+   A vertical drag scrolls the current story's own content. A flip can
+   only begin when the content was ALREADY at its edge as the gesture
+   started — a scroll that merely runs out of content mid-gesture
+   never flips (that is the recording's behaviour: scroll first, then
+   a further swipe flips). Once engaged, the whole page stack follows
+   the finger 1:1, the next page attached below (or the previous
+   above). Release past ~22% of the screen (or a fast flick while
+   engaged) commits one flip; anything less springs back.
+   springs back. Horizontal drags on a multi-image poster drive its
+   image strip instead. Buttons, links, inputs and playing videos
+   never start a drag, and a real drag never fires their taps. */
 (function(){
-  var dragging = false, startY = 0, lastY = 0, startT = 0, dy = 0, pid = null;
-  var scroller = null, scrolled = false;
-  function isInteractive(t){ return t.closest('button, a, video, input, textarea, select, [data-nr-thumb]'); }
+  var drag = null, inertia = 0;
+  function stopInertia(){ if(inertia){ cancelAnimationFrame(inertia); inertia = 0; } }
+  function startInertia(sc, v){
+    stopInertia();
+    var last = performance.now();
+    function frame(now){
+      var dt = Math.min(50, now - last); last = now;
+      var before = sc.scrollTop;
+      sc.scrollTop += v * dt;
+      v *= Math.exp(-dt / 160);
+      if(sc.scrollTop === before || Math.abs(v) < 0.02){ inertia = 0; return; }
+      inertia = requestAnimationFrame(frame);
+    }
+    inertia = requestAnimationFrame(frame);
+  }
+  function isInteractive(t){ return t.closest('button, a, video, input, textarea, select'); }
   nrEl.stage.addEventListener('pointerdown', function(e){
+    stopInertia();
     if(NR.fullOpen || NR.panelOpen || NR.animating || !newsList().length) return;
-    if(!e.isPrimary) return; /* pinch / second finger — browser zoom */
-    if(e.target.closest('#nrEndCard')) return;
+    if(!e.isPrimary){ drag = null; return; }
     if(isInteractive(e.target)) return;
     var sel = window.getSelection ? window.getSelection() : null;
     if(sel && String(sel).length > 0) return; /* text selection in progress */
-    dragging = true; pid = e.pointerId; startY = e.clientY; lastY = e.clientY; startT = performance.now(); dy = 0; scrolled = false;
-    scroller = e.target.closest('.nr-scroll');
-    if(scroller && scroller.scrollHeight <= scroller.clientHeight + 4) scroller = null;
+    var page = nrCurPage(); if(!page || page.hidden) return;
+    drag = {
+      id:e.pointerId, x0:e.clientX, y0:e.clientY, lastX:e.clientX, lastY:e.clientY,
+      samples:[{t:performance.now(), y:e.clientY}], axis:null,
+      scroller:null, scrolledTotal:0, engaged:false, dirSign:0, flipOff:0,
+      stripTrack:null, stripW:0, stripBase:0, stripN:0
+    };
+    var sc = page.querySelector('.nr-pg-scroll');
+    if(sc && sc.scrollHeight > sc.clientHeight + 2) drag.scroller = sc;
+    /* Was the content already at its edge when this gesture began?
+       Only then may the gesture become a flip (see the engine note). */
+    drag.edgeUp = !drag.scroller || (drag.scroller.scrollTop + drag.scroller.clientHeight >= drag.scroller.scrollHeight - 2);
+    drag.edgeDown = !drag.scroller || drag.scroller.scrollTop <= 2;
+    var strip = e.target.closest ? e.target.closest('.nr-pg-strip') : null;
+    if(strip){
+      drag.stripTrack = strip.querySelector('.nr-pg-strip-track');
+      drag.stripW = strip.clientWidth || 1;
+      drag.stripN = drag.stripTrack ? drag.stripTrack.children.length : 0;
+      drag.stripBase = -NR.galleryIdx * drag.stripW;
+    }
   });
   nrEl.stage.addEventListener('pointermove', function(e){
-    if(!dragging || e.pointerId !== pid) return;
-    var step = e.clientY - lastY; lastY = e.clientY;
-    dy = e.clientY - startY;
-    /* Scroll the overflowing article first; flip only at its edge. */
-    if(scroller){
-      var canDown = scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 2;
-      var canUp = scroller.scrollTop > 2;
-      if((dy < 0 && canDown) || (dy > 0 && canUp)){
-        scroller.scrollTop -= step; scrolled = true;
-        nrEl.card.style.transform = ''; nrEl.peek.style.transform = ''; nrEl.peek.style.opacity = '';
-        return;
+    if(!drag || e.pointerId !== drag.id) return;
+    var now = performance.now();
+    var dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+    drag.samples.push({t:now, y:e.clientY});
+    if(drag.samples.length > 6) drag.samples.shift();
+    if(!drag.axis){
+      if(Math.abs(dx) < 9 && Math.abs(dy) < 9){ drag.lastX = e.clientX; drag.lastY = e.clientY; return; }
+      drag.axis = (drag.stripTrack && drag.stripN > 1 && Math.abs(dx) > Math.abs(dy) * 1.15) ? 'x' : 'y';
+      if(drag.axis) document.body.style.userSelect = 'none';
+    }
+    if(drag.axis === 'x'){
+      var off = Math.max(-(drag.stripN - 1) * drag.stripW - 40, Math.min(40, drag.stripBase + dx));
+      drag.stripTrack.style.transition = 'none';
+      drag.stripTrack.style.transform = 'translateX(' + off + 'px)';
+      drag.lastX = e.clientX; drag.lastY = e.clientY;
+      return;
+    }
+    /* axis === 'y': scroll this story first, flip at its edge */
+    var step = e.clientY - drag.lastY;
+    drag.lastX = e.clientX; drag.lastY = e.clientY;
+    if(!drag.engaged){
+      var left = step, sc = drag.scroller;
+      if(sc && left !== 0){
+        if(left < 0){
+          var room = sc.scrollHeight - sc.clientHeight - sc.scrollTop;
+          var use = Math.min(room, -left); sc.scrollTop += use; left += use;
+          drag.scrolledTotal += use;
+        } else {
+          var room2 = sc.scrollTop;
+          var use2 = Math.min(room2, left); sc.scrollTop -= use2; left -= use2;
+          drag.scrolledTotal -= use2;
+        }
       }
-    }
-    var total = newsList().length;
-    var want = dy < 0 ? NR.idx + 1 : NR.idx - 1;
-    if(want !== NR.peekFor && want >= 0 && want <= total) nrSetPeek(want);
-    var resist = (dy > 0 && NR.idx === 0) || (dy < 0 && NR.idx >= total);
-    var eff = resist ? dy * 0.32 : dy;
-    nrEl.card.style.transition = 'none';
-    nrEl.card.style.transform = 'translateY(' + eff + 'px)';
-    var p = Math.min(1, Math.abs(eff) / 160);
-    nrEl.peek.style.transform = 'scale(' + (0.985 + 0.015*p) + ')';
-    nrEl.peek.style.opacity = String(0.5 + 0.5*p);
-  });
-  function endDrag(commit){
-    if(!dragging) return; dragging = false;
-    var wasScrolled = scrolled; scroller = null; scrolled = false;
-    var dt = Math.max(1, performance.now() - startT);
-    var vel = Math.abs(dy) / dt;
-    var total = newsList().length;
-    var dir = dy < 0 ? 1 : -1;
-    var atBoundary = (dir < 0 && NR.idx === 0) || (dir > 0 && NR.idx >= total);
-    if(commit && !wasScrolled && !atBoundary && (Math.abs(dy) > 72 || (Math.abs(dy) > 24 && vel > 0.45))){
-      nrFlip(dir);
+      if(left !== 0 && Math.abs(drag.scrolledTotal) <= 2 && ((left < 0 && drag.edgeUp) || (left > 0 && drag.edgeDown))){
+        drag.engaged = true;
+        drag.dirSign = left < 0 ? -1 : 1;
+        drag.flipOff = dy - drag.scrolledTotal;
+        drag.samples = [{t:now, y:e.clientY}]; /* flick speed counts only while engaged */
+      }
     } else {
-      nrEl.card.style.transition = 'transform .28s cubic-bezier(.32,.9,.3,1)';
-      nrEl.card.style.transform = ''; nrEl.card.style.opacity = '';
-      nrEl.peek.style.transition = 'transform .28s ease, opacity .28s ease';
-      nrEl.peek.style.transform = ''; nrEl.peek.style.opacity = '';
-      nrSetPeek(NR.idx + 1); /* peek always rests on the next story */
-      setTimeout(function(){ nrEl.peek.style.transition = ''; }, 290);
+      drag.flipOff = dy - drag.scrolledTotal;
+      if(drag.dirSign < 0 && drag.flipOff > 0) drag.flipOff = 0;
+      if(drag.dirSign > 0 && drag.flipOff < 0) drag.flipOff = 0;
     }
-    dy = 0;
+    if(drag.engaged){
+      var total = newsList().length;
+      var off2 = drag.flipOff;
+      var H = nrEl.stage.clientHeight || 600;
+      if(off2 > H) off2 = H; if(off2 < -H) off2 = -H;
+      if((drag.dirSign > 0 && NR.idx === 0) || (drag.dirSign < 0 && NR.idx >= total)) off2 *= 0.32;
+      nrEl.track.style.transition = 'none';
+      nrEl.track.style.transform = 'translateY(' + off2 + 'px)';
+    }
+  });
+  function dragVelocity(d){
+    var s = d.samples; if(s.length < 2) return 0;
+    var last = s[s.length - 1], first = s[0];
+    for(var i = s.length - 1; i >= 0; i--){ if(last.t - s[i].t >= 40){ first = s[i]; break; } first = s[i]; }
+    var dt = Math.max(1, last.t - first.t);
+    return (last.y - first.y) / dt;
+  }
+  function endDrag(commit){
+    if(!drag) return;
+    var d = drag; drag = null;
+    document.body.style.userSelect = '';
+    var moved = Math.abs(d.lastX - d.x0) + Math.abs(d.lastY - d.y0) > 8;
+    if(moved || d.engaged) NR.dragMovedAt = Date.now();
+    if(d.axis === 'x' && d.stripTrack){
+      var raw = d.stripBase + (d.lastX - d.x0);
+      var ni = commit ? Math.max(0, Math.min(d.stripN - 1, Math.round(-raw / d.stripW))) : NR.galleryIdx;
+      NR.galleryIdx = ni;
+      d.stripTrack.style.transition = 'transform .25s cubic-bezier(.25,.8,.3,1)';
+      d.stripTrack.style.transform = 'translateX(' + (-ni * 100) + '%)';
+      var page = nrCurPage();
+      if(page) page.querySelectorAll('.nr-pg-dots i').forEach(function(dot, i){ dot.classList.toggle('on', i === ni); });
+      return;
+    }
+    if(d.axis !== 'y') return;
+    var vel = dragVelocity(d);
+    if(d.engaged){
+      var total = newsList().length;
+      var H = nrEl.stage.clientHeight || 600;
+      var dir = d.flipOff < 0 ? 1 : -1;
+      var atBoundary = (dir < 0 && NR.idx === 0) || (dir > 0 && NR.idx >= total);
+      var flick = Math.abs(vel) > 0.6 && Math.abs(d.flipOff) > 40 && ((vel < 0) === (d.flipOff < 0));
+      if(commit && !atBoundary && (Math.abs(d.flipOff) > H * 0.22 || flick)) nrDragSettle(dir);
+      else nrDragSettle(0);
+      return;
+    }
+    if(commit && d.scroller && Math.abs(vel) > 0.1) startInertia(d.scroller, -vel);
   }
   nrEl.stage.addEventListener('pointerup', function(){ endDrag(true); });
   nrEl.stage.addEventListener('pointercancel', function(){ endDrag(false); });
   /* wheel: one flip per gesture burst — trackpad momentum is absorbed
-     by the lock and the accumulator resets when the burst ends. */
+     by the lock and the accumulator resets when the burst ends. The
+     story's own scrolling always wins until its edge. */
   var wheelLock = false, wheelAcc = 0, wheelIdle = null;
   nrEl.root.addEventListener('wheel', function(e){
     if(NR.fullOpen || NR.panelOpen || !nrEl.root.classList.contains('open')) return;
-    var sc = e.target.closest ? e.target.closest('.nr-scroll') : null;
+    var sc = e.target.closest ? e.target.closest('.nr-pg-scroll') : null;
     if(sc && sc.scrollHeight > sc.clientHeight + 4){
       var atBottom = sc.scrollTop + sc.clientHeight >= sc.scrollHeight - 2;
       var atTop = sc.scrollTop <= 2;
@@ -6325,17 +6536,54 @@ function nrFlip(dir){ /* dir: +1 next, -1 previous — vertical slide, as record
       if(e.key === 'Escape' && window.mkNrCloseComments){ window.mkNrCloseComments(); e.preventDefault(); }
       return;
     }
-    if(e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' '){ nrFlip(1); e.preventDefault(); }
-    else if(e.key === 'ArrowUp' || e.key === 'PageUp'){ nrFlip(-1); e.preventDefault(); }
+    if(e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' '){
+      var page = nrCurPage(), sc = page ? page.querySelector('.nr-pg-scroll') : null;
+      if(sc && sc.scrollHeight > sc.clientHeight + 2 && sc.scrollTop + sc.clientHeight < sc.scrollHeight - 2){
+        sc.scrollBy({ top: sc.clientHeight * 0.7, behavior: NR_REDUCED ? 'auto' : 'smooth' });
+      } else nrFlip(1);
+      e.preventDefault();
+    }
+    else if(e.key === 'ArrowUp' || e.key === 'PageUp'){
+      var page2 = nrCurPage(), sc2 = page2 ? page2.querySelector('.nr-pg-scroll') : null;
+      if(sc2 && sc2.scrollHeight > sc2.clientHeight + 2 && sc2.scrollTop > 2){
+        sc2.scrollBy({ top: -sc2.clientHeight * 0.7, behavior: NR_REDUCED ? 'auto' : 'smooth' });
+      } else nrFlip(-1);
+      e.preventDefault();
+    }
     else if(e.key === 'Escape'){ if(nrEl.menu && nrEl.menu.classList.contains('open')) nrCloseMenu(); else closeNews(); }
   });
 })();
-function nrBindCardActions(a){
+/* Bind everything interactive on the CURRENT page: its toolbar (the
+   engagement module paints through nrEl, so the references move to
+   this page's strip), the video poster, gallery thumbs, photo zoom,
+   calendar month nav and the full-story link. */
+function nrBindPage(a, page){
+  nrEl.likeBtn = page.querySelector('[data-nr-act="like"]');
+  nrEl.dislikeBtn = page.querySelector('[data-nr-act="dislike"]');
+  nrEl.likeCnt = page.querySelector('.cnt-like');
+  nrEl.dislikeCnt = page.querySelector('.cnt-dislike');
+  nrEl.commentBtn = page.querySelector('[data-nr-act="comments"]');
+  nrEl.commentCnt = page.querySelector('.cnt-comments');
+  nrEl.shareBtn = page.querySelector('[data-nr-act="share"]');
+  nrEl.waBtn = page.querySelector('[data-nr-act="wa"]');
+  nrEl.moreBtn = page.querySelector('[data-nr-act="more"]');
+  if(nrEl.likeBtn) nrEl.likeBtn.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('like'); });
+  if(nrEl.dislikeBtn) nrEl.dislikeBtn.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('dislike'); });
+  if(nrEl.commentBtn) nrEl.commentBtn.addEventListener('click', function(){ if(window.mkNrOpenComments) window.mkNrOpenComments(); });
+  if(nrEl.shareBtn) nrEl.shareBtn.addEventListener('click', function(){ var s = nrCurrentStory(); if(s) shareStory(s); });
+  if(nrEl.waBtn) nrEl.waBtn.addEventListener('click', function(){ var s = nrCurrentStory(); if(s) window.open(waStoryHref(s), '_blank', 'noopener'); });
+  if(nrEl.moreBtn) nrEl.moreBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    var open = nrEl.menu.classList.toggle('open');
+    nrEl.moreBtn.setAttribute('aria-expanded', String(open));
+    if(open) nrPaintChrome();
+  });
   /* Video poster → inline player. The <video> is created only on tap:
      no autoplay, no silent download of the file while flipping past. */
-  var vposter = nrEl.card.querySelector('[data-nr-play]');
+  var vposter = page.querySelector('[data-nr-play]');
   if(vposter){
     var startVideo = function(){
+      if(Date.now() - NR.dragMovedAt < 300) return; /* that was a drag, not a tap */
       var items = mediaItems(a), it = items[Math.min(NR.galleryIdx, items.length-1)];
       if(!it || !it.video) return;
       var v = document.createElement('video');
@@ -6348,29 +6596,40 @@ function nrBindCardActions(a){
     vposter.addEventListener('click', startVideo);
     vposter.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); startVideo(); } });
   }
-  nrEl.card.querySelectorAll('[data-nr-thumb]').forEach(function(b){
+  page.querySelectorAll('[data-nr-thumb]').forEach(function(b){
     b.addEventListener('click', function(){
       NR.galleryIdx = +b.getAttribute('data-nr-thumb');
       nrPauseVideos(); nrRender();
     });
   });
-  var zoom = nrEl.card.querySelector('[data-nr-zoom]');
+  var zoom = page.querySelector('[data-nr-zoom]');
   if(zoom) zoom.addEventListener('click', function(){
+    if(Date.now() - NR.dragMovedAt < 300) return;
     var items = mediaItems(a), it = items[Math.min(NR.galleryIdx, items.length-1)];
     if(!it) return;
     nrEl.lightImg.src = it.src; nrEl.lightImg.alt = it.alt || '';
     nrEl.lightCap.textContent = it.credit ? 'Photo: ' + it.credit : '';
     nrEl.light.classList.add('open'); nrEl.light.setAttribute('aria-hidden','false');
   });
-  var readEn = nrEl.card.querySelector('[data-nr-read-en]');
+  page.querySelectorAll('[data-nr-cal]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var sp = nrIstParts(a.publishedAt);
+      var view = (NR.calView && NR.calView.forId === a.id) ? NR.calView : { forId:a.id, y:sp.y, m:sp.m };
+      var m = view.m + (+b.getAttribute('data-nr-cal')), y = view.y;
+      if(m < 1){ m = 12; y--; } if(m > 12){ m = 1; y++; }
+      NR.calView = { forId:a.id, y:y, m:m };
+      nrRender();
+    });
+  });
+  var readEn = page.querySelector('[data-nr-read-en]');
   if(readEn) readEn.addEventListener('click', function(){ setNewsLang('en'); });
-  var readTe = nrEl.card.querySelector('[data-nr-read-te]');
+  var readTe = page.querySelector('[data-nr-read-te]');
   if(readTe) readTe.addEventListener('click', function(){ setNewsLang('te'); });
-  var readFull = nrEl.card.querySelector('[data-nr-readfull]');
+  var readFull = page.querySelector('[data-nr-readfull]');
   if(readFull) readFull.addEventListener('click', function(){ openNrFull(a); });
 }
-/* ---- bottom strip: like / dislike / WhatsApp / comments / share,
-   plus Save in the header overflow menu. Handlers always act on the
+/* ---- overflow menu: Save lives here, with Previous / Next, the full
+   story, the language switch and Report. Handlers always act on the
    story currently on screen (nrCurrentStory). ---- */
 function nrCurrentStory(){
   var L = newsList();
@@ -6384,27 +6643,12 @@ function nrToggleSave(){
 }
 if(nrEl.menuSave) nrEl.menuSave.addEventListener('click', function(){ nrCloseMenu(); nrToggleSave(); });
 /* Reactions + comments live in the Supabase module (second script);
-   these buttons delegate to it so the reader never fakes a count. */
-if(nrEl.likeBtn) nrEl.likeBtn.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('like'); });
-if(nrEl.dislikeBtn) nrEl.dislikeBtn.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('dislike'); });
-if(nrEl.commentBtn) nrEl.commentBtn.addEventListener('click', function(){ if(window.mkNrOpenComments) window.mkNrOpenComments(); });
-/* The comments module (second script) reports panel state here so the
+   the per-page toolbar buttons delegate to it so the reader never
+   fakes a count. The comments module reports panel state here so the
    gesture engine, wheel and keyboard handlers all stand down. */
 window.nrSetPanelOpen = function(open){ NR.panelOpen = !!open; };
-if(nrEl.shareBtn) nrEl.shareBtn.addEventListener('click', function(){
-  var a = nrCurrentStory(); if(a) shareStory(a);
-});
-if(nrEl.waBtn) nrEl.waBtn.addEventListener('click', function(){
-  var a = nrCurrentStory(); if(a) window.open(waStoryHref(a), '_blank', 'noopener');
-});
-if(nrEl.moreBtn) nrEl.moreBtn.addEventListener('click', function(e){
-  e.stopPropagation();
-  var open = nrEl.menu.classList.toggle('open');
-  nrEl.moreBtn.setAttribute('aria-expanded', String(open));
-  if(open) nrPaintChrome();
-});
 document.addEventListener('click', function(e){
-  if(nrEl.menu && nrEl.menu.classList.contains('open') && !e.target.closest('#nrMenu') && !e.target.closest('#nrMoreBtn')) nrCloseMenu();
+  if(nrEl.menu && nrEl.menu.classList.contains('open') && !e.target.closest('#nrMenu') && !e.target.closest('[data-nr-act="more"]')) nrCloseMenu();
 });
 if(nrEl.menuPrev) nrEl.menuPrev.addEventListener('click', function(){ nrCloseMenu(); nrFlip(-1); });
 if(nrEl.menuNext) nrEl.menuNext.addEventListener('click', function(){ nrCloseMenu(); nrFlip(1); });
@@ -6480,12 +6724,13 @@ function setNewsLang(lang){
   nrEl.langTe.classList.toggle('on', lang==='te');
   if(newsList().length) nrRender(); /* same story, new language — position preserved */
 }
-nrEl.langEn.addEventListener('click', function(){ setNewsLang('en'); });
-nrEl.langTe.addEventListener('click', function(){ setNewsLang('te'); });
+nrEl.langEn.addEventListener('click', function(){ nrCloseMenu(); setNewsLang('en'); });
+nrEl.langTe.addEventListener('click', function(){ nrCloseMenu(); setNewsLang('te'); });
+nrEl.langEn.classList.add('on');
 function openNews(i){
   var L = newsList();
   NR.idx = L.length ? Math.max(0, Math.min(L.length-1, i||0)) : 0;
-  NR.galleryIdx = 0; closeNrFull(true);
+  NR.galleryIdx = 0; NR.calView = null; closeNrFull(true);
   nrRender();
   nrEl.root.classList.add('open'); nrEl.root.setAttribute('aria-hidden','false');
   document.documentElement.style.overflow = 'hidden';
