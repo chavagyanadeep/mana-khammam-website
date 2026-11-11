@@ -819,7 +819,7 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
    right — "3 of 12 Pages", as in the reference reader. */
 .nr-pg-meta{
   flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:8px var(--nr-pad) 0;font-size:12.5px;color:var(--muted);
+  padding:8px var(--nr-pad) 0;font-size:15px;color:var(--muted);
 }
 .nr-pg-meta .pg-num{font-variant-numeric:tabular-nums;white-space:nowrap}
 /* In-reader notice pill (reference reader): transient confirmation for
@@ -882,8 +882,8 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 /* Reading type, matched to the recording: big bold headline, big body
    text, tight side padding, no wasted blank space. */
 .nr-body{padding:12px var(--nr-pad) 0}
-.nr-body h2{font-weight:800;font-size:27px;line-height:1.28;letter-spacing:-.01em;margin:0 0 10px;color:var(--ink)}
-.nr-body p{font-size:21px;line-height:1.55;color:var(--ink);margin:0;white-space:pre-wrap}
+.nr-body h2{font-weight:800;font-size:28px;line-height:1.28;letter-spacing:-.01em;margin:0 0 10px;color:var(--ink)}
+.nr-body p{font-size:22px;line-height:1.5;color:var(--ink);margin:0;white-space:pre-wrap}
 .nr-body p+p{margin-top:14px}
 .nr-meta{display:flex;flex-wrap:wrap;gap:5px 8px;align-items:center;font-size:13px;color:var(--muted);padding:14px var(--nr-pad) 0;line-height:1.5}
 .nr-meta svg{width:15px;height:15px;flex:none}
@@ -916,8 +916,8 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-cal-day.sel{background:#1E4638;box-shadow:inset 0 0 0 1.5px #35B26F}
 .nr-cal-day.sel .tt{color:#CDE8D6}
 .nr-cal-details{padding:14px var(--nr-pad) 4px}
-.nr-cal-details h2{font-weight:800;font-size:24px;line-height:1.3;margin:0 0 8px;color:var(--ink)}
-.nr-cal-details p{font-size:19px;line-height:1.55;color:var(--ink);margin:0;white-space:pre-wrap}
+.nr-cal-details h2{font-weight:800;font-size:28px;line-height:1.3;margin:0 0 8px;color:var(--ink)}
+.nr-cal-details p{font-size:22px;line-height:1.5;color:var(--ink);margin:0;white-space:pre-wrap}
 .nr-cal-rows{margin-top:14px;border-top:1px solid var(--line)}
 .nr-cal-rows .r{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px}
 .nr-cal-rows .r span{color:var(--muted)}
@@ -940,30 +940,30 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-pg-bar{
   flex:none;position:relative;display:flex;align-items:flex-end;gap:2px;
   border-top:1px solid var(--line);background:#FFFFFF;
-  padding:15px 6px calc(12px + env(safe-area-inset-bottom));
+  padding:6px 6px calc(6px + env(safe-area-inset-bottom));
 }
 .nr-tbtn{
   flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
-  padding:9px 2px;font-size:14.5px;font-weight:700;color:var(--ink-2);border-radius:12px;
+  padding:9px 2px;font-size:18px;font-weight:700;color:var(--ink-2);border-radius:12px;
   transition:background .15s ease,color .15s ease;min-height:44px;font-variant-numeric:tabular-nums;
 }
-.nr-tbtn svg{width:23px;height:23px;flex:none}
+.nr-tbtn svg{width:28px;height:28px;flex:none}
 .nr-tbtn:active{background:var(--paper-2)}
 .nr-tbtn.on{color:var(--accent-deep)}
 .nr-tbtn.on svg{fill:currentColor}
 .nr-tbtn[disabled]{opacity:.45;pointer-events:none}
-.nr-tbtn .cnt:empty{display:none}
 .nr-tbtn-share{color:#1B74E4}
+.nr-tbtn-share svg{width:30px;height:30px}
 .nr-wa-cell{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
 .nr-wa-fab{
-  width:54px;height:54px;border-radius:50%;background:#25D366;color:#FFFFFF;
-  display:grid;place-items:center;margin-top:-16px;flex:none;
+  width:58px;height:58px;border-radius:50%;background:#25D366;color:#FFFFFF;
+  display:grid;place-items:center;margin-top:-18px;flex:none;
   box-shadow:0 4px 14px rgba(18,140,60,.35);border:3px solid #FFFFFF;
   transition:transform .15s ease;
 }
 .nr-wa-fab:active{transform:scale(.93)}
-.nr-wa-fab svg{width:28px;height:28px}
-.nr-wa-cell .wa-cap{font-size:9.5px;font-weight:800;letter-spacing:.12em;color:var(--muted);margin-top:3px}
+.nr-wa-fab svg{width:30px;height:30px}
+.nr-wa-cell .wa-cap{font-size:12px;line-height:1.1;font-weight:800;letter-spacing:.12em;color:var(--muted);margin-top:3px}
 /* Comments panel — slides up inside the reader; the story and the
    reader position stay exactly where they were behind it. */
 .nr-comments{
@@ -1028,8 +1028,8 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-menu .nr-mcheck{margin-left:auto;font-weight:800;color:var(--accent-deep);opacity:0}
 .nr-menu button.on .nr-mcheck{opacity:1}
 @media (max-width:380px){
-  .nr-body h2{font-size:25px}
-  .nr-body p{font-size:20px}
+  /* Type sizes stay at the reference recording's sizes at every width —
+     the founder asked for the same letter size, not a shrunk one. */
   .nreader{--nr-pad:14px}
 }
 @media (max-height:640px){
@@ -1074,9 +1074,9 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-full-body img.hero{display:block;width:100%;height:36dvh;object-fit:cover;background:#101613}
 .nr-full-text{padding:16px var(--gutter) 0}
 .nr-full-text.nohero{padding-top:calc(58px + env(safe-area-inset-top))}
-.nr-full-body h2{font-weight:800;font-size:25px;line-height:1.25;letter-spacing:-.01em;margin:0 0 10px}
-.nr-full-body .fm{font-size:12.5px;color:var(--muted);margin-bottom:16px;line-height:1.5}
-.nr-full-body p{font-size:18.5px;line-height:1.68;color:var(--ink);margin:0 0 15px;white-space:pre-wrap}
+.nr-full-body h2{font-weight:800;font-size:28px;line-height:1.25;letter-spacing:-.01em;margin:0 0 10px}
+.nr-full-body .fm{font-size:15px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.nr-full-body p{font-size:22px;line-height:1.5;color:var(--ink);margin:0 0 15px;white-space:pre-wrap}
 #nrFullBar{flex:none;background:#FFFFFF}
 .nr-light{position:fixed;inset:0;z-index:95;background:rgba(8,13,11,.95);display:none;flex-direction:column}
 .nr-light.open{display:flex}
@@ -6221,14 +6221,15 @@ function nrCalDetailsHTML(a){
 }
 /* The bottom strip, built into every story page so it flips with the
    page: like · dislike | raised WhatsApp SHARE disc | comments ·
-   overflow · blue share arrow. Counts start blank and are painted by
-   the engagement module for the story on screen — never faked. */
+   overflow · blue share arrow. Counts always render beside their icon
+   (as in the reference recording): they start at 0 and the engagement
+   module paints the story's real counts over them — never blank. */
 function nrToolbarHTML(){
   return '<div class="nr-pg-bar">'
-    + '<button class="nr-tbtn" data-nr-act="like" aria-pressed="false" aria-label="Like this story">' + NR_ICONS.like + '<span class="cnt cnt-like"></span></button>'
-    + '<button class="nr-tbtn" data-nr-act="dislike" aria-pressed="false" aria-label="Dislike this story">' + NR_ICONS.dislike + '<span class="cnt cnt-dislike"></span></button>'
+    + '<button class="nr-tbtn" data-nr-act="like" aria-pressed="false" aria-label="Like this story">' + NR_ICONS.like + '<span class="cnt cnt-like">0</span></button>'
+    + '<button class="nr-tbtn" data-nr-act="dislike" aria-pressed="false" aria-label="Dislike this story">' + NR_ICONS.dislike + '<span class="cnt cnt-dislike">0</span></button>'
     + '<div class="nr-wa-cell"><button class="nr-wa-fab" data-nr-act="wa" aria-label="Share this story on WhatsApp">' + WA_ICON + '</button><span class="wa-cap" aria-hidden="true">SHARE</span></div>'
-    + '<button class="nr-tbtn" data-nr-act="comments" aria-label="Comments on this story">' + NR_ICONS.comment + '<span class="cnt cnt-comments"></span></button>'
+    + '<button class="nr-tbtn" data-nr-act="comments" aria-label="Comments on this story">' + NR_ICONS.comment + '<span class="cnt cnt-comments">0</span></button>'
     + '<button class="nr-tbtn" data-nr-act="more" aria-haspopup="menu" aria-expanded="false" aria-label="More options">' + NR_ICONS.more + '</button>'
     + '<button class="nr-tbtn nr-tbtn-share" data-nr-act="share" aria-label="Share this story">' + NR_ICONS.shareArrow + '</button>'
     + '</div>';
@@ -6334,7 +6335,7 @@ function nrPaintChrome(){
   var locAny = storyText(a, NR.lang) || storyText(a, 'en') || storyText(a, 'te');
   if(nrEl.menuFull) nrEl.menuFull.style.display = (locAny && locAny.body) ? '' : 'none';
   /* Reactions / comment counts for the story now on screen (Supabase
-     module, second script — absent or offline leaves honest blanks). */
+     module, second script — absent or offline leaves the counts at 0). */
   if(window.mkEngPaint) window.mkEngPaint(a);
 }
 function nrTrackReset(){
@@ -7272,10 +7273,13 @@ function engIsMissing(err){
   return !!err && (err.code === '42P01' || err.code === 'PGRST205' || /article_(reactions|comments)/.test(String(err.message || '')));
 }
 function engPaintCounts(){
-  var show = ENG.available === true && !!ENG.storyId;
-  if(nrEl.likeCnt) nrEl.likeCnt.textContent = show ? String(ENG.likes) : '';
-  if(nrEl.dislikeCnt) nrEl.dislikeCnt.textContent = show ? String(ENG.dislikes) : '';
-  if(nrEl.commentCnt) nrEl.commentCnt.textContent = show ? String(ENG.commentCount) : '';
+  /* Counts ALWAYS render beside their icons, as in the reference
+     recording: the real Supabase counts once loaded, 0 until then —
+     including while the Section 7 tables are still pending. A blank
+     count reads as a broken toolbar, so it is never painted. */
+  if(nrEl.likeCnt) nrEl.likeCnt.textContent = String(ENG.likes || 0);
+  if(nrEl.dislikeCnt) nrEl.dislikeCnt.textContent = String(ENG.dislikes || 0);
+  if(nrEl.commentCnt) nrEl.commentCnt.textContent = String(ENG.commentCount || 0);
   if(nrEl.likeBtn){
     nrEl.likeBtn.classList.toggle('on', ENG.mine === 'like');
     nrEl.likeBtn.setAttribute('aria-pressed', String(ENG.mine === 'like'));
@@ -7285,7 +7289,7 @@ function engPaintCounts(){
     nrEl.dislikeBtn.setAttribute('aria-pressed', String(ENG.mine === 'dislike'));
   }
   var cc = document.getElementById('nrCommentsCount');
-  if(cc) cc.textContent = show ? '(' + ENG.commentCount + ')' : '';
+  if(cc) cc.textContent = '(' + (ENG.commentCount || 0) + ')';
 }
 function engLoad(storyId){
   var c = engClient();
