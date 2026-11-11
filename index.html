@@ -897,6 +897,19 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-meta svg{width:15px;height:15px;flex:none}
 .nr-meta .dot{width:3px;height:3px;border-radius:50%;background:var(--muted)}
 .nr-source{font-size:12.5px;color:var(--muted);padding:4px var(--nr-pad) 0;line-height:1.5}
+/* Instagram-linked stories: the video plays inside the story through
+   Instagram's own embed player, with a link-out button under it. */
+.nr-ig{margin:12px var(--nr-pad) 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+.nr-ig-frame{background:#101613}
+.nr-ig-frame iframe{display:block;width:100%;height:min(148vw,580px);border:0;background:#101613}
+.nr-ig-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:210px;background:#101613;color:#F2F5EF;font-size:13px;font-weight:700;letter-spacing:.05em}
+.nr-ig-play{width:64px;height:64px;border-radius:50%;border:3px solid #FFFFFF;display:grid;place-items:center;color:#FFFFFF}
+.nr-ig-play svg{width:28px;height:28px;margin-left:3px}
+.nr-ig-btn{display:flex;align-items:center;justify-content:center;gap:9px;padding:13px 16px;border-top:1px solid var(--line);font-weight:800;font-size:15px;color:var(--accent-deep);text-decoration:none}
+.nr-ig-btn:active{background:var(--green-tint)}
+.nr-ig-note{margin:0;padding:0 16px 13px;font-size:12px;line-height:1.5;color:var(--muted);text-align:center}
+.nr-full-text .nr-ig{margin:16px 0 4px}
+.np-pv-ig{margin-top:10px;font-size:13px;line-height:1.5;color:var(--ink-2);background:var(--green-tint);border-radius:10px;padding:9px 11px;word-break:break-all}
 .nr-readfull{
   display:inline-flex;align-items:center;gap:7px;margin:14px var(--nr-pad) 16px;
   font-size:15.5px;font-weight:800;color:var(--accent-deep);padding:6px 0;
@@ -4089,6 +4102,11 @@ table.ng-table td b{color:var(--ink)}
             <label for="fdPublisher">Publisher name</label>
             <input class="f-input" id="fdPublisher" type="text" placeholder="Mana Khammam" />
           </div>
+          <div class="f-field">
+            <label for="fdIgUrl">Instagram link (optional)</label>
+            <input class="f-input" id="fdIgUrl" type="text" placeholder="https://www.instagram.com/reel/…" />
+            <p class="f-note" style="margin-top:6px">Link the original Instagram post or Reel this story is about. In the reader, the video <b>plays inside the story</b> through Instagram’s own player, and a “Watch on Instagram” button opens the original post — both happen. The video is never copied to Mana Khammam. Storing the link needs setup SQL section 8 (the instagram_url column); until it is run, saves still work and the editor tells you the link was not stored.</p>
+          </div>
 
           <span class="micro" style="color:var(--accent);display:block;margin:18px 0 4px">Photo / Video</span>
           <p class="f-note" style="margin-bottom:10px">Photos go to the news-photos bucket, videos to news-videos. A video gets a poster captured from its first frames — or upload your own poster image. Save the draft first if this is a brand-new article; uploading will save it for you.</p>
@@ -5612,6 +5630,9 @@ var PROPS = {
      publisher, source, city:'khammam',
      media:{ type:'image'|'video', src, poster, alt, credit,
              gallery:[{src, alt, credit}] },
+     igUrl (optional Instagram post/Reel link: the video plays in
+             the reader through Instagram's own embed player, with a
+             “Watch on Instagram” button to the original post),
      en:{ headline, summary (≤60 words), body },
      te:{ headline, summary, body } | null }                            */
 var NEWS_ARTICLES = [];
@@ -6081,6 +6102,48 @@ function mediaItems(a){
   (m.gallery||[]).forEach(function(g){ items.push({src:g.src, alt:g.alt||'', credit:g.credit||'', video:false}); });
   return items;
 }
+/* ---------- Instagram-linked stories ----------
+   A story can carry ONE Instagram post / Reel link (a.igUrl — pasted
+   in Post News or the founder editor). BOTH things happen in the
+   reader: the video PLAYS INSIDE the story, through Instagram's own
+   official embed player (the post is never downloaded, copied or
+   re-hosted), AND the “Watch on Instagram” button under it opens the
+   original post in Instagram. nrIgPostUrl normalizes a pasted link
+   to the canonical post URL, or returns '' when the text is not a
+   link to an Instagram post, Reel or TV video. */
+function nrIgPostUrl(v){
+  var s = String(v || '').trim();
+  if(!s) return '';
+  var m = s.match(/instagram\.com\/(reel|reels|p|tv)\/([A-Za-z0-9_-]+)/i);
+  if(!m) return '';
+  var kind = m[1].toLowerCase();
+  if(kind === 'reels') kind = 'reel';
+  return 'https://www.instagram.com/' + kind + '/' + m[2] + '/';
+}
+var NR_IG_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>';
+function nrIgHTML(a, interactive){
+  var raw = a && a.igUrl ? String(a.igUrl).trim() : '';
+  if(!raw) return '';
+  var post = nrIgPostUrl(raw);
+  var html = '<div class="nr-ig">';
+  if(post){
+    if(interactive){
+      /* The current page gets the real embed player — the video plays
+         in the story. Neighbouring pages get a still placeholder, so
+         flipping through the feed never loads three players at once. */
+      html += '<div class="nr-ig-frame"><iframe src="' + mkEsc(post + 'embed') + '" title="Instagram video" loading="lazy" frameborder="0" scrolling="no" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe></div>';
+    } else {
+      html += '<div class="nr-ig-ph"><span class="nr-ig-play">' + NR_ICONS.playLg + '</span><span>Instagram video</span></div>';
+    }
+  }
+  if(interactive){
+    html += '<a class="nr-ig-btn" href="' + mkEsc(post || raw) + '" target="_blank" rel="noopener">' + NR_IG_ICON + '<span>Watch on Instagram</span></a>'
+      + '<p class="nr-ig-note">' + (post
+        ? 'The original post on Instagram — it plays here through Instagram’s own player, and the button opens it in Instagram. Nothing is copied to Mana Khammam.'
+        : 'The original post on Instagram — the button opens it in Instagram. Nothing is copied to Mana Khammam.') + '</p>';
+  }
+  return html + '</div>';
+}
 /* A story is a full-image "poster" story when its entire content is one
    image: a single photo, no gallery, and no summary or body text in
    either language (greetings, devotional art, infographics). An explicit
@@ -6287,6 +6350,7 @@ function nrPageHTML(a, interactive, pos, total){
   html += nrMediaHTML(a, interactive);
   html += '<div class="nr-pg-scroll"><div class="nr-pg-inner">';
   html += nrMediaExtrasHTML(a, interactive);
+  html += nrIgHTML(a, interactive);
   var loc = storyText(a, NR.lang);
   if(!loc){
     if(NR.lang === 'en'){
@@ -6305,6 +6369,7 @@ function nrPageHTML(a, interactive, pos, total){
       + '<button class="btn-solid" data-nr-read-en style="flex:none;padding:10px 18px">Read in English</button>'
       + '</div></div>';
     }
+    html += nrIgHTML(a, interactive);
     html += '<div class="nr-pg-foot">' + nrBylineHTML(a) + '</div>';
     return html + '</div></div>' + meta + nrToolbarHTML();
   }
@@ -6892,6 +6957,7 @@ function openNrFull(a){
     + '<h2>'+mkEsc(loc.headline)+'</h2>'
     + '<div class="fm">'+newsTimeLabel(a.publishedAt)+' · '+mkEsc(a.publisher||'Mana Khammam Newsroom')+(a.source ? ' · Source: '+mkEsc(a.source) : '')+(it && it.credit ? ' · Photo: '+mkEsc(it.credit) : '')+'</div>'
     + paras
+    + nrIgHTML(a, true)
     + '</div>';
   nrEl.fullBody.scrollTop = 0;
   nrEl.full.classList.add('open'); nrEl.full.setAttribute('aria-hidden','false');
@@ -7002,12 +7068,12 @@ function renderHomeNews(){
     + (leadItems.length ? '<span class="ph"><img src="'+mkEsc(leadItems[0].poster||leadItems[0].src)+'" alt="'+mkEsc(leadItems[0].alt)+'"/></span>' : '')
     + (lead.breaking ? '<span class="sample-tag" style="background:#9A6B2F;color:#FFF;margin-top:12px">Breaking News</span>' : '')
     + '<h3>'+mkEsc(leadLoc.headline)+'</h3>'
-    + '<span class="news-meta"><span>'+mkEsc(lead.publisher||'Mana Khammam Newsroom')+'</span><span class="dot"></span><span>'+newsTimeLabel(lead.publishedAt)+'</span></span></button>'
+    + '<span class="news-meta"><span>'+mkEsc(lead.publisher||'Mana Khammam Newsroom')+'</span><span class="dot"></span><span>'+newsTimeLabel(lead.publishedAt)+'</span>'+(lead.igUrl ? '<span class="dot"></span><span>Instagram video</span>' : '')+'</span></button>'
     + waCardAnchor(waStoryHref(lead), 'top:10px;right:10px') + '</div>';
   html += L.slice(1,3).map(function(a,i){
     var loc = a.en || a.te || {}, items = mediaItems(a);
     return '<div class="news-row-wrap"><button class="news-row" style="border-top:0" data-news-open="'+(i+1)+'"><span style="flex:1;min-width:0"><h4>'+mkEsc(loc.headline)+'</h4>'
-      + '<span class="news-meta"><span>'+newsTimeLabel(a.publishedAt)+'</span></span></span>'
+      + '<span class="news-meta"><span>'+newsTimeLabel(a.publishedAt)+'</span>'+(a.igUrl ? '<span class="dot"></span><span>Instagram video</span>' : '')+'</span></span>'
       + (items.length ? '<img src="'+mkEsc(items[0].poster||items[0].src)+'" alt="'+mkEsc(items[0].alt)+'"/>' : '') + '</button>'
       + '<a class="wa-card wa-inline" href="' + waStoryHref(a) + '" target="_blank" rel="noopener" aria-label="Share on WhatsApp" title="Share on WhatsApp">' + WA_ICON + '</a></div>';
   }).join('');
@@ -7183,6 +7249,7 @@ function mkMapArticle(row){
     breaking: !!row.is_breaking,
     publisher: row.publisher_name || 'Mana Khammam Newsroom',
     source: row.source_attribution || '',
+    igUrl: row.instagram_url || '',
     correctionNote: row.correction_note || '',
     category: row.category || row.news_category || '',
     locality: row.locality || '',
@@ -7194,14 +7261,28 @@ function mkMapArticle(row){
 var MK_FEED_SELECT = 'id, slug, status, is_breaking, publisher_name, source_attribution, correction_note, published_at, created_at, '
   + 'article_translations(lang, headline, summary_60_words, body_full), '
   + 'article_media(kind, storage_path, poster_path, position, credit, alt_text)';
+/* The article's Instagram link lives in news_articles.instagram_url,
+   added by setup SQL section 8. Until the founder runs that section,
+   any select naming the column fails — so story queries try the full
+   select first and fall back to the base one; the story then simply
+   carries no Instagram video yet, and everything else keeps working. */
+var MK_FEED_SELECT_IG = 'instagram_url, ' + MK_FEED_SELECT;
+function mkIgSel(run){
+  return run(MK_FEED_SELECT_IG).then(function(r){
+    if(r && r.error && /instagram_url/.test(r.error.message || '')) return run(MK_FEED_SELECT);
+    return r;
+  });
+}
 
 function mkFetchFeedPage(page){
   var from = page * MK_PAGE_SIZE, to = from + MK_PAGE_SIZE - 1;
-  return MK.client.from('news_articles').select(MK_FEED_SELECT)
-    .eq('status', 'published')
-    .order('published_at', { ascending:false })
-    .order('position', { referencedTable:'article_media', ascending:true })
-    .range(from, to)
+  return mkIgSel(function(sel){
+    return MK.client.from('news_articles').select(sel)
+      .eq('status', 'published')
+      .order('published_at', { ascending:false })
+      .order('position', { referencedTable:'article_media', ascending:true })
+      .range(from, to);
+  })
     .then(function(r){
       if(r.error) throw r.error;
       var rows = r.data || [];
@@ -7497,11 +7578,15 @@ function mkResolveDeepLink(){
     if(!exists) NEWS_ARTICLES = [art].concat(NEWS_ARTICLES);
     renderHomeNews(); nrOpenDeepLink();
   }
-  MK.client.from('news_articles').select(MK_FEED_SELECT).eq('status', 'published').eq('slug', key).maybeSingle()
+  mkIgSel(function(sel){
+    return MK.client.from('news_articles').select(sel).eq('status', 'published').eq('slug', key).maybeSingle();
+  })
     .then(function(r){
       if(r.data){ useRow(r); return; }
       if(/^[0-9a-fA-F-]{36}$/.test(key)){
-        MK.client.from('news_articles').select(MK_FEED_SELECT).eq('status', 'published').eq('id', key).maybeSingle().then(useRow);
+        mkIgSel(function(sel){
+          return MK.client.from('news_articles').select(sel).eq('status', 'published').eq('id', key).maybeSingle();
+        }).then(useRow);
       }
     }).catch(function(){});
 }
@@ -7705,9 +7790,12 @@ function mkLoadList(){
   err.textContent = ''; err.classList.remove('show');
   if(!MK.client || !MK.isFounder){ box.innerHTML = ''; return; }
   box.innerHTML = '<p class="f-note">Loading…</p>';
-  MK.client.from('news_articles')
-    .select('id, slug, status, is_breaking, publisher_name, source_attribution, correction_note, published_at, created_at, updated_at, article_translations(lang, headline, summary_60_words, body_full), article_media(id, kind, storage_path, poster_path, position, credit, alt_text)')
-    .order('created_at', { ascending:false })
+  var listSel = 'id, slug, status, is_breaking, publisher_name, source_attribution, correction_note, published_at, created_at, updated_at, article_translations(lang, headline, summary_60_words, body_full), article_media(id, kind, storage_path, poster_path, position, credit, alt_text)';
+  var listQ = function(sel){ return MK.client.from('news_articles').select(sel).order('created_at', { ascending:false }); };
+  listQ('instagram_url, ' + listSel).then(function(r){
+      if(r.error && /instagram_url/.test(r.error.message || '')) return listQ(listSel);
+      return r;
+    })
     .then(function(r){
       if(r.error){
         err.textContent = 'The article list could not be loaded (' + (r.error.message || 'database error') + '). If every write is also rejected, this account may not be a founder after all — the database has the final say.';
@@ -7824,10 +7912,12 @@ function mkLoadSubmissions(){
   if(!box) return;
   if(err){ err.textContent = ''; err.classList.remove('show'); }
   if(!MK.client || !MK.isFounder){ box.innerHTML = ''; if(badge) badge.style.display = 'none'; return; }
-  MK.client.from('news_articles')
-    .select('id, slug, status, publisher_name, created_at, created_by, article_translations(lang, headline, summary_60_words, body_full), article_media(id, kind, storage_path, poster_path, position, credit, alt_text)')
-    .eq('status', 'pending')
-    .order('created_at', { ascending:true })
+  var subSel = 'id, slug, status, publisher_name, created_at, created_by, article_translations(lang, headline, summary_60_words, body_full), article_media(id, kind, storage_path, poster_path, position, credit, alt_text)';
+  var subQ = function(sel){ return MK.client.from('news_articles').select(sel).eq('status', 'pending').order('created_at', { ascending:true }); };
+  subQ('instagram_url, ' + subSel).then(function(r){
+      if(r.error && /instagram_url/.test(r.error.message || '')) return subQ(subSel);
+      return r;
+    })
     .then(function(r){
       if(r.error){
         if(err){
@@ -7864,6 +7954,7 @@ function mkLoadSubmissions(){
           + '<div class="dash-meta">Submitted ' + mkEsc(newsTimeLabel(row.created_at)) + ' · by <span data-sub-by="' + row.id + '">a reader</span></div>'
           + langBlock(en, 'English') + langBlock(te, 'Telugu')
           + mediaHtml
+          + (row.instagram_url ? '<p class="f-note" style="margin-top:10px">Instagram video linked: <a href="' + mkEsc(row.instagram_url) + '" target="_blank" rel="noopener">' + mkEsc(row.instagram_url) + '</a> — if approved, it plays inside the story through Instagram’s player, with a “Watch on Instagram” button to the original post.</p>' : '')
           + '<div class="dash-acts">'
           + '<button class="primary" data-sub-approve="' + row.id + '">Approve &amp; publish</button>'
           + '<button class="danger" data-sub-reject="' + row.id + '">Reject</button></div>'
@@ -7921,7 +8012,7 @@ function mkRejectSubmission(id){
 }
 
 /* ---------- Dashboard: editor ---------- */
-var ED = { id:'', status:'draft', slug:'', publishedAt:'', createdAt:'', updatedAt:'', media:[] };
+var ED = { id:'', status:'draft', slug:'', publishedAt:'', createdAt:'', updatedAt:'', media:[], igUrl:'', igDropped:false };
 function mkFd(id){ return document.getElementById(id); }
 function mkEditorMsg(errText, okText){
   var e = mkFd('fdErr'), o = mkFd('fdOk');
@@ -7929,10 +8020,11 @@ function mkEditorMsg(errText, okText){
   o.textContent = okText || ''; o.classList.toggle('show', !!okText);
 }
 function mkOpenEditor(row){
-  ED = { id:'', status:'draft', slug:'', publishedAt:'', createdAt:'', updatedAt:'', media:[] };
+  ED = { id:'', status:'draft', slug:'', publishedAt:'', createdAt:'', updatedAt:'', media:[], igUrl:'', igDropped:false };
   mkFd('fdHeadlineEn').value = ''; mkFd('fdSummaryEn').value = ''; mkFd('fdBodyEn').value = '';
   mkFd('fdHeadlineTe').value = ''; mkFd('fdSummaryTe').value = ''; mkFd('fdBodyTe').value = '';
   mkFd('fdSource').value = ''; mkFd('fdCorrection').value = ''; mkFd('fdPublisher').value = 'Mana Khammam';
+  mkFd('fdIgUrl').value = '';
   mkFd('fdMediaFile').value = ''; mkFd('fdPosterFile').value = ''; mkFd('fdMediaCredit').value = ''; mkFd('fdMediaAlt').value = '';
   mkFd('fdPosterField').style.display = 'none';
   mkFd('fdPreview').style.display = 'none'; mkFd('fdPreview').innerHTML = '';
@@ -7945,6 +8037,8 @@ function mkOpenEditor(row){
     if(en){ mkFd('fdHeadlineEn').value = en.headline || ''; mkFd('fdSummaryEn').value = en.summary_60_words || ''; mkFd('fdBodyEn').value = en.body_full || ''; }
     if(te){ mkFd('fdHeadlineTe').value = te.headline || ''; mkFd('fdSummaryTe').value = te.summary_60_words || ''; mkFd('fdBodyTe').value = te.body_full || ''; }
     mkFd('fdSource').value = row.source_attribution || '';
+    mkFd('fdIgUrl').value = row.instagram_url || '';
+    ED.igUrl = row.instagram_url || '';
     mkFd('fdCorrection').value = row.correction_note || '';
     mkFd('fdPublisher').value = row.publisher_name || 'Mana Khammam';
   }
@@ -7961,23 +8055,44 @@ function mkCloseEditor(){ mkFd('adEditor').style.display = 'none'; ED.id = ''; E
 document.getElementById('fdCloseBtn').addEventListener('click', mkCloseEditor);
 
 function mkSaveArticle(){
+  var igRaw = mkFd('fdIgUrl').value.trim();
+  var igUrl = igRaw ? nrIgPostUrl(igRaw) : '';
+  if(igRaw && !igUrl){
+    return Promise.reject(new Error('that Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…), or clear the box'));
+  }
   var payload = {
     publisher_name: mkFd('fdPublisher').value.trim() || 'Mana Khammam',
     source_attribution: mkFd('fdSource').value.trim() || null,
     correction_note: mkFd('fdCorrection').value.trim() || null
   };
-  var op;
-  if(ED.id){
-    op = MK.client.from('news_articles').update(payload).eq('id', ED.id).select().single();
-  } else {
-    payload.status = 'draft'; payload.created_by = MK.user.id;
-    op = MK.client.from('news_articles').insert(payload).select().single();
+  /* The Instagram link rides along only when it is set here or was
+     already stored (so clearing the box clears it). Until setup SQL
+     section 8 adds the column, a save naming it is rejected — retry
+     once without it and let the editor say the link was not stored,
+     rather than failing the whole save. */
+  var sendIg = !!igUrl || !!ED.igUrl;
+  if(sendIg) payload.instagram_url = igUrl || null;
+  ED.igDropped = false;
+  function runOp(){
+    if(ED.id) return MK.client.from('news_articles').update(payload).eq('id', ED.id).select().single();
+    var p = {}; for(var k in payload) p[k] = payload[k];
+    p.status = 'draft'; p.created_by = MK.user.id;
+    return MK.client.from('news_articles').insert(p).select().single();
   }
+  var op = runOp().then(function(r){
+    if(r.error && sendIg && /instagram_url/.test(r.error.message || '')){
+      delete payload.instagram_url;
+      ED.igDropped = true;
+      return runOp();
+    }
+    return r;
+  });
   return op.then(function(r){
     if(r.error) throw r.error;
     var isNew = !ED.id;
     ED.id = r.data.id; ED.status = r.data.status; ED.slug = r.data.slug || '';
     ED.createdAt = r.data.created_at; ED.updatedAt = r.data.updated_at;
+    if(!ED.igDropped) ED.igUrl = igUrl;
     var ups = [];
     var enH = mkFd('fdHeadlineEn').value.trim(), enS = mkFd('fdSummaryEn').value.trim(), enB = mkFd('fdBodyEn').value;
     if(enH || enS || enB.trim()){
@@ -8003,7 +8118,9 @@ function mkSaveArticle(){
 document.getElementById('fdSaveBtn').addEventListener('click', function(){
   mkEditorMsg('', '');
   mkSaveArticle().then(function(){
-    mkEditorMsg('', 'Draft saved. It stays private until you publish.');
+    mkEditorMsg('', ED.igDropped
+      ? 'Draft saved — but the Instagram link could not be stored yet: run section 8 of the setup SQL in Supabase, then save again to attach it. The draft stays private until you publish.'
+      : 'Draft saved. It stays private until you publish.');
     mkLoadList();
   }).catch(function(err){
     mkEditorMsg('Save was rejected by the database: ' + ((err && err.message) || 'unknown error') + ' — if this keeps happening, this account is not a founder and Row Level Security is doing its job.', '');
@@ -8035,7 +8152,7 @@ document.getElementById('fdPublishBtn').addEventListener('click', function(){
     mkFd('fdPublishBtn').textContent = 'Unpublish';
     return mkAudit(ED.id, 'published', null);
   }).then(function(){
-    mkEditorMsg('', 'Published — the story is live in the reader and on the homepage.');
+    mkEditorMsg('', 'Published — the story is live in the reader and on the homepage.' + (ED.igDropped ? ' Note: the Instagram link was not stored — run setup SQL section 8, then edit the story and save to attach it.' : ''));
     mkLoadList(); mkLoadFeed(true);
   }).catch(function(err){
     mkEditorMsg('Publish did not complete: ' + ((err && err.message) || 'unknown error'), '');
@@ -8228,7 +8345,7 @@ document.getElementById('fdUploadBtn').addEventListener('click', function(){
    no backend connection the screen says the post cannot be sent, and
    every failure is reported as a failure.
    ===================================================================== */
-var NP = { posterBlob:null, busy:false, previewOk:false, previewHash:'' };
+var NP = { posterBlob:null, busy:false, previewOk:false, previewHash:'', igDropped:false };
 function npEl(id){ return document.getElementById(id); }
 function npMsg(errText, okText){
   var e = npEl('npErr'), o = npEl('npOk');
@@ -8296,6 +8413,9 @@ function npFormHTML(){
     + '<div class="f-field"><label for="npVideo">Video</label>'
     + '<input class="f-input" id="npVideo" type="file" accept="video/mp4,video/webm" />'
     + '<p class="f-note" id="npPosterNote" style="margin-top:6px"></p></div>'
+    + '<div class="f-field"><label for="npIgUrl">Instagram link (optional)</label>'
+    + '<input class="f-input" id="npIgUrl" type="text" placeholder="https://www.instagram.com/reel/…" />'
+    + '<p class="f-note" style="margin-top:6px">Paste the link to the Instagram post or Reel this story is about. In the reader, the video <b>plays inside the story</b> through Instagram’s own player, and a “Watch on Instagram” button takes readers to the original post — both happen. The video itself stays on Instagram; nothing is downloaded or copied. Link only a post you are reporting on, and credit its poster in your story.</p></div>'
     + '<div class="prog-wrap" id="npProgWrap"><div class="prog-track"><i id="npProgBar"></i></div><div class="prog-label" id="npProgLabel">Sending…</div></div>'
     + '<div class="f-err" id="npErr"></div><div class="f-ok" id="npOk"></div>'
     + '<button class="btn-ghost" id="npPreviewBtn" style="width:100%;margin-top:12px">Preview — Telugu version</button>'
@@ -8367,8 +8487,8 @@ function npOverCapMessage(){
    When only English has been written, the preview says so plainly
    and asks for the Telugu text instead of inventing a translation. */
 function npPreviewHash(){
-  var h = npEl('npHeadTe'), b = npEl('npBodyTe');
-  return ((h ? h.value.trim() : '') + '\n' + (b ? b.value.trim() : ''));
+  var h = npEl('npHeadTe'), b = npEl('npBodyTe'), g = npEl('npIgUrl');
+  return ((h ? h.value.trim() : '') + '\n' + (b ? b.value.trim() : '') + '\n' + (g ? g.value.trim() : ''));
 }
 function npInvalidatePreview(){
   if(!NP.previewOk) return;
@@ -8396,9 +8516,17 @@ function npShowPreview(){
   }
   var paras = bodyTe.split(/\n\s*\n/).map(function(s){ return s.trim(); }).filter(Boolean);
   if(!paras.length) paras = [bodyTe];
+  var igRaw = npEl('npIgUrl').value.trim(), igLine = '';
+  if(igRaw){
+    var igNorm = nrIgPostUrl(igRaw);
+    igLine = igNorm
+      ? '<div class="np-pv-ig">Instagram video linked — it will play inside the story, with a “Watch on Instagram” button to the original post: ' + mkEsc(igNorm) + '</div>'
+      : '<div class="np-pv-ig">That Instagram link is not a link to a post or Reel, so the post cannot be sent with it — paste the full link (instagram.com/reel/… or /p/…) or clear the box.</div>';
+  }
   box.innerHTML = '<div class="np-preview"><div class="np-pv-kicker">Preview — what readers will see · Telugu</div>'
     + '<h4>' + mkEsc(headTe) + '</h4>'
     + paras.map(function(p){ return '<p>' + mkEsc(p) + '</p>'; }).join('')
+    + igLine
     + '<div class="np-pv-foot" id="npPvFoot">Telugu only — readers will not see an English version of this post. Headline ' + npCountWords(headTe) + ' / ' + NP_HEADLINE_MAX + ' words · Story ' + npCountWords(bodyTe) + ' / ' + NP_BODY_MAX + ' words. If this looks right, tap “Send for founder approval”.</div></div>';
   NP.previewOk = true;
   NP.previewHash = npPreviewHash();
@@ -8410,6 +8538,8 @@ function npWireForm(u){
     if(input) input.addEventListener('input', function(){ npPaintAllWc(); npInvalidatePreview(); });
   });
   npPaintAllWc();
+  var igInput = npEl('npIgUrl');
+  if(igInput) igInput.addEventListener('input', npInvalidatePreview);
   var pvBtn = npEl('npPreviewBtn');
   if(pvBtn) pvBtn.addEventListener('click', function(){ npShowPreview(); });
   npEl('npPhotos').addEventListener('change', function(){
@@ -8460,6 +8590,12 @@ function npSubmit(u){
   if(!NP.previewOk || NP.previewHash !== npPreviewHash()){
     npShowPreview();
     npMsg('Check the Telugu preview below — it is exactly what readers will see. If it looks right, tap “Send for founder approval” again.', '');
+    return;
+  }
+  var igRaw = npEl('npIgUrl').value.trim();
+  var igUrl = igRaw ? nrIgPostUrl(igRaw) : '';
+  if(igRaw && !igUrl){
+    npMsg('That Instagram link is not a link to an Instagram post or Reel. Paste the full link from Instagram (it contains instagram.com/reel/… or instagram.com/p/…), or clear the box, and send again.', '');
     return;
   }
   var photoFiles = Array.prototype.slice.call(npEl('npPhotos').files || []);
@@ -8513,7 +8649,19 @@ function npSubmit(u){
     return npPublisherName(u).then(function(name){
       var payload = { status:'pending', created_by:u.id };
       if(name) payload.publisher_name = name;
-      return MK.client.from('news_articles').insert(payload).select().single();
+      if(igUrl) payload.instagram_url = igUrl;
+      NP.igDropped = false;
+      return MK.client.from('news_articles').insert(payload).select().single().then(function(r){
+        if(r.error && igUrl && /instagram_url/.test(r.error.message || '')){
+          /* Setup SQL section 8 has not been run yet — send the post
+             without the link rather than losing the post, and say so
+             in the confirmation below. */
+          NP.igDropped = true;
+          delete payload.instagram_url;
+          return MK.client.from('news_articles').insert(payload).select().single();
+        }
+        return r;
+      });
     });
   }).then(function(r){
     if(r.error) throw r.error;
@@ -8537,11 +8685,12 @@ function npSubmit(u){
     npEl('npHeadEn').value = ''; npEl('npBodyEn').value = '';
     npEl('npHeadTe').value = ''; npEl('npBodyTe').value = '';
     npEl('npPhotos').value = ''; npEl('npVideo').value = '';
+    npEl('npIgUrl').value = '';
     npEl('npPosterNote').textContent = ''; NP.posterBlob = null;
     NP.previewOk = false; NP.previewHash = '';
     var pvBox = npEl('npPreview'); if(pvBox) pvBox.innerHTML = '';
     npPaintAllWc();
-    npMsg('', 'Sent — your post is now waiting for founder approval. It appears in Local News only if the founder approves it; its state is tracked under Your submissions below.');
+    npMsg('', 'Sent — your post is now waiting for founder approval. It appears in Local News only if the founder approves it; its state is tracked under Your submissions below.' + (NP.igDropped ? ' One thing: the Instagram link could not be stored yet — the founder needs to run section 8 of the setup SQL first, and can then add the link in the dashboard editor.' : ''));
     npLoadMine(u);
   }).catch(function(e){
     wrap.classList.remove('show');
