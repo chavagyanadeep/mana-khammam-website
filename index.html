@@ -509,6 +509,14 @@ img{display:block;max-width:100%}
 .re-team.top{bottom:auto;top:10px}
 .re-sponsored{position:absolute;left:10px;top:10px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:rgba(23,23,23,.72);color:#FFF;padding:4px 8px;border-radius:6px}
 .re-gal-nav{position:absolute;right:10px;bottom:10px;background:rgba(23,23,23,.68);color:#FFF;font-size:11px;font-weight:700;padding:4px 9px;border-radius:99px}
+.gal-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:6;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.55);background:rgba(23,23,23,.62);color:#FFF;display:grid;place-items:center;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+.gal-arrow.prev{left:10px}
+.gal-arrow.next{right:10px}
+.gal-arrow:hover{background:rgba(23,23,23,.85)}
+.gal-arrow:active{transform:translateY(-50%) scale(.94)}
+.gal-arrow:focus-visible{outline:2px solid #FFF;outline-offset:2px}
+.gal-arrow svg{width:22px;height:22px;pointer-events:none}
+@media (max-width:480px){.gal-arrow{width:40px;height:40px}.gal-arrow.prev{left:8px}.gal-arrow.next{right:8px}}
 .re-thumbs{display:flex;gap:8px;overflow-x:auto;padding:10px var(--gutter) 0;scrollbar-width:none}
 .re-thumbs::-webkit-scrollbar{display:none}
 .re-thumbs button{flex:none;width:64px;height:48px;border-radius:9px;overflow:hidden;border:2px solid transparent;padding:0;background:var(--paper-2)}
@@ -3027,7 +3035,7 @@ body.re-mapfs{overflow:hidden}
 .pn-profile-sec h3{font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
 .pn-profile-sec>p{font-size:13px;color:var(--muted);margin:0 0 12px;line-height:1.55;max-width:56ch}
 /* ============ NEXT-GEN DELTA (ng-): cinematic feed, Agent Studio,
-   Listing Studio, trust checks, personalization ============ */
+   Listing Studio, personalization ============ */
 .ng-note{font-size:12.5px;line-height:1.55;color:var(--muted);margin:10px 0 0}
 .ng-note b{color:var(--ink-2)}
 .ng-feed{display:flex;flex-direction:column;gap:22px;max-width:520px;margin:0 auto}
@@ -3075,12 +3083,6 @@ table.ng-table td b{color:var(--ink)}
 .ng-sugg h5{margin:0;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
 .ng-sugg p{margin:6px 0 0;font-size:13.5px;line-height:1.6;color:var(--ink-2);white-space:pre-wrap}
 .ng-sugg .dash-acts{margin-top:9px}
-.ng-trust{margin-top:20px}
-.ng-trust-row{display:flex;gap:12px;padding:12px 0;border-top:1px solid var(--paper-2);align-items:flex-start}
-.ng-trust-row:first-of-type{border-top:none}
-.ng-trust-row .ic{flex:none;width:30px;height:30px;border-radius:50%;background:var(--paper-2);color:var(--accent-deep);display:grid;place-items:center}
-.ng-trust-row h5{margin:0;font-size:14px;font-weight:800;color:var(--ink)}
-.ng-trust-row p{margin:2px 0 0;font-size:12.5px;line-height:1.55;color:var(--muted)}
 .ng-state{flex:none;font-size:11px;font-weight:800;letter-spacing:.04em;padding:4px 9px;border-radius:999px;background:var(--paper-2);color:var(--ink-2);white-space:nowrap}
 .ng-state.ok{background:var(--green-tint);color:var(--accent-deep)}
 .ng-state.warn{background:color-mix(in srgb,var(--gold) 18%,var(--surface));color:#7A5B12}
@@ -3396,8 +3398,8 @@ table.ng-table td b{color:var(--ink)}
         <div class="f-field"><label for="pfSiPw">Password</label><div class="au-passwrap"><input class="f-input" id="pfSiPw" type="password" autocomplete="current-password" placeholder="Password" /><button type="button" class="au-eye" id="pfSiEye">Show</button></div></div>
         <div class="f-err" id="pfSiErr"></div>
         <button class="btn-solid" id="pfSiBtn" style="width:100%;margin-top:6px">Sign in</button>
-        <div class="au-links" style="margin-top:14px"><button type="button" id="pfSiForgot">Forgot Password</button><button type="button" id="pfSiCode">No password handy? Use a one-time code</button></div>
-        <p class="f-note" style="margin-top:10px;text-align:center">New here? <button type="button" id="pfSiNew" style="background:none;border:none;font-family:inherit;font-weight:700;color:var(--accent-deep);cursor:pointer;padding:0">Create an account</button></p>
+        <p class="f-note" style="margin-top:12px;text-align:center">New here? <button type="button" id="pfSiNew" style="background:none;border:none;font-family:inherit;font-weight:700;color:var(--accent-deep);cursor:pointer;padding:0">Create an account</button></p>
+        <div class="au-links" style="margin-top:10px"><button type="button" id="pfSiForgot">Forgot Password</button><button type="button" id="pfSiCode">No password handy? Use a one-time code</button></div>
       </div>
     </div>
     <div class="page-head">
@@ -9188,6 +9190,11 @@ function mpRenderDetail(){
   if(imgs.length){
     gal = '<div class="mp-gal"><img class="main" id="mpGalMain" src="' + mkEsc(mpImg(imgs[0].storage_path)) + '" alt="' + mkEsc(l.title) + '"/>'
       + (l.status === 'sold' ? '<span class="mp-state-label sold g-state">Sold</span>' : l.status === 'reserved' ? '<span class="mp-state-label reserved g-state">Reserved</span>' : '')
+      + (imgs.length > 1
+          ? '<span class="re-gal-nav" id="mpGalCount">1 / ' + imgs.length + '</span>'
+            + '<button type="button" class="gal-arrow prev" data-mp-gal-prev aria-label="Previous photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>'
+            + '<button type="button" class="gal-arrow next" data-mp-gal-next aria-label="Next photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>'
+          : '')
       + '</div>'
       + (imgs.length > 1 ? '<div class="nr-thumbs" style="padding:10px var(--gutter) 0">' + imgs.map(function(im, i){
           return '<button data-mp-thumb="' + i + '" class="' + (i === 0 ? 'on' : '') + '" aria-label="Photo ' + (i + 1) + '"><img src="' + mkEsc(mpImg(im.storage_path)) + '" alt=""/></button>';
@@ -9200,7 +9207,7 @@ function mpRenderDetail(){
     + '<span class="mp-d-price">' + mpFmt(l.price) + '</span>' + (l.negotiable ? '<span class="mp-d-neg">Negotiable</span>' : '')
     + '<h3 class="mp-d-title">' + mkEsc(l.title) + '</h3>'
     + '<div class="mp-d-meta"><span>' + mkEsc(l.condition) + '</span><span class="dot"></span><span>' + mkEsc(mpCatLabel(l.category)) + '</span><span class="dot"></span><span>' + mkEsc(l.locality) + ', Khammam</span><span class="dot"></span><span>Listed ' + mpTime(l.created_at) + '</span></div>'
-    + (l.description ? '<p style="font-size:14.5px;line-height:1.65;color:var(--ink-2);margin:14px 0 0">' + mkEsc(l.description).replace(/\n/g, '<br/>') + '</p>' : '')
+    + (l.description ? '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">Description</h2></div><p style="font-size:14.5px;line-height:1.65;color:var(--ink-2);margin:0">' + mkEsc(l.description).replace(/\n/g, '<br/>') + '</p>' : '')
     + (specKeys.length ? '<div style="margin-top:12px">' + specKeys.map(function(k){
         return '<div class="mp-spec"><span class="k">' + mkEsc(k) + '</span><span class="v">' + mkEsc(specs[k]) + '</span></div>';
       }).join('') + '</div>' : '')
@@ -9223,14 +9230,23 @@ function mpRenderDetail(){
     + '</div>';
   body.innerHTML = html;
   body.scrollTop = 0;
+  var mpGalIdx = 0;
+  function mpGalShow(i){
+    if(!imgs.length) return;
+    mpGalIdx = ((i % imgs.length) + imgs.length) % imgs.length;
+    var main = document.getElementById('mpGalMain');
+    if(main){ main.src = mpImg(imgs[mpGalIdx].storage_path); main.alt = l.title; }
+    var mpCount = document.getElementById('mpGalCount');
+    if(mpCount) mpCount.textContent = (mpGalIdx + 1) + ' / ' + imgs.length;
+    body.querySelectorAll('[data-mp-thumb]').forEach(function(x){ x.classList.toggle('on', +x.getAttribute('data-mp-thumb') === mpGalIdx); });
+  }
   body.querySelectorAll('[data-mp-thumb]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var im = imgs[+b.getAttribute('data-mp-thumb')];
-      document.getElementById('mpGalMain').src = mpImg(im.storage_path);
-      body.querySelectorAll('[data-mp-thumb]').forEach(function(x){ x.classList.remove('on'); });
-      b.classList.add('on');
-    });
+    b.addEventListener('click', function(){ mpGalShow(+b.getAttribute('data-mp-thumb')); });
   });
+  var mpGalPrev = body.querySelector('[data-mp-gal-prev]');
+  if(mpGalPrev) mpGalPrev.addEventListener('click', function(e){ e.stopPropagation(); mpGalShow(mpGalIdx - 1); });
+  var mpGalNext = body.querySelector('[data-mp-gal-next]');
+  if(mpGalNext) mpGalNext.addEventListener('click', function(e){ e.stopPropagation(); mpGalShow(mpGalIdx + 1); });
   document.getElementById('mpSellerCard').addEventListener('click', function(){ mpOpenSeller(l.seller_id); });
   body.querySelectorAll('[data-mp-dact]').forEach(function(b){
     b.addEventListener('click', function(){
@@ -9381,8 +9397,8 @@ function mpRenderAuth(why){
     + '<button class="btn-ghost" id="mpAuthSwap" style="width:100%;margin-top:10px">New here? Create a free account</button>'
     + '</div>';
   document.getElementById('mpAuthSwap').addEventListener('click', function(){
-    /* One signup flow for the whole app: verify the email with a
-       6-digit code, then set username + password (the AU flow). */
+    /* One signup flow for the whole app: username + password first,
+       then email verification with a 6-digit code (the AU flow). */
     var prev = MP.pendingAfterAuth;
     MP.pendingAfterAuth = function(){ if(prev) prev(); else mpShowTab('auth'); };
     auOpenSignup('marketplace');
@@ -11781,6 +11797,10 @@ function reRenderDetail(){
       + (p.status === 'sold' ? '<span class="mp-state-label sold g-state">Sold</span>' : p.status === 'reserved' ? '<span class="mp-state-label reserved g-state">Reserved</span>' : '')
       + (p.team_visited ? '<span class="re-team top"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Team Visited</span>' : '')
       + '<span class="re-gal-nav" id="reGalCount">1 / ' + visMedia.length + '</span>'
+      + (visMedia.length > 1
+          ? '<button type="button" class="gal-arrow prev" data-re-gal-prev aria-label="Previous photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>'
+            + '<button type="button" class="gal-arrow next" data-re-gal-next aria-label="Next photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>'
+          : '')
       + '</div>'
       + '<div class="re-thumbs">' + visMedia.map(function(m, i){
           return '<button data-re-thumb="' + i + '" class="' + (i === 0 ? 'on' : '') + '" aria-label="Media ' + (i + 1) + ': ' + mkEsc(m.caption || m.kind) + '">'
@@ -11802,10 +11822,9 @@ function reRenderDetail(){
     + '<span class="dot"></span><span>' + mkEsc(reAvailLabel(p.availability)) + '</span></div>'
     + '<div class="mp-d-meta" style="margin-top:5px"><span>Posted ' + mpTime(p.created_at) + '</span><span class="dot"></span><span>Updated ' + mpTime(p.updated_at) + '</span>'
     + (p.availability_confirmed_at ? '<span class="dot"></span><span>Availability confirmed ' + mpTime(p.availability_confirmed_at) + '</span>' : '') + '</div>'
-    + (pp ? '<p style="font-size:13.5px;color:var(--ink-2);margin:10px 0 0"><b>' + reFmtINR(Math.round(pp)) + ' per sq ft</b> — calculated on the ' + mkEsc((RE_MEASURES[p.area_measure] || 'total area').toLowerCase()) + ' (' + reFmtNum(p.area_sqft) + ' sq ft). Per-unit prices on different area bases are not directly comparable.</p>' : '')
-    + (p.description ? '<p style="font-size:14.5px;line-height:1.65;color:var(--ink-2);margin:14px 0 0">' + mkEsc(p.description).replace(/\n/g, '<br/>') + '</p>' : '')
+    + (p.description ? '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">Description</h2></div><p style="font-size:14.5px;line-height:1.65;color:var(--ink-2);margin:0">' + mkEsc(p.description).replace(/\n/g, '<br/>') + '</p>' : '')
     + '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">Specifications</h2></div>'
-    + '<div class="mp-spec"><span class="k">Area (' + mkEsc(RE_MEASURES[p.area_measure] || '') + ')</span><span class="v">' + reFmtNum(Number(p.area_value)) + ' ' + mkEsc(RE_UNITS[p.area_unit] || '') + ' (= ' + reFmtNum(p.area_sqft) + ' sq ft)</span></div>'
+    + '<div class="mp-spec"><span class="k">Area (' + mkEsc(RE_MEASURES[p.area_measure] || '') + ')</span><span class="v">' + reFmtNum(Number(p.area_value)) + ' ' + mkEsc(RE_UNITS[p.area_unit] || '') + '</span></div>'
     + specs.map(function(r){ return '<div class="mp-spec"><span class="k">' + mkEsc(r[0]) + '</span><span class="v">' + mkEsc(r[1]) + '</span></div>'; }).join('')
     + (p.amenities && p.amenities.length
         ? '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">Amenities &amp; access</h2></div><div class="re-chiprow">' + p.amenities.map(function(a){ return '<span class="chip" style="pointer-events:none">' + mkEsc(a) + '</span>'; }).join('') + '</div>'
@@ -11835,7 +11854,6 @@ function reRenderDetail(){
         ? '<div class="mp-safety"><b>Team Visited.</b> A Mana Khammam field representative physically visited this property and recorded what they saw. This confirms a visit happened — it does <b>not</b> verify ownership, legal title, building approvals or transaction safety.</div>'
         : '')
     + '<div class="mp-safety"><b>Stay safe.</b> Chat here first, visit the property in person, verify documents with your own legal advisor, and never pay an advance to an unknown person. A listing being approved means it may appear on Mana Khammam — it is not a title verification.</div>'
-    + (typeof ngTrustHTML === 'function' ? ngTrustHTML(p, sp) : '')
     + '<div class="mp-mini-actions">'
     + '<button data-re-dact="save" class="' + (RE.savedIds[p.id] ? 'on' : '') + '">' + (RE.savedIds[p.id] ? NR_ICONS.bookmarkOn : NR_ICONS.bookmark) + '<span>' + (RE.savedIds[p.id] ? 'Saved' : 'Save') + '</span></button>'
     + '<button data-re-dact="share">' + NR_ICONS.share + '<span>Share</span></button>'
@@ -11853,36 +11871,45 @@ function reRenderDetail(){
   body.innerHTML = html;
   body.scrollTop = 0;
   reRenderCompleteness(p);
+  var reGalIdx = 0;
+  function reGalShow(i){
+    if(!visMedia.length) return;
+    reGalIdx = ((i % visMedia.length) + visMedia.length) % visMedia.length;
+    var m = visMedia[reGalIdx];
+    var galBox = body.querySelector('.mp-gal');
+    if(!galBox) return;
+    var count = document.getElementById('reGalCount');
+    if(count) count.textContent = (reGalIdx + 1) + ' / ' + visMedia.length;
+    var cap = document.getElementById('reGalCap');
+    if(cap) cap.textContent = (m.caption || (m.kind === 'floorplan' ? 'Floor plan' : m.kind === 'video' ? 'Video tour' : 'Photo')) + ' · Tap a photo to view full screen';
+    body.querySelectorAll('[data-re-thumb]').forEach(function(x){ x.classList.toggle('on', +x.getAttribute('data-re-thumb') === reGalIdx); });
+    var oldMedia = galBox.querySelector('img.main, video.main');
+    if(!oldMedia) return;
+    var nu;
+    if(m.kind === 'video'){
+      nu = document.createElement('video');
+      nu.className = 'main'; nu.style.cssText = 'width:100%;height:300px;object-fit:cover';
+      nu.src = reImg(m.storage_path); nu.controls = true; nu.preload = 'metadata'; nu.setAttribute('aria-label', 'Video tour');
+    } else {
+      nu = document.createElement('img');
+      nu.className = 'main'; nu.id = 'reGalMain'; nu.src = reImg(m.storage_path); nu.alt = m.caption || p.title;
+      nu.addEventListener('click', function(){ reOpenViewer(m); });
+    }
+    galBox.replaceChild(nu, oldMedia);
+  }
   body.querySelectorAll('[data-re-thumb]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var m = visMedia[+b.getAttribute('data-re-thumb')];
-      var galBox = body.querySelector('.mp-gal');
-      var count = document.getElementById('reGalCount');
-      if(count) count.textContent = (+b.getAttribute('data-re-thumb') + 1) + ' / ' + visMedia.length;
-      var cap = document.getElementById('reGalCap');
-      if(cap) cap.textContent = (m.caption || (m.kind === 'floorplan' ? 'Floor plan' : m.kind === 'video' ? 'Video tour' : 'Photo')) + ' · Tap a photo to view full screen';
-      body.querySelectorAll('[data-re-thumb]').forEach(function(x){ x.classList.remove('on'); });
-      b.classList.add('on');
-      var oldMedia = galBox.querySelector('img.main, video.main');
-      var nu;
-      if(m.kind === 'video'){
-        nu = document.createElement('video');
-        nu.className = 'main'; nu.style.cssText = 'width:100%;height:300px;object-fit:cover';
-        nu.src = reImg(m.storage_path); nu.controls = true; nu.preload = 'metadata'; nu.setAttribute('aria-label', 'Video tour');
-      } else {
-        nu = document.createElement('img');
-        nu.className = 'main'; nu.id = 'reGalMain'; nu.src = reImg(m.storage_path); nu.alt = m.caption || p.title;
-        nu.addEventListener('click', function(){ reOpenViewer(m); });
-      }
-      if(oldMedia) galBox.replaceChild(nu, oldMedia);
-    });
+    b.addEventListener('click', function(){ reGalShow(+b.getAttribute('data-re-thumb')); });
   });
+  var reGalPrev = body.querySelector('[data-re-gal-prev]');
+  if(reGalPrev) reGalPrev.addEventListener('click', function(e){ e.stopPropagation(); reGalShow(reGalIdx - 1); });
+  var reGalNext = body.querySelector('[data-re-gal-next]');
+  if(reGalNext) reGalNext.addEventListener('click', function(e){ e.stopPropagation(); reGalShow(reGalIdx + 1); });
   var mainImg = document.getElementById('reGalMain');
   if(mainImg && visMedia[0]) mainImg.addEventListener('click', function(){ reOpenViewer(visMedia[0]); });
   var tourBtn = document.getElementById('reTourBtn');
   if(tourBtn && tour) tourBtn.addEventListener('click', function(){ window.open(tour.external_url, '_blank', 'noopener'); });
   var sc = document.getElementById('reSellerCard');
-  if(sc) sc.addEventListener('click', function(){ reOpenSellerProps(p.seller_id); });
+  if(sc) sc.addEventListener('click', function(){ reOpenSellerProfile(p.seller_id); });
   body.querySelectorAll('[data-re-dact]').forEach(function(b){
     b.addEventListener('click', function(){
       var act = b.getAttribute('data-re-dact');
@@ -11933,19 +11960,75 @@ function reRenderCompleteness(p){
     }).join('')
     + '<p class="f-note" style="margin-top:6px">Suggestions only — nothing here is filled in for you, and buyers never see this list.</p>';
 }
-function reOpenSellerProps(sellerId){
-  reCloseDetail();
-  RE.typeFilter = 'all';
-  openRealEstate('browse');
-  setTimeout(function(){
-    RE.props = RE.props; /* seller filter is a simple client narrowing below */
-    var body = document.getElementById('reBrowseBody');
-    var items = RE.props.filter(function(p){ return p.seller_id === sellerId; });
-    document.getElementById('reResultCount').textContent = items.length + ' from this seller';
-    body.innerHTML = items.length ? '<div class="re-list">' + items.map(reCardHTML).join('') + '</div>'
-      : '<p class="f-note" style="padding:10px 0">No other public properties from this seller right now.</p>';
+/* Seller profile for a property seller — opens in the shared seller
+   profile overlay above the property detail, the same pattern the
+   marketplace uses. (The old handler only closed the detail, jumped to
+   Browse and re-filtered the already-loaded list 60ms later; the browse
+   reload then overwrote that filter, so the tap never reached any
+   profile and appeared to do nothing.) */
+function reOpenSellerProfile(sellerId){
+  var ov = document.getElementById('mpSeller');
+  var body = document.getElementById('mpSellerBody');
+  ov.classList.add('open'); ov.setAttribute('aria-hidden', 'false');
+  body.innerHTML = '<p class="f-note" style="padding:22px var(--gutter)">Loading…</p>';
+  if(!reClient()){ body.innerHTML = '<div style="padding:16px var(--gutter) 0">' + reNotConnectedHTML() + '</div>'; return; }
+  var c = reClient();
+  Promise.all([
+    mpLoadProfile(sellerId),
+    reLoadSellerProfile(sellerId),
+    c.from('properties').select(RE_PROP_SELECT).eq('seller_id', sellerId).in('status', ['active','reserved','sold']).order('created_at', { ascending:false }).limit(24).then(function(r){ return r.data || []; }, function(){ return []; }),
+    c.from('listings').select(MP_LIST_SELECT).eq('seller_id', sellerId).in('status', ['active','reserved']).order('created_at', { ascending:false }).limit(24).then(function(r){ return r.data || []; }, function(){ return []; })
+  ]).then(function(parts){
+    var prof = parts[0] || { display_name:'Member', locality:'', created_at:null };
+    var sp = parts[1] || {};
+    var props = parts[2], items = parts[3];
+    props.forEach(function(p){ if(typeof PN !== 'undefined' && PN.cache) PN.cache[p.id] = p; });
+    var memberSince = prof.created_at ? new Date(prof.created_at).getFullYear() : '';
+    var role = sp.seller_type ? sp.seller_type.charAt(0).toUpperCase() + sp.seller_type.slice(1) : '';
+    var igUrl = (typeof pnSellerIgUrl === 'function') ? pnSellerIgUrl(prof, sp) : (prof.instagram_url || '');
+    var approved = (typeof pnStatusFromProfile === 'function') && pnStatusFromProfile(sp) === 'approved';
+    var isMine = RE.user && RE.user.id === sellerId;
+    body.innerHTML = '<div style="padding:20px var(--gutter) 0">'
+      + '<div class="profile-card" style="padding:0">'
+      + (prof.avatar_path ? '<img class="avatar" style="object-fit:cover" src="' + mkEsc(mpImg(prof.avatar_path)) + '" alt=""/>' : '<div class="avatar">' + mkEsc((prof.display_name || 'M').charAt(0).toUpperCase()) + '</div>')
+      + '<div><h3>' + mkEsc(prof.display_name || 'Member') + '</h3>'
+      + '<p>' + (role ? mkEsc(role) + ' · ' : '') + (prof.locality ? mkEsc(prof.locality) + ', Khammam' : 'Khammam') + (memberSince ? ' · On Mana Khammam since ' + memberSince : '') + '</p></div></div>'
+      + (igUrl ? '<p class="f-note" style="margin-top:12px">Instagram: <a class="pn-ig-link" href="' + mkEsc(igUrl) + '" target="_blank" rel="noopener">' + mkEsc(igUrl) + '</a> — linked by the seller; Mana Khammam does not verify Instagram accounts.</p>' : '')
+      + (sp.registration_number
+          ? '<p class="f-note" style="margin-top:8px">Registration number provided by the seller: ' + mkEsc(sp.registration_number)
+            + (sp.registration_checked_at
+                ? '. Checked by the Mana team on ' + newsTimeLabel(sp.registration_checked_at) + ' against the stated registration record. A registration check does not verify legal title or that a transaction is safe.'
+                : '. This has not been checked by the Mana team.') + '</p>'
+          : '')
+      + '<div class="mp-safety" style="margin-top:16px"><b>A note on trust.</b> Mana Khammam shows real account age and real listings only — there are no paid verification badges here. Chat here first, visit in person, and verify documents with your own legal advisor before you pay anyone.</div>'
+      + (approved ? '<div class="dash-acts" style="margin-top:14px"><button data-re-sf-open>View public storefront</button></div>' : '')
+      + (!isMine && RE.user
+          ? '<div class="dash-acts" style="margin-top:14px"><button data-re-seller-report>Report seller</button><button data-re-seller-block class="danger">Block seller</button></div>'
+          : '')
+      + '<div class="sec-head" style="margin:22px 0 10px"><h2 style="font-size:17px">Properties (' + props.length + ')</h2></div>'
+      + (props.length ? '<div class="re-list" style="margin-top:0">' + props.map(reCardHTML).join('') + '</div>'
+          : '<p class="f-note">No live properties right now.</p>')
+      + (items.length
+          ? '<div class="sec-head" style="margin:22px 0 10px"><h2 style="font-size:17px">Buy &amp; Sell listings (' + items.length + ')</h2></div><div class="mp-grid" style="margin-top:0">' + items.map(mpCardHTML).join('') + '</div>'
+          : '')
+      + '</div>';
     reBindCards(body);
-  }, 60);
+    mpBindCards(body);
+    /* A card tap opens its detail overlay (z-index 82) — close this
+       profile overlay (z-index 84) first, in the capture phase, or the
+       detail would open underneath and look like another dead tap. */
+    body.addEventListener('click', function(e){
+      if(e.target.closest && e.target.closest('[data-re-open],[data-mp-open]')) mpCloseSeller();
+    }, true);
+    var sf = body.querySelector('[data-re-sf-open]');
+    if(sf) sf.addEventListener('click', function(){ mpCloseSeller(); reCloseDetail(); pnOpenStorefront(sellerId, 'agent'); });
+    var rep = body.querySelector('[data-re-seller-report]');
+    if(rep) rep.addEventListener('click', function(){ reOpenReport({ kind:'user', userId:sellerId }); });
+    var blk = body.querySelector('[data-re-seller-block]');
+    if(blk) blk.addEventListener('click', function(){ mpBlockUser(sellerId, prof.display_name); });
+  }).catch(function(){
+    body.innerHTML = '<p class="f-note" style="padding:22px var(--gutter)">This seller’s profile could not be loaded — try again in a moment.</p>';
+  });
 }
 function reCloseDetail(){
   var ov = document.getElementById('reDetail');
@@ -13836,8 +13919,8 @@ function reRenderAuth(why){
     + '<button class="btn-ghost" id="reAuthSwap" style="width:100%;margin-top:10px">New here? Create a free account</button>'
     + '</div>';
   document.getElementById('reAuthSwap').addEventListener('click', function(){
-    /* One signup flow for the whole app: verify the email with a
-       6-digit code, then set username + password (the AU flow). */
+    /* One signup flow for the whole app: username + password first,
+       then email verification with a 6-digit code (the AU flow). */
     var prev = RE.pendingAfterAuth;
     RE.pendingAfterAuth = function(){ if(prev) prev(); else reShowTab('auth'); };
     auOpenSignup('realestate');
@@ -14470,8 +14553,8 @@ function bkBindAuthForm(root, onDone){
   if(!root) return;
   var swap = root.querySelector('[data-bk-auth="swap"]');
   if(swap) swap.addEventListener('click', function(){
-    /* One signup flow for the whole app: verify the email with a
-       6-digit code, then set username + password (the AU flow). */
+    /* One signup flow for the whole app: username + password first,
+       then email verification with a 6-digit code (the AU flow). */
     BK.pendingAfterAuth = function(){ if(onDone) onDone(); };
     auOpenSignup('bookings');
   });
@@ -21161,16 +21244,18 @@ function deRouteHash(){
    UNIFIED AUTH (AU) — one Supabase Auth system for the whole app.
    Journey (founder directive §1–§6, revised Nov 2026): Welcome leads
    with password sign-in for returning users — email verification
-   happens ONCE, at signup, never on return visits — and offers two
-   signup options: (1) direct username + password signup (Supabase
-   signUp; if email confirmation is on, the user verifies once on the
-   check-mail step via the Confirm-signup code, verifyOtp 'signup'),
-   and (2) verify-email-first signup: OTP (Supabase Auth
+   happens ONCE, at signup, never on return visits. Signup order
+   (founder directive, Nov 2026): username + password FIRST
+   (auStepCredentials → Supabase signUp), email verification AFTER —
+   when the provider requires confirmation, the check-mail step
+   verifies the email once via the Confirm-signup code (verifyOtp
+   'signup') and only then is the account finished; if confirmation
+   is off, signUp returns a session and signup ends on the
+   credentials step. A separate one-time-code sign-in (Supabase Auth
    signInWithOtp + verifyOtp, server-side, single-use, expiring — no
-   custom OTP tables, no custom crypto) → Create Account (verified
-   email carried forward and shown read-only; only username +
-   password are asked, saved via auth.updateUser) → Account Ready
-   (locality only). Sign-in uses email + password; an unconfirmed
+   custom OTP tables, no custom crypto) remains available from the
+   sign-in screen for users without their password handy; it is not
+   part of signup. Sign-in uses email + password; an unconfirmed
    account attempting password sign-in is routed to the verify-once
    screen, and only there. Recovery uses resetPasswordForEmail.
    V1 is EMAIL OTP ONLY: phone/SMS signup is cancelled for launch, so
@@ -21293,16 +21378,17 @@ function auOpen(ret, why){
     }).catch(function(){});
   }
 }
-/* Open the ONE signup flow directly at its first step (email → 6-digit
-   code → username + password). Used by Profile and by the Marketplace /
-   Real Estate / Bookings sign-in cards, so account creation exists in
-   exactly one place in the whole app. */
+/* Open the ONE signup flow directly at its first step (username +
+   password first → email verification with a 6-digit code after).
+   Used by Profile and by the Marketplace / Real Estate / Bookings
+   sign-in cards, so account creation exists in exactly one place in
+   the whole app. */
 function auOpenSignup(ret){
   AU.ret = ret || 'profile'; AU.why = '';
   AU.attempts = 0; AU.lockedUntil = 0;
   if(AU.timer){ clearInterval(AU.timer); AU.timer = null; }
   if(auSessionUser()){ auReturn(); return; }
-  AU.method = 'email'; AU.flow = 'signup'; AU.step = 'id';
+  AU.method = 'email'; AU.flow = 'signup'; AU.step = 'credentials';
   showView('auth');
   document.querySelectorAll('.tab[data-goto]').forEach(function(t){ t.classList.remove('on'); });
   window.scrollTo({ top:0 });
@@ -21318,6 +21404,7 @@ function auRender(){
   AU.method = 'email'; /* V1 launch rule: email OTP only — phone signup is not offered anywhere */
   var body = auEl('auBody'); if(!body) return;
   if(AU.step === 'welcome') auStepWelcome(body);
+  else if(AU.step === 'credentials') auStepCredentials(body);
   else if(AU.step === 'checkmail') auStepCheckMail(body);
   else if(AU.step === 'id') auStepId(body);
   else if(AU.step === 'otp') auStepOtp(body);
@@ -21338,17 +21425,120 @@ function auStepWelcome(body){
     + '<div class="f-card"><h3>New here? Create a free account</h3>'
     + '<p>One simple signup — nothing else is asked:</p>'
     + '<button class="au-opt" id="auOptEmail" style="margin-top:4px"><span class="au-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>'
-    + '<span><h4>Create an account</h4><p>Verify your email with a one-time 6-digit code, then set your username and password. That is the whole signup — after that you sign in with your password only, and are never asked for a code again.</p></span>'
+    + '<span><h4>Create an account</h4><p>Set your username and password first, then verify your email with a one-time 6-digit code. That is the whole signup — after that you sign in with your password only, and are never asked for a code again.</p></span>'
     + '<svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>'
     + '</div>'
     + '<button class="au-explore" id="auExplore">Explore without an account →</button>'
     + '<p class="au-fine">By continuing you agree to the <button id="auTermsLink">Terms of Service</button> and <button id="auPrivacyLink">Privacy Policy</button>. Your email address is never shown to other users.</p>';
   auEl('auGoSignIn').addEventListener('click', function(){ AU.step = 'signin'; auRender(); });
   auEl('auGoForgot').addEventListener('click', function(){ AU.step = 'forgot'; auRender(); });
-  auEl('auOptEmail').addEventListener('click', function(){ AU.method = 'email'; AU.flow = 'signup'; AU.step = 'id'; auRender(); });
+  auEl('auOptEmail').addEventListener('click', function(){ AU.method = 'email'; AU.flow = 'signup'; AU.step = 'credentials'; auRender(); });
   auEl('auExplore').addEventListener('click', function(){ auReturn(); });
   auEl('auTermsLink').addEventListener('click', function(){ AU.legalFrom = 'auth'; showView('terms'); window.scrollTo({ top:0 }); });
   auEl('auPrivacyLink').addEventListener('click', function(){ AU.legalFrom = 'auth'; showView('privacy'); window.scrollTo({ top:0 }); });
+}
+
+/* ---------- STEP: create account — username + password FIRST (signup) ----------
+   Founder directive (Nov 2026): signup starts with username + password;
+   email verification comes AFTER, because starting with mail
+   verification is not a good first step. This step collects the
+   username, the email and the password, then creates the account with
+   Supabase signUp. If the provider requires email confirmation, the
+   journey continues on the check-mail step (verify the email once with
+   the 6-digit code from the "Confirm signup" email) and the pending
+   username is saved to the profile the moment the email is verified.
+   If confirmation is off and signUp returns a session, the account is
+   finished right here. */
+function auStepCredentials(body){
+  if(!auClient()){
+    body.innerHTML = auBrandHTML() + auNotConnHTML();
+    auEl('auNcExplore').addEventListener('click', function(){ auReturn(); });
+    return;
+  }
+  body.innerHTML = auBrandHTML()
+    + '<div class="f-card" style="margin-top:16px"><h3>Create your account</h3>'
+    + '<p>First, choose your username and password and tell us your email. <b>After that</b>, one last step verifies your email with a 6-digit code — you do that only once; from then on you sign in with your password and are never asked for a code again. The password is stored only as a one-way hash by the sign-in provider — never in plain text, never in this app.</p>'
+    + '<div class="f-field"><label for="auCrName">Username</label><input class="f-input" id="auCrName" type="text" autocomplete="username" maxlength="60" placeholder="e.g. Demo User" value="' + mkEsc(AU.username || '') + '" /><div class="au-meter-txt">This is the name buyers and sellers will see — your email is never shown to them.</div></div>'
+    + '<div class="f-field"><label for="auCrEmail">Email</label><input class="f-input" id="auCrEmail" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" value="' + mkEsc(AU.identifier || '') + '" /><div class="au-meter-txt">Used to sign in, and to send the one-time verification code in the next step.</div></div>'
+    + '<div class="f-field"><label for="auCrPw1">Create password</label><div class="au-passwrap"><input class="f-input" id="auCrPw1" type="password" autocomplete="new-password" placeholder="At least 10 characters" /><button type="button" class="au-eye" id="auCrEye1">Show</button></div>'
+    + '<div class="au-meter" id="auCrMeter"><i></i></div><div class="au-meter-txt" id="auCrMeterTxt">Tip: a passphrase like “coffee-morning-walk” is long, strong and easy to remember.</div></div>'
+    + '<div class="f-field"><label for="auCrPw2">Confirm password</label><div class="au-passwrap"><input class="f-input" id="auCrPw2" type="password" autocomplete="new-password" placeholder="Type it again" /><button type="button" class="au-eye" id="auCrEye2">Show</button></div></div>'
+    + '<div class="f-err" id="auCrErr"></div>'
+    + '<button class="btn-solid" id="auCrBtn" style="width:100%;margin-top:6px">Continue — verify my email</button>'
+    + '</div>';
+  function wireEye(btnId, inputId){
+    auEl(btnId).addEventListener('click', function(){
+      var inp = auEl(inputId);
+      var show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      this.textContent = show ? 'Hide' : 'Show';
+    });
+  }
+  wireEye('auCrEye1', 'auCrPw1'); wireEye('auCrEye2', 'auCrPw2');
+  auEl('auCrPw1').addEventListener('input', function(){
+    var s = auPasswordScore(this.value);
+    var meter = auEl('auCrMeter');
+    meter.className = 'au-meter m' + s;
+    meter.querySelector('i').style.width = (s * 25) + '%';
+    auEl('auCrMeterTxt').textContent = this.value
+      ? 'Strength: ' + AU_PW_LABELS[s] + (s < 2 ? ' — add length to make it stronger.' : '')
+      : 'Tip: a passphrase like “coffee-morning-walk” is long, strong and easy to remember.';
+  });
+  var nameInput = auEl('auCrName'); if(nameInput) nameInput.focus();
+  auEl('auCrBtn').addEventListener('click', function(){
+    var name = (auEl('auCrName').value || '').trim();
+    var email = (auEl('auCrEmail').value || '').trim().toLowerCase();
+    var pw1 = auEl('auCrPw1').value, pw2 = auEl('auCrPw2').value;
+    if(name.length < 2){ auErr('auCrErr', 'Choose a username (at least 2 characters) — this is the name buyers and sellers will see.'); auEl('auCrName').classList.add('err'); return; }
+    if(!auValidEmail(email)){ auErr('auCrErr', 'Enter a complete email address, e.g. you@example.com — the verification code is sent there in the next step.'); auEl('auCrEmail').classList.add('err'); return; }
+    var problem = auPasswordProblem(pw1);
+    if(problem){ auErr('auCrErr', problem); auEl('auCrPw1').classList.add('err'); return; }
+    if(pw1 !== pw2){ auErr('auCrErr', 'The two passwords do not match.'); auEl('auCrPw2').classList.add('err'); return; }
+    auErr('auCrErr', '');
+    AU.username = name; AU.identifier = email; AU.pendingProfile = { display_name:name };
+    var btn = this; auBusy(btn, true, 'Creating your account…');
+    auClient().auth.signUp({ email:email, password:pw1 }).then(function(r){
+      auBusy(btn, false, 'Continue — verify my email');
+      if(r.error){
+        AU.pendingProfile = null;
+        var em = (r.error.message || '').toLowerCase();
+        if(em.indexOf('already') >= 0 && (em.indexOf('register') >= 0 || em.indexOf('exist') >= 0)){
+          auErr('auCrErr', 'An account with this email already exists. Sign in with your password instead — “Create an account” is only for new accounts.');
+        } else {
+          auErr('auCrErr', 'The account could not be created right now (' + (r.error.message || 'provider error') + '). Check the details and try again.');
+        }
+        return;
+      }
+      var newUser = r.data && r.data.user;
+      /* Provider obfuscation: signing up again with an email that is
+         already registered can return a user with no identities
+         instead of an error. Never pretend a verification code was
+         sent for an account that already exists — point the person
+         at sign-in instead. */
+      if(newUser && newUser.identities && newUser.identities.length === 0){
+        AU.pendingProfile = null;
+        auErr('auCrErr', 'An account with this email already exists. Sign in with your password instead.');
+        return;
+      }
+      if(r.data && r.data.session){
+        /* Email confirmation is off: the account is created and
+           signed in right here — no verification step is needed. */
+        MK.session = r.data.session; MK.user = r.data.session.user; MK.founderCheckedFor = ''; MK.lastReauth = Date.now();
+        AU.pendingProfile = null;
+        auClient().from('profiles').upsert({ id:MK.user.id, display_name:name }, { onConflict:'id' })
+          .then(function(){ auAfterAuth('Your account is ready, ' + name.split(' ')[0] + '.'); })
+          .catch(function(){ auAfterAuth('Your account is ready, ' + name.split(' ')[0] + '.'); });
+        return;
+      }
+      /* Account created — email verification is the NEXT step. */
+      AU.resendAt = Date.now() + 30000;
+      AU.step = 'checkmail'; auRender();
+    }).catch(function(){
+      auBusy(btn, false, 'Continue — verify my email');
+      AU.pendingProfile = null;
+      auErr('auCrErr', 'Could not reach the sign-in service. Check your connection and try again.');
+    });
+  });
 }
 
 /* ---------- STEP: enter email / phone ---------- */
@@ -21362,7 +21552,7 @@ function auStepId(body){
   body.innerHTML = auBrandHTML()
     + '<div class="f-card" style="margin-top:16px"><h3>' + (isEmail ? 'Your email address' : 'Your mobile number') + '</h3>'
     + '<p>' + (isEmail
-        ? 'We will send a 6-digit one-time code to this address. The code expires quickly and can be used only once. This verification is only for creating your account — once your password is set, you sign in with your password and are never asked for a code again.'
+        ? 'We will send a 6-digit one-time code to this address. The code expires quickly and can be used only once. Use it to sign in this one time when your password is not handy — your password itself stays unchanged, and signing in with your password never asks for a code.'
         : 'We will text a 6-digit one-time code to this number. Standard SMS charges from your carrier may apply.') + '</p>'
     + (isEmail
         ? '<div class="f-field"><label for="auIdInput">Email</label><input class="f-input" id="auIdInput" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" /></div>'
@@ -21547,8 +21737,11 @@ function auVerifiedEmailHTML(){
   var u = auSessionUser();
   var mail = AU.identifier || (u ? (u.email || '') : '');
   if(!mail) return '';
-  /* The only signup is the code-first one, so by the time this row is
-     shown the email really was verified in this journey. */
+  /* This step is reached only inside a session that already verified
+     the email (the one-time-code sign-in path), so by the time this
+     row is shown the email really was verified in this journey.
+     Signup itself asks for username + password first
+     (auStepCredentials) and verifies the email afterwards. */
   var k = 'Email · Verified';
   return '<div class="au-verified"><span class="au-vtick"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>'
     + '<span class="au-vmail"><span class="k">' + k + '</span><span class="v" style="display:block">' + mkEsc(mail) + '</span></span></div>';
@@ -21612,13 +21805,15 @@ function auStepPassword(body){
   });
 }
 
-/* ---------- STEP: verify email ONCE (legacy unconfirmed accounts) ----------
-   Signup itself now always verifies the email first, so this screen is
-   only reached from password sign-in when an older account never
-   finished its one-time email confirmation. Accepts the 6-digit code
-   from the "Confirm signup" email (verifyOtp, type 'signup'). Once
-   verified, the account signs in with its password — this screen never
-   appears for it again. */
+/* ---------- STEP: verify email ONCE (the step AFTER username + password) ----------
+   This is the email-verification step of signup: the account was just
+   created on the credentials step (username + password first) and this
+   screen verifies the email once with the 6-digit code from the
+   "Confirm signup" email (verifyOtp, type 'signup'); on success the
+   pending username is saved to the profile. The same screen is also
+   reached from password sign-in when an older account never finished
+   its one-time email confirmation. Once verified, the account signs
+   in with its password — this screen never appears for it again. */
 function auStepCheckMail(body){
   if(!auClient()){
     body.innerHTML = auBrandHTML() + auNotConnHTML();
@@ -21627,7 +21822,9 @@ function auStepCheckMail(body){
   }
   body.innerHTML = auBrandHTML()
     + '<div class="f-card" style="margin-top:16px"><h3>One last step — verify your email once</h3>'
-    + '<p>Your account was created for <b>' + mkEsc(AU.identifier) + '</b>. Enter the 6-digit code from the signup email to confirm this email is yours. <b>You only do this once</b> — from then on you sign in with your username and password, with no code and no verification.</p>'
+    + (AU.flow === 'signup'
+        ? '<p>Your username and password are set — your account was created for <b>' + mkEsc(AU.identifier) + '</b>. Now enter the 6-digit code from the signup email to confirm this email is yours and finish. <b>You only do this once</b> — from then on you sign in with your username and password, with no code and no verification.</p>'
+        : '<p>Your account was created for <b>' + mkEsc(AU.identifier) + '</b>. Enter the 6-digit code from the signup email to confirm this email is yours. <b>You only do this once</b> — from then on you sign in with your username and password, with no code and no verification.</p>')
     + auOtpBoxesHTML('auCmOtpRow')
     + '<div class="f-err" id="auCmErr"></div><div class="f-ok" id="auCmOk"></div>'
     + '<button class="btn-solid" id="auCmBtn" style="width:100%;margin-top:10px">Verify email &amp; finish</button>'
@@ -21681,8 +21878,14 @@ function auStepCheckMail(body){
         return;
       }
       MK.session = r.data.session; MK.user = r.data.session.user; MK.founderCheckedFor = '';
-      AU.pendingProfile = null; AU.flow = 'signup';
-      auAfterAuth('Email verified — you are signed in.');
+      /* Email verified: save the username chosen on the credentials
+         step (signup path) to the profile, then finish. On the
+         verify-once path there is no pending name and nothing to save. */
+      var pp = AU.pendingProfile; AU.pendingProfile = null; AU.flow = 'signup';
+      function doneCm(){ auAfterAuth('Email verified — you are signed in.'); }
+      if(pp && pp.display_name && MK.user){
+        auClient().from('profiles').upsert({ id:MK.user.id, display_name:pp.display_name }, { onConflict:'id' }).then(doneCm).catch(doneCm);
+      } else doneCm();
     }).catch(function(){
       auBusy(btn, false, 'Verify email & finish');
       auErr('auCmErr', 'Verification could not reach the sign-in service. Your code is still valid — try again.');
@@ -21709,15 +21912,15 @@ function auStepSignin(body){
     + '<div class="f-field"><label for="auSiPw">Password</label><div class="au-passwrap"><input class="f-input" id="auSiPw" type="password" autocomplete="current-password" placeholder="Password" /><button type="button" class="au-eye" id="auSiEye">Show</button></div></div>'
     + '<div class="f-err" id="auSiErr"></div>'
     + '<button class="btn-solid" id="auSiBtn" style="width:100%;margin-top:6px">Sign in</button>'
-    + '<div class="au-links" style="margin-top:14px"><button id="auSiForgot">Forgot Password</button><button id="auSiCode">No password handy? Use a one-time code</button></div>'
-    + '<p class="f-note" style="margin-top:10px;text-align:center">New here? <button id="auSiNew" style="background:none;border:none;font-family:inherit;font-weight:700;color:var(--accent-deep);cursor:pointer;padding:0">Create an account</button></p>'
+    + '<p class="f-note" style="margin-top:12px;text-align:center">New here? <button id="auSiNew" style="background:none;border:none;font-family:inherit;font-weight:700;color:var(--accent-deep);cursor:pointer;padding:0">Create an account</button></p>'
+    + '<div class="au-links" style="margin-top:10px"><button id="auSiForgot">Forgot Password</button><button id="auSiCode">No password handy? Use a one-time code</button></div>'
     + '</div>';
   auEl('auSiEye').addEventListener('click', function(){
     var inp = auEl('auSiPw'); var show = inp.type === 'password';
     inp.type = show ? 'text' : 'password'; this.textContent = show ? 'Hide' : 'Show';
   });
   auEl('auSiForgot').addEventListener('click', function(){ AU.step = 'forgot'; auRender(); });
-  auEl('auSiNew').addEventListener('click', function(){ AU.step = 'welcome'; auRender(); });
+  auEl('auSiNew').addEventListener('click', function(){ AU.method = 'email'; AU.flow = 'signup'; AU.step = 'credentials'; auRender(); });
   auEl('auSiCode').addEventListener('click', function(){ AU.flow = 'code'; AU.method = 'email'; AU.step = 'id'; auRender(); });
   auEl('auSiBtn').addEventListener('click', function(){
     var idRaw = (auEl('auSiId').value || '').trim();
@@ -22131,8 +22334,8 @@ function mkStartMfaEnroll(){
   function bind(id, fn){ var el = document.getElementById(id); if(el) el.addEventListener('click', fn); }
   bind('auBackBtn', function(){
     if(AU.step === 'otp'){ AU.step = 'id'; auRender(); return; }
-    if(AU.step === 'checkmail'){ AU.step = 'signin'; auRender(); return; }
-    if(AU.step === 'id' || AU.step === 'signin' || AU.step === 'forgot'){ AU.step = 'welcome'; auRender(); return; }
+    if(AU.step === 'checkmail'){ AU.step = (AU.flow === 'signup') ? 'credentials' : 'signin'; auRender(); return; }
+    if(AU.step === 'id' || AU.step === 'credentials' || AU.step === 'signin' || AU.step === 'forgot'){ AU.step = 'welcome'; auRender(); return; }
     if(AU.step === 'password'){ AU.step = 'welcome'; auRender(); return; }
     auReturn();
   });
@@ -22205,7 +22408,7 @@ function mkStartMfaEnroll(){
   });
   bind('pfSiForgot', function(){ pfGoAuth('forgot'); });
   bind('pfSiCode', function(){ pfGoAuth('id', function(){ AU.flow = 'code'; AU.method = 'email'; }); });
-  bind('pfSiNew', function(){ auOpen('profile'); });
+  bind('pfSiNew', function(){ auOpenSignup('profile'); });
   ['pfSiId', 'pfSiPw'].forEach(function(id){
     var el = auEl(id);
     if(el) el.addEventListener('keydown', function(e){ if(e.key === 'Enter') pfDoSignIn(); });
@@ -23827,13 +24030,11 @@ function pnRouteHash(){
       View-on-Map with a return path to the exact video card.
    2. Listing Studio: template suggestions from the seller's own form
       entries only — applied solely when the seller taps Apply.
-   3. Trust checks on the detail page: separate, honestly-labelled rows
-      computed from the real record — never one generic badge.
-   4. Personalized discovery on Shortlist & Alerts: recommendations
+   3. Personalized discovery on Shortlist & Alerts: recommendations
       from the customer's own stated preferences, saved properties and
       explicit recent filters, each with its reasons shown. Resettable,
       disable-able, session-only (nothing is stored on the device).
-   5. Seller appeals into the existing moderation queue.
+   4. Seller appeals into the existing moderation queue.
    ===================================================================== */
 
 /* Category words shared with the Listing Studio (its category
@@ -23998,47 +24199,7 @@ function ngRunStudio(){
   });
 }
 
-/* ---------------- 3. TRUST CHECKS (detail page) ---------------- */
-function ngTrustHTML(p, sp){
-  sp = sp || {};
-  function row(label, state, stateCls, text){
-    return '<div class="ng-trust-row"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 5.8v5.4c0 4.4 3 7.6 7 9.3 4-1.7 7-4.9 7-9.3V5.8z"/></svg></span>'
-      + '<span style="flex:1;min-width:0"><h5>' + mkEsc(label) + '</h5><p>' + text + '</p></span>'
-      + '<span class="ng-state ' + stateCls + '">' + mkEsc(state) + '</span></div>';
-  }
-  var regRow;
-  if(sp.seller_type && sp.seller_type !== 'agent' && !sp.registration_number){
-    regRow = row('Agent registration check', 'Not applicable', '', 'This seller lists as ' + mkEsc(sp.seller_type || 'a seller') + ', not as an agent, and provided no registration number. Registration checks apply to agents who provide a number.');
-  } else if(sp.registration_number && sp.registration_checked_at){
-    regRow = row('Agent registration check', 'Checked', 'ok', 'Registration number ' + mkEsc(sp.registration_number) + ' was checked by the Mana team on ' + newsTimeLabel(sp.registration_checked_at) + ' against the stated record. This check covers the number only — never a property’s title or a deal’s safety.');
-  } else if(sp.registration_number){
-    regRow = row('Agent registration check', 'Provided · Not checked', 'warn', 'Registration number ' + mkEsc(sp.registration_number) + ' was provided by the seller and has <b>not</b> been checked by the Mana team. Treat it as the seller’s own statement.');
-  } else {
-    regRow = row('Agent registration check', 'Not provided', 'warn', 'This seller has not provided a registration number. Where an agent holds one, it appears here exactly as recorded — provided, or checked.');
-  }
-  var dupes = (RE.props || []).filter(function(x){
-    return x.id !== p.id && x.seller_id === p.seller_id && Number(x.price) === Number(p.price) && Math.abs(Number(x.area_sqft) - Number(p.area_sqft)) < 1;
-  });
-  return '<div class="ng-trust"><div class="sec-head" style="margin:0 0 2px"><h2 style="font-size:16.5px">Checks on this listing — each one separate</h2></div>'
-    + '<p class="f-note" style="margin:0 0 4px">No single badge covers a property. Here is exactly what has and has not been checked, item by item.</p>'
-    + row('Seller email verification', 'At sign-in · Not published', '', 'The seller signed in with an account email before posting. Verification happens at account level; the address itself is never published.')
-    + row('Seller phone verification', 'Never published', '', 'Phone numbers are never displayed on Mana Khammam — all contact starts in the private property chat, so there is no public number to check or to leak.')
-    + regRow
-    + row('Listing authorization', 'Declared · Appearance reviewed', 'ok', 'The seller declared they own this property or hold the owner’s permission to advertise it, and the listing passed founder review for appearing on Mana Khammam. Review approves appearance only — it is not a title verification.')
-    + row('Advertising disclosures', p.sponsored ? 'Paid placement' : 'No paid placement', p.sponsored ? 'warn' : 'ok',
-        (p.sponsored ? 'This listing is a paid placement and carries a Sponsored label wherever it appears. ' : 'This listing is not a paid placement. ')
-        + 'Asking price ' + reFmtINR(p.price) + (p.negotiable ? ' (stated negotiable)' : ' (stated fixed)') + ', area stated as ' + reFmtNum(Number(p.area_value)) + ' ' + mkEsc(RE_UNITS[p.area_unit] || '') + ' on a ' + mkEsc((RE_MEASURES[p.area_measure] || 'total area').toLowerCase()) + ' basis.')
-    + row('Duplicate listing check', dupes.length ? 'Similar listing live' : 'No live duplicate found', dupes.length ? 'warn' : 'ok',
-        dupes.length
-          ? 'This seller also has a live listing at the same price and area (' + mkEsc(dupes[0].title) + '). It may be a genuinely different property — ask the seller, and report it if it is the same one.'
-          : 'Among the live listings loaded here, no other listing from this seller matches this price and area. This is a same-seller check on current data, not a legal guarantee.')
-    + row('Availability', p.availability_confirmed_at ? 'Seller-confirmed' : 'Seller-reported', p.availability_confirmed_at ? 'ok' : '',
-        'Status is seller-reported: ' + mkEsc(reAvailLabel(p.availability)) + ', listing ' + mkEsc(p.status) + '.'
-        + (p.availability_confirmed_at ? ' The seller last confirmed availability ' + mpTime(p.availability_confirmed_at) + '.' : ' The seller has not re-confirmed availability recently — ask in chat before travelling.'))
-    + '</div>';
-}
-
-/* ---------------- 4. PERSONALIZED DISCOVERY ---------------- */
+/* ---------------- 3. PERSONALIZED DISCOVERY ---------------- */
 PN.perso = { on:true, useSaved:true, minPrice:'', maxPrice:'', locs:[], types:[], minArea:'', unit:'sqyd' };
 function ngPersoSignals(){
   /* signals come ONLY from the customer's own stated/saved data */
