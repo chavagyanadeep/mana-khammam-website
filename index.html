@@ -4070,35 +4070,20 @@ table.ng-table td b{color:var(--ink)}
         <div class="f-card" id="adEditor" style="display:none">
           <h3 id="adEditorTitle">New Article</h3>
           <p id="adEditorMeta" class="dash-meta" style="margin-bottom:12px"></p>
-          <p class="f-note" style="margin-bottom:12px">Word caps — the same limits as Post News, sized to one news sheet: headline up to <b>12 words</b>, summary up to <b>60 words</b>, full story up to <b>100 words</b>, per language. The counter under each box shows words used and words left as you type; an article over a cap cannot be saved or published until it is shortened. Stories are displayed to readers in <b>Telugu only</b>, whichever language they were entered in — publishing needs the Telugu headline and summary.</p>
-          <div class="f-field">
-            <label for="fdHeadlineEn">Headline — English (max 12 words)</label>
-            <input class="f-input" id="fdHeadlineEn" type="text" placeholder="Headline in English" />
-            <div class="wc-line" id="fdWcHeadEn"><span class="wc-msg">Fits 2 lines on the news sheet</span><span class="wc-count">0 / 12 words · 12 left</span></div>
-          </div>
-          <div class="f-field">
-            <label for="fdSummaryEn">Summary — English (max 60 words)</label>
-            <textarea class="f-input" id="fdSummaryEn" placeholder="Short summary in English"></textarea>
-            <div class="wc-line" id="fdWcSumEn"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 60 words · 60 left</span></div>
-          </div>
-          <div class="f-field">
-            <label for="fdBodyEn">Full story — English (optional, max 100 words)</label>
-            <textarea class="f-input tall" id="fdBodyEn" placeholder="Full story in English. Blank lines separate paragraphs."></textarea>
-            <div class="wc-line" id="fdWcBodyEn"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 100 words · 100 left</span></div>
-          </div>
+          <p class="f-note" style="margin-bottom:12px">Word caps — the same limits as Post News, sized to one news sheet: headline up to <b>12 words</b>, summary up to <b>60 words</b>, full story up to <b>100 words</b>. The counter under each box shows words used and words left as you type; an article over a cap cannot be saved or published until it is shortened. Stories are written and shown in <b>Telugu only</b> — publishing needs the Telugu headline and summary. No Telugu keyboard needed: in every Telugu box, type with English letters and they turn into Telugu script as you type — <b>khammam</b> becomes <b>ఖమ్మం</b>, <b>varsham</b> becomes <b>వర్షం</b> (type aa, ee, oo for long sounds). A Telugu keyboard works too; Telugu letters you type stay as they are.</p>
           <div class="f-field">
             <label for="fdHeadlineTe">Headline — Telugu (max 12 words)</label>
-            <input class="f-input" id="fdHeadlineTe" type="text" placeholder="తెలుగులో హెడ్‌లైన్" />
+            <input class="f-input" id="fdHeadlineTe" type="text" placeholder="Type here — khammam becomes ఖమ్మం" />
             <div class="wc-line" id="fdWcHeadTe"><span class="wc-msg">Fits 2 lines on the news sheet</span><span class="wc-count">0 / 12 words · 12 left</span></div>
           </div>
           <div class="f-field">
             <label for="fdSummaryTe">Summary — Telugu (max 60 words, shown on the card — readers see Telugu only)</label>
-            <textarea class="f-input" id="fdSummaryTe" placeholder="తెలుగులో చిన్న సారాంశం"></textarea>
+            <textarea class="f-input" id="fdSummaryTe" placeholder="ఇక్కడ రాయండి — or type in English letters: varsham → వర్షం"></textarea>
             <div class="wc-line" id="fdWcSumTe"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 60 words · 60 left</span></div>
           </div>
           <div class="f-field">
             <label for="fdBodyTe">Full story — Telugu (optional, max 100 words)</label>
-            <textarea class="f-input tall" id="fdBodyTe" placeholder="తెలుగులో పూర్తి కథనం"></textarea>
+            <textarea class="f-input tall" id="fdBodyTe" placeholder="ఇక్కడ రాయండి — or type in English letters and they become Telugu as you type"></textarea>
             <div class="wc-line" id="fdWcBodyTe"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 100 words · 100 left</span></div>
           </div>
           <div class="f-field">
@@ -4189,7 +4174,7 @@ table.ng-table td b{color:var(--ink)}
     <div class="page-head" style="padding-top:14px">
       <span class="micro" style="color:var(--accent)">Local News</span>
       <h2>Post News</h2>
-      <p>Seen something Khammam should know? Write it here — in English, in Telugu, or in both, in your own words. Every post goes to the founder first and appears in Local News only after the founder approves it.</p>
+      <p>Seen something Khammam should know? Write it here — in English, in Telugu, or in both, in your own words. In the Telugu boxes you can type with English letters and they turn into Telugu as you type (khammam → ఖమ్మం). Every post goes to the founder first and appears in Local News only after the founder approves it.</p>
     </div>
     <div class="f-wrap" id="npBody"></div>
   </main>
@@ -8009,7 +7994,6 @@ function mkEditorMsg(errText, okText){
 }
 function mkOpenEditor(row){
   ED = { id:'', status:'draft', slug:'', publishedAt:'', createdAt:'', updatedAt:'', media:[], igUrl:'', igDropped:false };
-  mkFd('fdHeadlineEn').value = ''; mkFd('fdSummaryEn').value = ''; mkFd('fdBodyEn').value = '';
   mkFd('fdHeadlineTe').value = ''; mkFd('fdSummaryTe').value = ''; mkFd('fdBodyTe').value = '';
   mkFd('fdSource').value = ''; mkFd('fdCorrection').value = ''; mkFd('fdPublisher').value = 'Mana Khammam';
   mkFd('fdIgUrl').value = '';
@@ -8021,8 +8005,7 @@ function mkOpenEditor(row){
     ED.id = row.id; ED.status = row.status; ED.slug = row.slug || '';
     ED.publishedAt = row.published_at || ''; ED.createdAt = row.created_at || ''; ED.updatedAt = row.updated_at || '';
     ED.media = (row.article_media || []).slice().sort(function(a, b){ return (a.position || 0) - (b.position || 0); });
-    var en = mkTrOf(row, 'en'), te = mkTrOf(row, 'te');
-    if(en){ mkFd('fdHeadlineEn').value = en.headline || ''; mkFd('fdSummaryEn').value = en.summary_60_words || ''; mkFd('fdBodyEn').value = en.body_full || ''; }
+    var te = mkTrOf(row, 'te');
     if(te){ mkFd('fdHeadlineTe').value = te.headline || ''; mkFd('fdSummaryTe').value = te.summary_60_words || ''; mkFd('fdBodyTe').value = te.body_full || ''; }
     mkFd('fdSource').value = row.source_attribution || '';
     mkFd('fdIgUrl').value = row.instagram_url || '';
@@ -8043,19 +8026,153 @@ function mkOpenEditor(row){
 function mkCloseEditor(){ mkFd('adEditor').style.display = 'none'; ED.id = ''; ED.media = []; }
 document.getElementById('fdCloseBtn').addEventListener('click', mkCloseEditor);
 
+/* ---------- Roman → Telugu transliteration (typing aid) ----------
+   Used by every news Telugu box (Post News and the founder editor):
+   the author types with English letters and the letters turn into
+   Telugu script as they type — khammam → ఖమ్మం, varsham → వర్షం.
+   This is TRANSLITERATION (script conversion), not translation: it
+   never changes the language or the meaning of what was typed, and
+   no network service is involved — the tables below run entirely in
+   the page. Rules, kept deliberately simple and predictable:
+   · vowels: a i u e o; long sounds: aa/A, ee/ii/I, uu/oo/U, E (ఏ),
+     O (ఓ); pairs: ai, au.
+   · consonants: k kh g gh · ch Ch(chh) j jh · T Th D Dh N (retroflex)
+     t th d dh n · p ph(f) b bh m · y r l L v(w) sh Sh s h · ksh, rsh,
+     gn/jn (జ్ఞ), x = ksh, q = k, z = j, c = ch. Capitals Sh/T/D/N/L
+     give the retroflex / ష sounds.
+   · a consonant with no vowel after it takes the virama (k → క్);
+     doubled letters form the conjunct (amma → అమ్మ).
+   · n or m typed before another consonant, and a word-final m after
+     a vowel sound, are written with the sunna ం (sangam → సంగం,
+     venkat → వెంకట్, khammam → ఖమ్మం); a capital M writes ం anywhere.
+   Telugu letters typed from a Telugu keyboard pass through untouched,
+   and conversion is per word: it happens live while a word is typed,
+   and a finished word is never re-converted. */
+var TL_VOWELS = {
+  'aa':['ఆ','ా'], 'A':['ఆ','ా'],
+  'ee':['ఈ','ీ'], 'ii':['ఈ','ీ'], 'I':['ఈ','ీ'],
+  'uu':['ఊ','ూ'], 'oo':['ఊ','ూ'], 'U':['ఊ','ూ'],
+  'ai':['ఐ','ై'], 'au':['ఔ','ౌ'],
+  'ae':['ఏ','ే'], 'E':['ఏ','ే'],
+  'oe':['ఓ','ో'], 'O':['ఓ','ో'],
+  'Ru':['ఋ','ృ'],
+  'a':['అ',''], 'i':['ఇ','ి'], 'u':['ఉ','ు'], 'e':['ఎ','ె'], 'o':['ఒ','ొ']
+};
+var TL_CONS = {
+  'ksh':'క్ష', 'rsh':'ర్ష', 'kh':'ఖ', 'gh':'ఘ', 'ng':'ఙ', 'ch':'చ', 'Ch':'ఛ', 'chh':'ఛ',
+  'jh':'ఝ', 'ny':'ఞ', 'Th':'ఠ', 'Dh':'ఢ', 'th':'థ', 'dh':'ధ', 'ph':'ఫ',
+  'bh':'భ', 'sh':'శ', 'Sh':'ష', 'gn':'జ్ఞ', 'jn':'జ్ఞ',
+  'k':'క', 'g':'గ', 'j':'జ', 'T':'ట', 'D':'డ', 'N':'ణ', 't':'త', 'd':'ద',
+  'n':'న', 'p':'ప', 'f':'ఫ', 'b':'బ', 'm':'మ', 'y':'య', 'r':'ర', 'l':'ల',
+  'L':'ళ', 'v':'వ', 'w':'వ', 's':'స', 'S':'ష', 'h':'హ', 'q':'క', 'x':'క్ష', 'z':'జ', 'c':'చ'
+};
+function tlMatch(map, rest, lens){
+  for(var li = 0; li < lens.length; li++){
+    var cand = rest.slice(0, lens[li]);
+    if(cand.length < lens[li]) continue;
+    if(map[cand]) return { tok:cand, val:map[cand], len:cand.length };
+    var low = cand.toLowerCase();
+    if(low !== cand && map[low]) return { tok:cand, val:map[low], len:cand.length };
+  }
+  return null;
+}
+function tlIsConsLetter(ch){
+  return !!ch && /[bcdfghjklmnpqrstvwxyz]/i.test(ch);
+}
+function tlWord(w){
+  var out = '', i = 0, prevVowel = false;
+  while(i < w.length){
+    var rest = w.slice(i), ch = rest.charAt(0), low = ch.toLowerCase();
+    if(ch === 'M'){ out += out ? 'ం' : 'అం'; i++; prevVowel = true; continue; }
+    if(ch === 'H'){ out += out ? 'ః' : 'అః'; i++; continue; }
+    /* Anusvara assimilation: n or m typed before another consonant
+       (not before itself; m not before a sonorant) becomes the sunna. */
+    if((low === 'n' || low === 'm') && i + 1 < w.length){
+      var nxLow = w.charAt(i + 1).toLowerCase();
+      if(tlIsConsLetter(w.charAt(i + 1)) && nxLow !== low && !(low === 'm' && 'rlyvw'.indexOf(nxLow) >= 0)){
+        out += 'ం'; i++; prevVowel = false; continue;
+      }
+    }
+    var cons = tlMatch(TL_CONS, rest, [3,2,1]);
+    if(cons){
+      var after = rest.slice(cons.len);
+      /* Word-final m after a vowel sound → sunna: khammam → ఖమ్మం. */
+      if(cons.tok.toLowerCase() === 'm' && after.length === 0 && prevVowel && out){
+        out += 'ం'; i += cons.len; prevVowel = true; continue;
+      }
+      var v = tlMatch(TL_VOWELS, after, [2,1]);
+      if(v){ out += cons.val + v.val[1]; i += cons.len + v.len; prevVowel = true; }
+      else { out += cons.val + '్'; i += cons.len; prevVowel = false; }
+      continue;
+    }
+    var vv = tlMatch(TL_VOWELS, rest, [2,1]);
+    if(vv){ out += vv.val[0]; i += vv.len; prevVowel = true; continue; }
+    out += ch; i++; prevVowel = false;
+  }
+  return out;
+}
+/* Attach live transliteration to one Telugu input/textarea. While the
+   author types a word in English letters, that word's region of the
+   field is re-rendered from the raw letters on every keystroke (so
+   k → క్, kh → ఖ్, kha → ఖ as they type). A space, punctuation mark,
+   tap, or arrow key finishes the word; backspace steps back through
+   the raw letters when the caret is still inside the current word,
+   and otherwise deletes Telugu normally. repaint() (optional) runs
+   after any conversion so counters stay truthful. */
+function tlAttach(el, repaint){
+  if(!el || el._tlOn) return;
+  el._tlOn = true;
+  el.setAttribute('autocapitalize', 'off');
+  el.setAttribute('autocomplete', 'off');
+  el.setAttribute('autocorrect', 'off');
+  el.spellcheck = false;
+  var st = { start:-1, raw:'' };
+  function reset(){ st.start = -1; st.raw = ''; }
+  el.addEventListener('input', function(e){
+    var val = el.value, caret = el.selectionStart;
+    if(caret == null){ reset(); return; }
+    if(e.inputType === 'insertText' && e.data && /^[a-zA-Z]+$/.test(e.data)){
+      var pos = caret - e.data.length;
+      if(pos < 0){ reset(); return; }
+      if(st.start >= 0 && st.start + tlWord(st.raw).length === pos){ st.raw += e.data; }
+      else { st.start = pos; st.raw = e.data; }
+      var conv = tlWord(st.raw);
+      el.value = val.slice(0, st.start) + conv + val.slice(caret);
+      var np = st.start + conv.length;
+      try{ el.setSelectionRange(np, np); }catch(err){}
+      if(repaint) repaint();
+    } else if(e.inputType === 'deleteContentBackward'){
+      if(st.start >= 0 && st.raw.length && caret === st.start + tlWord(st.raw).length){
+        st.raw = st.raw.slice(0, -1);
+        var conv2 = tlWord(st.raw);
+        el.value = val.slice(0, st.start) + conv2 + val.slice(caret);
+        var np2 = st.start + conv2.length;
+        try{ el.setSelectionRange(np2, np2); }catch(err){}
+        if(!st.raw) reset();
+        if(repaint) repaint();
+      } else reset();
+    } else {
+      reset();
+    }
+  });
+  el.addEventListener('click', reset);
+  el.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Home' || e.key === 'End') reset();
+  });
+}
+
 /* ---------- Dashboard editor: word caps ----------
    The same news-sheet limits as Post News (headline ≤ 12 words,
-   story ≤ 100 words), applied to the founder editor's fields:
+   story ≤ 100 words), applied to the founder editor's Telugu fields:
    headline ≤ 12, summary ≤ 60 (it is stored in summary_60_words and
-   shown on the card), full story ≤ 100 — per language, counted by
-   spaces the same way for English and Telugu. This editor previously
-   had NO caps at all, so founder posts could run far past one news
-   sheet. The counters paint live as the founder types, and Save /
-   Publish refuse over-cap text with the exact count and limit. */
+   shown on the card), full story ≤ 100 — counted by spaces. The
+   editor is Telugu-only (the English fields were removed at the
+   founder's request; readers only ever saw the Telugu version).
+   This editor previously had NO caps at all, so founder posts could
+   run far past one news sheet. The counters paint live as the
+   founder types, and Save / Publish refuse over-cap text with the
+   exact count and limit. */
 var FD_WC_FIELDS = [
-  { input:'fdHeadlineEn', line:'fdWcHeadEn', max:12, label:'English headline', kind:'headline' },
-  { input:'fdSummaryEn', line:'fdWcSumEn', max:60, label:'English summary', kind:'story' },
-  { input:'fdBodyEn', line:'fdWcBodyEn', max:100, label:'English full story', kind:'story' },
   { input:'fdHeadlineTe', line:'fdWcHeadTe', max:12, label:'Telugu headline', kind:'headline' },
   { input:'fdSummaryTe', line:'fdWcSumTe', max:60, label:'Telugu summary', kind:'story' },
   { input:'fdBodyTe', line:'fdWcBodyTe', max:100, label:'Telugu full story', kind:'story' }
@@ -8096,6 +8213,12 @@ function fdOverCapMessage(){
 FD_WC_FIELDS.forEach(function(f){
   var input = mkFd(f.input);
   if(input) input.addEventListener('input', fdPaintAllWc);
+});
+/* The founder editor's Telugu boxes transliterate as the founder
+   types: English letters become Telugu script live (khammam → ఖమ్మం),
+   the same typing aid as Post News. */
+FD_WC_FIELDS.forEach(function(f){
+  tlAttach(mkFd(f.input), fdPaintAllWc);
 });
 
 function mkSaveArticle(){
@@ -8140,12 +8263,6 @@ function mkSaveArticle(){
     ED.createdAt = r.data.created_at; ED.updatedAt = r.data.updated_at;
     if(!ED.igDropped) ED.igUrl = igUrl;
     var ups = [];
-    var enH = mkFd('fdHeadlineEn').value.trim(), enS = mkFd('fdSummaryEn').value.trim(), enB = mkFd('fdBodyEn').value;
-    if(enH || enS || enB.trim()){
-      ups.push(MK.client.from('article_translations').upsert(
-        { article_id:ED.id, lang:'en', headline:enH, summary_60_words:enS, body_full:enB.trim() ? enB : null },
-        { onConflict:'article_id,lang' }));
-    }
     var teH = mkFd('fdHeadlineTe').value.trim(), teS = mkFd('fdSummaryTe').value.trim(), teB = mkFd('fdBodyTe').value;
     if(teH || teS || teB.trim()){
       ups.push(MK.client.from('article_translations').upsert(
@@ -8191,11 +8308,10 @@ document.getElementById('fdPublishBtn').addEventListener('click', function(){
   var overMsg = fdOverCapMessage();
   if(overMsg){ fdPaintAllWc(); mkEditorMsg(overMsg, ''); return; }
   var teH = mkFd('fdHeadlineTe').value.trim(), teS = mkFd('fdSummaryTe').value.trim();
-  var enH = mkFd('fdHeadlineEn').value.trim();
   if(!teH || !teS){ mkEditorMsg('Add the Telugu headline and the Telugu summary before publishing — readers see stories in Telugu only, so the reader card needs the Telugu version.', ''); return; }
   mkSaveArticle().then(function(){
     var patch = { status:'published', published_at: ED.publishedAt || new Date().toISOString() };
-    if(!ED.slug) patch.slug = mkSlugify(enH || teH) + '-' + String(ED.id).slice(0, 6);
+    if(!ED.slug) patch.slug = mkSlugify(teH) + '-' + String(ED.id).slice(0, 6);
     return MK.client.from('news_articles').update(patch).eq('id', ED.id).select().single();
   }).then(function(r){
     if(r.error) throw r.error;
@@ -8211,7 +8327,6 @@ document.getElementById('fdPublishBtn').addEventListener('click', function(){
 });
 document.getElementById('fdPreviewBtn').addEventListener('click', function(){
   var box = mkFd('fdPreview');
-  var enH = mkFd('fdHeadlineEn').value.trim(), enS = mkFd('fdSummaryEn').value.trim();
   var teH = mkFd('fdHeadlineTe').value.trim(), teS = mkFd('fdSummaryTe').value.trim();
   var mediaHtml = '';
   if(ED.media.length){
@@ -8226,11 +8341,6 @@ document.getElementById('fdPreviewBtn').addEventListener('click', function(){
     + '<h4>' + mkEsc(teH || '(Telugu headline)') + '</h4><p>' + mkEsc(clampWords(teS, 60) || '(Telugu summary)') + '</p>'
     + '<div class="dash-meta" style="margin-top:8px">' + mkEsc(mkFd('fdPublisher').value.trim() || 'Mana Khammam') + (mkFd('fdSource').value.trim() ? ' · Source: ' + mkEsc(mkFd('fdSource').value.trim()) : '') + ' · Telugu version — what readers see</div>'
     + '</div></div>';
-  if(enH || enS){
-    html += '<div class="preview-box" style="margin-top:10px"><div class="pb-body">'
-      + '<h4>' + mkEsc(enH || '(English headline)') + '</h4><p>' + mkEsc(clampWords(enS, 60) || '(English summary)') + '</p>'
-      + '<div class="dash-meta" style="margin-top:8px">English version — stored, not shown to readers</div></div></div>';
-  }
   box.innerHTML = html; box.style.display = '';
 });
 
@@ -8444,7 +8554,7 @@ function npCountWords(text){
 function npFormHTML(){
   return '<div class="f-card">'
     + '<h3>Write your news post</h3>'
-    + '<p>Write the headline and the story in English, in Telugu, or in both — in your own words. Readers see the <b>Telugu version only</b>: after writing, tap <b>Preview</b> to see the Telugu version exactly as readers will see it, then send it. Please note: no translation tool is connected in this app yet, so English is <b>not</b> converted to Telugu automatically — if you write in English, also write the Telugu headline and story in the Telugu boxes below; that Telugu text is what the preview shows and what gets published.</p>'
+    + '<p>Write the headline and the story in English, in Telugu, or in both — in your own words. Readers see the <b>Telugu version only</b>: after writing, tap <b>Preview</b> to see the Telugu version exactly as readers will see it, then send it. In the Telugu boxes below you do <b>not</b> need a Telugu keyboard: type with English letters and they turn into Telugu as you type — type <b>khammam</b> and you get <b>ఖమ్మం</b>. That changes the letters only, not the language, so write the matter itself in Telugu words in the Telugu boxes; that Telugu text is what the preview shows and what gets published.</p>'
     + '<p class="f-note" style="margin-bottom:12px">Sized to fit one news sheet: the photo takes the top 42% of the reader and the time row and toolbar take the bottom, so each language gets a headline of up to <b>12 words</b> and a story of up to <b>100 words</b>. The counter under each box shows words used and words left as you type; a post over the limit cannot be sent.</p>'
     + '<div class="f-field"><label for="npHeadEn">Headline — English (max 12 words)</label>'
     + '<input class="f-input" id="npHeadEn" type="text" placeholder="Main heading in English" />'
@@ -8452,11 +8562,13 @@ function npFormHTML(){
     + '<div class="f-field"><label for="npBodyEn">Story — English (max 100 words)</label>'
     + '<textarea class="f-input tall" id="npBodyEn" placeholder="The full matter in English, up to 100 words. Blank lines separate paragraphs."></textarea>'
     + '<div class="wc-line" id="npWcBodyEn"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 100 words · 100 left</span></div></div>'
+    + '<span class="micro" style="color:var(--accent);display:block;margin:18px 0 4px">Telugu boxes — English letters become Telugu</span>'
+    + '<p class="f-note" style="margin-bottom:10px">Type in the Telugu boxes with English letters and they convert to Telugu script as you type: khammam → ఖమ్మం, varsham → వర్షం. For long sounds type aa, ee, oo (raamu → రాము). A Telugu keyboard works too — Telugu letters you type stay exactly as they are.</p>'
     + '<div class="f-field"><label for="npHeadTe">Headline — Telugu (max 12 words)</label>'
-    + '<input class="f-input" id="npHeadTe" type="text" placeholder="తెలుగులో హెడ్‌లైన్" />'
+    + '<input class="f-input" id="npHeadTe" type="text" placeholder="Type here — khammam becomes ఖమ్మం" />'
     + '<div class="wc-line" id="npWcHeadTe"><span class="wc-msg">Fits 2 lines on the news sheet</span><span class="wc-count">0 / 12 words · 12 left</span></div></div>'
     + '<div class="f-field"><label for="npBodyTe">Story — Telugu (max 100 words)</label>'
-    + '<textarea class="f-input tall" id="npBodyTe" placeholder="తెలుగులో పూర్తి వార్త — గరిష్ఠంగా 100 పదాలు"></textarea>'
+    + '<textarea class="f-input tall" id="npBodyTe" placeholder="ఇక్కడ రాయండి — or type in English letters: khammam → ఖమ్మం (max 100 words)"></textarea>'
     + '<div class="wc-line" id="npWcBodyTe"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 100 words · 100 left</span></div></div>'
     + '<span class="micro" style="color:var(--accent);display:block;margin:18px 0 4px">Photos &amp; video (optional)</span>'
     + '<p class="f-note" style="margin-bottom:10px">Photos go to the news-photos bucket (up to 10 MB each), the video to news-videos (up to 100 MB). A poster frame is captured from the video automatically. Only attach media you have the right to share.</p>'
@@ -8535,7 +8647,10 @@ function npOverCapMessage(){
    Telugu headline + story exactly as they will appear (reader type:
    19px headline, 16px body). HONESTY RULE: no translation service is
    connected anywhere in this app — there is no endpoint, key or call
-   for one in this file — so English text is NEVER converted here.
+   for one in this file — so English MEANING is never translated here.
+   The Telugu boxes do carry a typing aid that converts English
+   LETTERS to Telugu script as the author types (transliteration —
+   khammam → ఖమ్మం), which changes the script, never the language.
    When only English has been written, the preview says so plainly
    and asks for the Telugu text instead of inventing a translation. */
 function npPreviewHash(){
@@ -8559,10 +8674,10 @@ function npShowPreview(){
     NP.previewOk = false;
     if(headEn || bodyEn){
       box.innerHTML = '<div class="np-preview"><div class="np-pv-kicker">Preview — Telugu version</div>'
-        + '<p style="font-size:14.5px">Your English text cannot be previewed in Telugu yet: <b>no translation tool is connected in this app</b>, so nothing is converted automatically and no translation will be invented. Write the Telugu headline and story in the Telugu boxes above — the preview will show them here, and that Telugu version is the one readers will see.</p></div>';
+        + '<p style="font-size:14.5px">Your post has no Telugu version yet, and readers see Telugu only — English meaning is never translated automatically here. But the Telugu boxes above convert your typing for you: type the Telugu headline and story there with English letters and they become Telugu script as you type (<b>khammam → ఖమ్మం</b>). The preview will then show them here, exactly as readers will see them.</p></div>';
     } else {
       box.innerHTML = '';
-      npMsg('Write the headline and the story first — in Telugu, or in English with the Telugu version in the Telugu boxes — then preview.', '');
+      npMsg('Write the headline and the story first — in the Telugu boxes, typing with English letters turns into Telugu as you type — then preview.', '');
     }
     return false;
   }
@@ -8589,6 +8704,12 @@ function npWireForm(u){
     var input = npEl(f.input);
     if(input) input.addEventListener('input', function(){ npPaintAllWc(); npInvalidatePreview(); });
   });
+  /* The Telugu boxes transliterate as the author types: English
+     letters become Telugu script live (khammam → ఖమ్మం). Attached
+     after the counter listeners; the repaint callback re-runs the
+     counters and preview invalidation after each conversion. */
+  tlAttach(npEl('npHeadTe'), function(){ npPaintAllWc(); npInvalidatePreview(); });
+  tlAttach(npEl('npBodyTe'), function(){ npPaintAllWc(); npInvalidatePreview(); });
   npPaintAllWc();
   var igInput = npEl('npIgUrl');
   if(igInput) igInput.addEventListener('input', npInvalidatePreview);
@@ -8631,12 +8752,13 @@ function npSubmit(u){
   }
   var overMsg = npOverCapMessage();
   if(overMsg){ npPaintAllWc(); npMsg(overMsg, ''); return; }
-  /* Published reader posts are Telugu only. No translation tool is
-     connected in this app, so an English-only post cannot be sent as
-     Telugu — the Telugu version must be written in the Telugu boxes. */
+  /* Published reader posts are Telugu only. English meaning is never
+     translated automatically, so an English-only post cannot be sent
+     as Telugu — the Telugu version must be written in the Telugu
+     boxes (where English letters convert to Telugu script as typed). */
   if(!(headTe && bodyTe)){
     npShowPreview();
-    npMsg('This post needs its Telugu version before it can be sent: readers see Telugu only, and no translation tool is connected in this app to convert English automatically. Write the Telugu headline and story in the Telugu boxes, preview them, then send.', '');
+    npMsg('This post needs its Telugu version before it can be sent: readers see Telugu only. Write the Telugu headline and story in the Telugu boxes — you can type them with English letters and they become Telugu as you type (khammam → ఖమ్మం). Preview them, then send.', '');
     return;
   }
   if(!NP.previewOk || NP.previewHash !== npPreviewHash()){
