@@ -955,13 +955,13 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-swipe-hint svg{flex:none;color:var(--mint);animation:nrHintNudge 2.2s ease-in-out infinite}
 @keyframes nrHintNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 /* Bottom interaction strip INSIDE each page (it flips with the story):
-   like · dislike | WhatsApp disc with SHARE caption | comments ·
-   overflow · blue share arrow. Every control sits INSIDE the bar on
-   one baseline — the WhatsApp disc used to be raised with a negative
-   margin so it protruded above the bar over the story (the defect in
-   the founder's 11 Nov screenshot); it is now a flush disc the same
-   height as the bar, still green and labelled SHARE. In normal flow
-   at the page's foot, so it never covers article content. */
+   like · dislike · comments · overflow · blue share arrow. Every
+   control sits INSIDE the bar on one baseline, in normal flow at the
+   page's foot, so it never covers article content. The green WhatsApp
+   SHARE disc that used to sit in the middle of the bar was removed
+   (founder, 11 Nov) — the five remaining controls each flex to an
+   equal share of the bar, so no gap is left behind. WhatsApp sharing
+   itself still lives on the home news cards. */
 .nr-pg-bar{
   flex:none;position:relative;display:flex;align-items:center;gap:2px;
   border-top:1px solid var(--line);background:#FFFFFF;
@@ -979,16 +979,6 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-tbtn[disabled]{opacity:.45;pointer-events:none}
 .nr-tbtn-share{color:#1B74E4}
 .nr-tbtn-share svg{width:30px;height:30px}
-.nr-wa-cell{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.nr-wa-fab{
-  width:42px;height:42px;border-radius:50%;background:#25D366;color:#FFFFFF;
-  display:grid;place-items:center;margin-top:0;flex:none;
-  box-shadow:0 2px 7px rgba(18,140,60,.25);border:none;
-  transition:transform .15s ease;
-}
-.nr-wa-fab:active{transform:scale(.93)}
-.nr-wa-fab svg{width:23px;height:23px}
-.nr-wa-cell .wa-cap{font-size:10.5px;line-height:1.1;font-weight:800;letter-spacing:.12em;color:var(--muted);margin-top:2px}
 /* Comments panel — slides up inside the reader; the story and the
    reader position stay exactly where they were behind it. */
 .nr-comments{
@@ -1063,7 +1053,6 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 @media (prefers-reduced-motion: reduce){
   .nr-swipe-hint svg{animation:none}
   .nr-comments{transition:none}
-  .nr-wa-fab{transition:none}
 }
 .nr-empty{
   position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
@@ -2429,7 +2418,7 @@ body.mk-lock{overflow:hidden}
 /* ================================================================
    REAL ESTATE MAP — OPENSTREETMAP DISCOVERY (Feature 03b)
    Split results panel + Leaflet map on free OpenStreetMap tiles
-   with price · category · size pill markers, clustering,
+   with small square price markers, clustering,
    Search this area, single preview / mobile bottom sheet. No API
    key, no billing. Markers are built ONLY from real approved
    listings + the public approximate locations view.
@@ -2447,14 +2436,16 @@ body.mk-lock{overflow:hidden}
 .remap-canvas{position:absolute;inset:0}
 .remap-canvas .leaflet-container{font-family:var(--font-ui);background:#E7EEE8}
 .osm-div-icon{background:transparent;border:none}
-/* Map marker: a stacked unit anchored at the property point — the
-   label pill sits entirely ABOVE a teardrop pin whose tip is the
-   point, so the pin can never cover the label text (the old single
-   centred label let the pin sit on top of its middle words). The
-   wrapper is centred on the point and lifted by its full height;
-   the label sizes to its text (type + price, plus size zoomed in). */
+/* Map marker: a stacked unit anchored at the property point — a
+   small SQUARE box sits entirely ABOVE a teardrop pin whose tip is
+   the point, so the pin can never cover the box text. The box stacks
+   the price over the short type (plus the size, zoomed right in) in
+   a compact square — the old wide one-line pill ("Independent
+   House · ₹5 Cr") stretched across the map and looked big
+   (founder, 11 Nov). The wrapper is centred on the point and
+   lifted by its full height. */
 .osm-marker{transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center;width:max-content;max-width:82vw;cursor:pointer}
-.osm-marker .osm-pin{width:24px;height:30px;flex:none;margin-top:-2px;color:var(--forest);line-height:0;filter:drop-shadow(0 3px 5px rgba(16,43,36,.4))}
+.osm-marker .osm-pin{width:20px;height:25px;flex:none;margin-top:-1px;color:var(--forest);line-height:0;filter:drop-shadow(0 3px 5px rgba(16,43,36,.4))}
 .osm-marker .osm-pin svg{width:100%;height:100%;display:block}
 .osm-marker.sel{transform:translate(-50%,-100%) scale(1.06)}
 .osm-marker.sel .osm-pin{color:#8A6D2F}
@@ -2472,9 +2463,12 @@ body.mk-lock{overflow:hidden}
 .remap-loading{font-size:13.5px;font-weight:700;color:var(--muted)}
 .remap-search-area{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;background:var(--forest);color:#fff;font-size:13px;font-weight:800;padding:10px 18px;border-radius:999px;box-shadow:0 6px 18px rgba(16,43,36,.32);min-height:40px}
 .remap-search-area:active{transform:translateX(-50%) scale(.96)}
-.osm-pill{background:var(--forest);color:#fff;font-family:'Plus Jakarta Sans','Noto Sans Telugu',system-ui,sans-serif;font-size:13px;font-weight:800;letter-spacing:0;padding:8px 13px;border-radius:999px;border:2px solid #fff;box-shadow:0 6px 16px rgba(16,43,36,.42),0 0 0 1px rgba(16,43,36,.25);white-space:nowrap;line-height:1.3;text-align:center}
-.osm-marker.sel .osm-pill{background:#fff;color:var(--forest);border-color:var(--gold)}
-.osm-marker.sold .osm-pill{background:#5C6B63}
+.osm-box{background:var(--forest);color:#fff;font-family:'Plus Jakarta Sans','Noto Sans Telugu',system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:56px;padding:6px 7px 5px;border-radius:10px;border:2px solid #fff;box-shadow:0 5px 13px rgba(16,43,36,.42),0 0 0 1px rgba(16,43,36,.25);text-align:center}
+.osm-box .bp{font-size:13.5px;font-weight:800;line-height:1.15;white-space:nowrap}
+.osm-box .bt{font-size:10px;font-weight:700;line-height:1.25;letter-spacing:.03em;opacity:.88;white-space:nowrap}
+.osm-box .ba{font-size:9.5px;font-weight:700;line-height:1.25;opacity:.75;white-space:nowrap}
+.osm-marker.sel .osm-box{background:#fff;color:var(--forest);border-color:var(--gold)}
+.osm-marker.sold .osm-box{background:#5C6B63}
 .osm-marker.sold .osm-pin{color:#5C6B63}
 .osm-cluster{width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:15px;font-weight:800;display:grid;place-items:center;border:2.5px solid #fff;box-shadow:0 4px 14px rgba(16,43,36,.35);cursor:pointer}
 .remap-side-head h3{margin:0;font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--forest)}
@@ -5966,7 +5960,7 @@ var nrEl = {
   empty:document.getElementById('nrEmpty'),
   hint:document.getElementById('nrSwipeHint'),
   likeBtn:null, dislikeBtn:null, likeCnt:null, dislikeCnt:null,
-  commentBtn:null, commentCnt:null, shareBtn:null, waBtn:null, moreBtn:null,
+  commentBtn:null, commentCnt:null, shareBtn:null, moreBtn:null,
   menu:document.getElementById('nrMenu'),
   menuPrev:document.getElementById('nrMenuPrev'), menuNext:document.getElementById('nrMenuNext'),
   menuFull:document.getElementById('nrMenuFull'), menuReport:document.getElementById('nrMenuReport'),
@@ -6292,15 +6286,15 @@ function nrCalDetailsHTML(a){
   return html + '</div>';
 }
 /* The bottom strip, built into every story page so it flips with the
-   page: like · dislike | WhatsApp SHARE disc (flush inside the bar) |
-   comments · overflow · blue share arrow. Counts always render beside their icon
-   (as in the reference recording): they start at 0 and the engagement
-   module paints the story's real counts over them — never blank. */
+   page: like · dislike · comments · overflow · blue share arrow (the
+   WhatsApp SHARE disc was removed — founder, 11 Nov). Counts always
+   render beside their icon (as in the reference recording): they
+   start at 0 and the engagement module paints the story's real
+   counts over them — never blank. */
 function nrToolbarHTML(){
   return '<div class="nr-pg-bar">'
     + '<button class="nr-tbtn" data-nr-act="like" aria-pressed="false" aria-label="Like this story">' + NR_ICONS.like + '<span class="cnt cnt-like">0</span></button>'
     + '<button class="nr-tbtn" data-nr-act="dislike" aria-pressed="false" aria-label="Dislike this story">' + NR_ICONS.dislike + '<span class="cnt cnt-dislike">0</span></button>'
-    + '<div class="nr-wa-cell"><button class="nr-wa-fab" data-nr-act="wa" aria-label="Share this story on WhatsApp">' + WA_ICON + '</button><span class="wa-cap" aria-hidden="true">SHARE</span></div>'
     + '<button class="nr-tbtn" data-nr-act="comments" aria-label="Comments on this story">' + NR_ICONS.comment + '<span class="cnt cnt-comments">0</span></button>'
     + '<button class="nr-tbtn" data-nr-act="more" aria-haspopup="menu" aria-expanded="false" aria-label="More options">' + NR_ICONS.more + '</button>'
     + '<button class="nr-tbtn nr-tbtn-share" data-nr-act="share" aria-label="Share this story">' + NR_ICONS.shareArrow + '</button>'
@@ -6417,7 +6411,7 @@ function nrRender(){
   nrCloseMenu();
   nrTrackReset();
   nrEl.likeBtn = nrEl.dislikeBtn = nrEl.likeCnt = nrEl.dislikeCnt = null;
-  nrEl.commentBtn = nrEl.commentCnt = nrEl.shareBtn = nrEl.waBtn = nrEl.moreBtn = null;
+  nrEl.commentBtn = nrEl.commentCnt = nrEl.shareBtn = nrEl.moreBtn = null;
   if(!total){
     [-1, 0, 1].forEach(function(s){ var slot = nrSlot(s); if(slot){ slot.hidden = true; slot.innerHTML = ''; } });
     nrEl.empty.classList.add('show');
@@ -6776,7 +6770,6 @@ function nrPointBar(scope){
   nrEl.commentBtn = scope.querySelector('[data-nr-act="comments"]');
   nrEl.commentCnt = scope.querySelector('.cnt-comments');
   nrEl.shareBtn = scope.querySelector('[data-nr-act="share"]');
-  nrEl.waBtn = scope.querySelector('[data-nr-act="wa"]');
   nrEl.moreBtn = scope.querySelector('[data-nr-act="more"]');
 }
 /* Bind everything interactive on the CURRENT page: its toolbar (the
@@ -6789,7 +6782,6 @@ function nrBindPage(a, page){
   if(nrEl.dislikeBtn) nrEl.dislikeBtn.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('dislike'); });
   if(nrEl.commentBtn) nrEl.commentBtn.addEventListener('click', function(){ if(window.mkNrOpenComments) window.mkNrOpenComments(); });
   if(nrEl.shareBtn) nrEl.shareBtn.addEventListener('click', function(){ var s = nrCurrentStory(); if(s) shareStory(s); });
-  if(nrEl.waBtn) nrEl.waBtn.addEventListener('click', function(){ var s = nrCurrentStory(); if(s) window.open(waStoryHref(s), '_blank', 'noopener'); });
   if(nrEl.moreBtn) nrEl.moreBtn.addEventListener('click', function(e){
     e.stopPropagation();
     var open = nrEl.menu.classList.toggle('open');
@@ -6853,12 +6845,11 @@ function nrBindPage(a, page){
   var q = function(sel){ return nrEl.fullBar.querySelector(sel); };
   var like = q('[data-nr-act="like"]'), dislike = q('[data-nr-act="dislike"]'),
       comments = q('[data-nr-act="comments"]'), share = q('[data-nr-act="share"]'),
-      wa = q('[data-nr-act="wa"]'), more = q('[data-nr-act="more"]');
+      more = q('[data-nr-act="more"]');
   if(like) like.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('like'); });
   if(dislike) dislike.addEventListener('click', function(){ if(window.mkNrReact) window.mkNrReact('dislike'); });
   if(comments) comments.addEventListener('click', function(){ if(window.mkNrOpenComments) window.mkNrOpenComments(); });
   if(share) share.addEventListener('click', function(){ var s = nrCurrentStory(); if(s) shareStory(s); });
-  if(wa) wa.addEventListener('click', function(){ var s = nrCurrentStory(); if(s) window.open(waStoryHref(s), '_blank', 'noopener'); });
   if(more) more.addEventListener('click', function(e){
     e.stopPropagation();
     var open = nrEl.menu.classList.toggle('open');
@@ -11563,15 +11554,27 @@ function reDisplayArea(p){
   return reFmtNum(Number(p.area_value)) + ' ' + (RE_UNITS[p.area_unit] || '');
 }
 function reMarkerText(p, tier){
-  /* Every marker carries the property TYPE and the PRICE, so buyers
-     can read the map without tapping anything: "Independent House ·
-     ₹45L". Zoomed right in, the size joins them. */
+  /* Full one-line label, used as the marker's title (hover /
+     screen-reader text): "Independent House · ₹45L". Zoomed right
+     in, the size joins it. The visible marker is the compact square
+     box built by reMarkerBoxHTML below. */
   var price = reFmtShortINR(p.price);
   var type = reTypeLabel(p.property_type);
   var base = type + ' · ' + price;
   if(p.status === 'sold') return base + ' · Sold';
   if(tier === 2) return base + ' · ' + reDisplayArea(p);
   return base;
+}
+function reMarkerBoxHTML(p, tier){
+  /* The visible marker: a small square box — price on the first
+     line, the SHORT type ("House", "Flat", "Plot") under it, and
+     the size as a third small line when zoomed right in. Sold
+     properties say so under the type. */
+  var html = '<span class="bp">' + mkEsc(reFmtShortINR(p.price)) + '</span>'
+    + '<span class="bt">' + mkEsc(RE_MAP_SHORTCAT[p.property_type] || 'Property') + '</span>';
+  if(p.status === 'sold') html += '<span class="ba">Sold</span>';
+  else if(tier === 2) html += '<span class="ba">' + mkEsc(reDisplayArea(p)) + '</span>';
+  return html;
 }
 function reMapLoc(p){ var l = RE.locs[p.id]; return (l && l.has_map && l.lat != null && l.lng != null) ? l : null; }
 function reInBounds(p, b){ var l = reMapLoc(p); if(!l) return false; return (+l.lat) <= b.north && (+l.lat) >= b.south && (+l.lng) <= b.east && (+l.lng) >= b.west; }
@@ -11900,7 +11903,7 @@ function osmRefreshMarkers(items){
     var l = reMapLoc(p); if(!l) return;
     var cls = 'osm-marker' + (OSM.selectedId === p.id ? ' sel' : '') + (p.status === 'sold' ? ' sold' : '');
     var pinSvg = '<svg viewBox="0 0 24 30" aria-hidden="true"><path d="M12 29.2S2.8 19.4 2.8 11.4C2.8 6.3 6.9 2.2 12 2.2s9.2 4.1 9.2 9.2C21.2 19.4 12 29.2 12 29.2Z" fill="currentColor" stroke="#fff" stroke-width="1.6"/><circle cx="12" cy="11.2" r="3.6" fill="#fff"/></svg>';
-    var icon = L.divIcon({ className:'osm-div-icon', html:'<div class="' + cls + '"><div class="osm-pill">' + mkEsc(reMarkerText(p, tier)) + '</div><span class="osm-pin" aria-hidden="true">' + pinSvg + '</span></div>', iconSize:[0,0] });
+    var icon = L.divIcon({ className:'osm-div-icon', html:'<div class="' + cls + '"><div class="osm-box">' + reMarkerBoxHTML(p, tier) + '</div><span class="osm-pin" aria-hidden="true">' + pinSvg + '</span></div>', iconSize:[0,0] });
     var mk = L.marker([ +l.lat, +l.lng ], { icon:icon, title:reMarkerText(p, 2) + ' \u2014 ' + p.title, zIndexOffset:(OSM.selectedId === p.id ? 1000 : 0) });
     (function(prop){ mk.on('click', function(){ reMapSelect(prop.id, { center:false }); reOpenDetail(prop.id); }); })(p);
     OSM.markers[p.id] = mk; arr.push(mk);
