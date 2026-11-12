@@ -4070,14 +4070,14 @@ table.ng-table td b{color:var(--ink)}
         <div class="f-card" id="adEditor" style="display:none">
           <h3 id="adEditorTitle">New Article</h3>
           <p id="adEditorMeta" class="dash-meta" style="margin-bottom:12px"></p>
-          <p class="f-note" style="margin-bottom:12px">Word caps — the same limits as Post News, sized to one news sheet: headline up to <b>12 words</b>, summary up to <b>60 words</b>, full story up to <b>100 words</b>, per language. The counter under each box shows words used and words left as you type; an article over a cap cannot be saved or published until it is shortened.</p>
+          <p class="f-note" style="margin-bottom:12px">Word caps — the same limits as Post News, sized to one news sheet: headline up to <b>12 words</b>, summary up to <b>60 words</b>, full story up to <b>100 words</b>, per language. The counter under each box shows words used and words left as you type; an article over a cap cannot be saved or published until it is shortened. Stories are displayed to readers in <b>Telugu only</b>, whichever language they were entered in — publishing needs the Telugu headline and summary.</p>
           <div class="f-field">
             <label for="fdHeadlineEn">Headline — English (max 12 words)</label>
             <input class="f-input" id="fdHeadlineEn" type="text" placeholder="Headline in English" />
             <div class="wc-line" id="fdWcHeadEn"><span class="wc-msg">Fits 2 lines on the news sheet</span><span class="wc-count">0 / 12 words · 12 left</span></div>
           </div>
           <div class="f-field">
-            <label for="fdSummaryEn">Summary — English (max 60 words, shown on the card)</label>
+            <label for="fdSummaryEn">Summary — English (max 60 words)</label>
             <textarea class="f-input" id="fdSummaryEn" placeholder="Short summary in English"></textarea>
             <div class="wc-line" id="fdWcSumEn"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 60 words · 60 left</span></div>
           </div>
@@ -4092,7 +4092,7 @@ table.ng-table td b{color:var(--ink)}
             <div class="wc-line" id="fdWcHeadTe"><span class="wc-msg">Fits 2 lines on the news sheet</span><span class="wc-count">0 / 12 words · 12 left</span></div>
           </div>
           <div class="f-field">
-            <label for="fdSummaryTe">Summary — Telugu (max 60 words)</label>
+            <label for="fdSummaryTe">Summary — Telugu (max 60 words, shown on the card — readers see Telugu only)</label>
             <textarea class="f-input" id="fdSummaryTe" placeholder="తెలుగులో చిన్న సారాంశం"></textarea>
             <div class="wc-line" id="fdWcSumTe"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 60 words · 60 left</span></div>
           </div>
@@ -5232,9 +5232,6 @@ table.ng-table td b{color:var(--ink)}
     <button id="nrMenuFull" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11v16H5z"/><path d="M8 8h5M8 12h5M8 16h3"/></svg>Read full story</button>
     <button id="nrMenuSave" role="menuitem" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.6L7 20z"/></svg><span>Save story</span></button>
     <div class="sep"></div>
-    <button id="nrLangEn" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.3 3.8 5.2 3.8 8.5s-1.3 6.2-3.8 8.5c-2.5-2.3-3.8-5.2-3.8-8.5s1.3-6.2 3.8-8.5z"/></svg>English<span class="nr-mcheck">✓</span></button>
-    <button id="nrLangTe" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.3 3.8 5.2 3.8 8.5s-1.3 6.2-3.8 8.5c-2.5-2.3-3.8-5.2-3.8-8.5s1.3-6.2 3.8-8.5z"/></svg>తెలుగు<span class="nr-mcheck">✓</span></button>
-    <div class="sep"></div>
     <button id="nrMenuReport" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 5h11l-2.5 3.5L17 12H6"/></svg>Report issue</button>
   </div>
   <div class="nr-comments" id="nrComments" aria-hidden="true" role="dialog" aria-label="Story comments">
@@ -5967,7 +5964,7 @@ function renderSearch(raw){
    gesture become a flip, and the flip itself is the reference's
    rotateX page turn. One gesture = one story. */
 var NR = {
-  lang:'en',            /* reader-only language preference, kept for the session */
+  lang:'te',            /* news displays in Telugu only: stories are entered in Telugu or English, readers always see the Telugu version — there is no language switch */
   idx:0,                /* current story index; == list length = end-of-feed card */
   animating:false,
   fullOpen:false,
@@ -5993,8 +5990,7 @@ var nrEl = {
   fullBody:document.getElementById('nrFullBody'),
   fullBar:document.getElementById('nrFullBar'),
   light:document.getElementById('nrLight'), lightImg:document.getElementById('nrLightImg'),
-  lightCap:document.getElementById('nrLightCap'),
-  langEn:document.getElementById('nrLangEn'), langTe:document.getElementById('nrLangTe')
+  lightCap:document.getElementById('nrLightCap')
 };
 function nrSlot(s){ return nrEl.track ? nrEl.track.querySelector('[data-nr-slot="' + s + '"]') : null; }
 function nrCurPage(){ return nrSlot(0); }
@@ -6031,7 +6027,7 @@ function waDetailBtn(href){
   return '<a class="wa-share-btn" href="' + href + '" target="_blank" rel="noopener">' + WA_ICON + '<span>Share on WhatsApp</span></a>';
 }
 function waStoryText(a){
-  var loc = storyText(a, 'en') || storyText(a, 'te');
+  var loc = storyText(a, 'te') || storyText(a, 'en');
   if(!loc) return 'Mana Khammam News\n' + WA_SITE;
   var line = clampWords(loc.summary || '', 28);
   return loc.headline + (line ? '\n' + line : '') + '\nRead it on Mana Khammam: ' + WA_SITE + '#/story/' + (a.slug || a.id);
@@ -6362,24 +6358,16 @@ function nrPageHTML(a, interactive, pos, total){
   html += '<div class="nr-pg-scroll"><div class="nr-pg-inner">';
   html += nrMediaExtrasHTML(a, interactive);
   html += nrIgHTML(a, interactive);
-  var loc = storyText(a, NR.lang);
+  var loc = storyText(a, 'te');
   if(!loc){
-    if(NR.lang === 'en'){
-      /* The story exists in Telugu only (e.g. an approved reader post
-         written in Telugu) — point the reader at the version that
-         exists instead of claiming the Telugu version is missing. */
-      html += '<div class="nr-nolang"><div class="nl-box">'
-        + '<h3>Not available in English yet</h3>'
-        + '<p>This story has been published in Telugu, in the words it was written in. Stories are never machine-translated here.</p>'
-        + '<button class="btn-solid" data-nr-read-te style="flex:none;padding:10px 18px">Read in Telugu</button>'
-        + '</div></div>';
-    } else {
-      html += '<div class="nr-nolang"><div class="nl-box">'
+    /* Display is Telugu only, and this story has no Telugu version
+       (an older story entered in English only). Say so plainly — the
+       English text is not shown in its place, and nothing is
+       machine-translated to fill the gap. */
+    html += '<div class="nr-nolang"><div class="nl-box">'
       + '<h3>Not available in Telugu yet</h3>'
-      + '<p>This story has not been published in Telugu. Translations are added by the newsroom — nothing is machine-invented here.</p>'
-      + '<button class="btn-solid" data-nr-read-en style="flex:none;padding:10px 18px">Read in English</button>'
+      + '<p>News on Mana Khammam is shown in Telugu only. This story has not been published in Telugu yet — the newsroom adds the Telugu version; nothing is machine-translated here.</p>'
       + '</div></div>';
-    }
     html += nrIgHTML(a, interactive);
     html += '<div class="nr-pg-foot">' + nrBylineHTML(a) + '</div>';
     return html + '</div></div>' + meta + nrToolbarHTML();
@@ -6425,7 +6413,7 @@ function nrPaintChrome(){
     var msSvg = nrEl.menuSave.querySelector('svg');
     if(msSvg) msSvg.setAttribute('fill', marked ? 'currentColor' : 'none');
   }
-  var locAny = storyText(a, NR.lang) || storyText(a, 'en') || storyText(a, 'te');
+  var locAny = storyText(a, 'te');
   if(nrEl.menuFull) nrEl.menuFull.style.display = (locAny && locAny.body) ? '' : 'none';
   /* Reactions / comment counts for the story now on screen (Supabase
      module, second script — absent or offline leaves the counts at 0). */
@@ -6866,10 +6854,6 @@ function nrBindPage(a, page){
       nrRender();
     });
   });
-  var readEn = page.querySelector('[data-nr-read-en]');
-  if(readEn) readEn.addEventListener('click', function(){ setNewsLang('en'); });
-  var readTe = page.querySelector('[data-nr-read-te]');
-  if(readTe) readTe.addEventListener('click', function(){ setNewsLang('te'); });
   var readFull = page.querySelector('[data-nr-readfull]');
   if(readFull) readFull.addEventListener('click', function(){ openNrFull(a); });
 }
@@ -6948,7 +6932,7 @@ function shareStory(a){
   }
 }
 function openNrFull(a){
-  var loc = storyText(a, NR.lang) || storyText(a, 'en');
+  var loc = storyText(a, 'te');
   if(!loc || !loc.body) return;
   NR.fullOpen = true;
   var items = mediaItems(a);
@@ -6990,7 +6974,7 @@ function closeNrFull(instant){
 }
 document.getElementById('nrFullBack').addEventListener('click', function(){ closeNrFull(); });
 function openReport(a){
-  var loc = storyText(a, 'en');
+  var loc = storyText(a, 'te') || storyText(a, 'en');
   var sub = document.getElementById('reportSub');
   if(sub) sub.textContent = 'Spotted an error in “' + (loc ? loc.headline : 'this story') + '”? Message the newsroom through the Mana Khammam Instagram page — mention the story headline so we can find it.';
   document.getElementById('reportMail').href = 'https://www.instagram.com/manakhammam';
@@ -7010,15 +6994,8 @@ document.getElementById('reportCancel').addEventListener('click', function(){ cl
 var footReportBtn = document.getElementById('footReport');
 if(footReportBtn) footReportBtn.addEventListener('click', function(){ openReportGeneral(); });
 document.getElementById('reportMail').addEventListener('click', function(){ closeSheets(); });
-function setNewsLang(lang){
-  NR.lang = lang;
-  nrEl.langEn.classList.toggle('on', lang==='en');
-  nrEl.langTe.classList.toggle('on', lang==='te');
-  if(newsList().length) nrRender(); /* same story, new language — position preserved */
-}
-nrEl.langEn.addEventListener('click', function(){ nrCloseMenu(); setNewsLang('en'); });
-nrEl.langTe.addEventListener('click', function(){ nrCloseMenu(); setNewsLang('te'); });
-nrEl.langEn.classList.add('on');
+/* News display is Telugu only — there is no language switch in the
+   reader, so NR.lang stays 'te' for the whole session. */
 function openNews(i){
   var L = newsList();
   NR.idx = L.length ? Math.max(0, Math.min(L.length-1, i||0)) : 0;
@@ -7073,7 +7050,7 @@ function renderHomeNews(){
     document.getElementById('homeNewsEmpty').addEventListener('click', function(){ openNews(0); });
     return;
   }
-  var lead = L[0], leadLoc = lead.en || lead.te || {};
+  var lead = L[0], leadLoc = lead.te || lead.en || {};
   var leadItems = mediaItems(lead);
   var html = '<div class="news-wa-wrap"><button class="news-lead" data-news-open="0">'
     + (leadItems.length ? '<span class="ph"><img src="'+mkEsc(leadItems[0].poster||leadItems[0].src)+'" alt="'+mkEsc(leadItems[0].alt)+'"/></span>' : '')
@@ -7082,7 +7059,7 @@ function renderHomeNews(){
     + '<span class="news-meta"><span>'+mkEsc(lead.publisher||'Mana Khammam Newsroom')+'</span><span class="dot"></span><span>'+newsTimeLabel(lead.publishedAt)+'</span>'+(lead.igUrl ? '<span class="dot"></span><span>Instagram video</span>' : '')+'</span></button>'
     + waCardAnchor(waStoryHref(lead), 'top:10px;right:10px') + '</div>';
   html += L.slice(1,3).map(function(a,i){
-    var loc = a.en || a.te || {}, items = mediaItems(a);
+    var loc = a.te || a.en || {}, items = mediaItems(a);
     return '<div class="news-row-wrap"><button class="news-row" style="border-top:0" data-news-open="'+(i+1)+'"><span style="flex:1;min-width:0"><h4>'+mkEsc(loc.headline)+'</h4>'
       + '<span class="news-meta"><span>'+newsTimeLabel(a.publishedAt)+'</span>'+(a.igUrl ? '<span class="dot"></span><span>Instagram video</span>' : '')+'</span></span>'
       + (items.length ? '<img src="'+mkEsc(items[0].poster||items[0].src)+'" alt="'+mkEsc(items[0].alt)+'"/>' : '') + '</button>'
@@ -7817,7 +7794,7 @@ function mkLoadList(){
       if(!rows.length){ box.innerHTML = '<p class="f-note">No articles yet. Tap “New Article” to write the first story — it stays a private draft until you publish it.</p>'; return; }
       box.innerHTML = rows.map(function(row){
         var en = mkTrOf(row, 'en'), te = mkTrOf(row, 'te');
-        var title = (en && en.headline) || (te && te.headline) || '(Untitled draft)';
+        var title = (te && te.headline) || (en && en.headline) || '(Untitled draft)';
         var badge = row.status === 'published' ? '<span class="badge published">Published</span>'
           : row.status === 'archived' ? '<span class="badge archived">Archived</span>'
           : row.status === 'pending' ? '<span class="badge pending">Reader submission — pending</span>'
@@ -7865,13 +7842,13 @@ function mkSetStatus2(id, publish){
   if(!mkFreshAuthOk()){ showToast('<b>Step-up required.</b> Re-authenticate with your founder password in the dashboard security card first.'); return; }
   var patch;
   if(publish){
-    var en = mkTrOf(row, 'en');
-    if(!en || !en.headline || !en.summary_60_words){
-      showToast('<b>Not ready to publish.</b> Add the English headline and summary first (Edit).');
+    var te = mkTrOf(row, 'te'), en = mkTrOf(row, 'en');
+    if(!te || !te.headline || !te.summary_60_words){
+      showToast('<b>Not ready to publish.</b> Stories display in Telugu only — add the Telugu headline and summary first (Edit).');
       return;
     }
     patch = { status:'published', published_at: row.published_at || new Date().toISOString() };
-    if(!row.slug) patch.slug = mkSlugify(en.headline) + '-' + String(id).slice(0, 6);
+    if(!row.slug) patch.slug = mkSlugify((en && en.headline) || te.headline) + '-' + String(id).slice(0, 6);
   } else {
     patch = { status:'draft' }; /* published_at kept for history; the feed only reads published rows */
   }
@@ -8213,11 +8190,12 @@ document.getElementById('fdPublishBtn').addEventListener('click', function(){
   }
   var overMsg = fdOverCapMessage();
   if(overMsg){ fdPaintAllWc(); mkEditorMsg(overMsg, ''); return; }
-  var enH = mkFd('fdHeadlineEn').value.trim(), enS = mkFd('fdSummaryEn').value.trim();
-  if(!enH || !enS){ mkEditorMsg('Add the English headline and the English summary before publishing — the reader card needs both.', ''); return; }
+  var teH = mkFd('fdHeadlineTe').value.trim(), teS = mkFd('fdSummaryTe').value.trim();
+  var enH = mkFd('fdHeadlineEn').value.trim();
+  if(!teH || !teS){ mkEditorMsg('Add the Telugu headline and the Telugu summary before publishing — readers see stories in Telugu only, so the reader card needs the Telugu version.', ''); return; }
   mkSaveArticle().then(function(){
     var patch = { status:'published', published_at: ED.publishedAt || new Date().toISOString() };
-    if(!ED.slug) patch.slug = mkSlugify(enH) + '-' + String(ED.id).slice(0, 6);
+    if(!ED.slug) patch.slug = mkSlugify(enH || teH) + '-' + String(ED.id).slice(0, 6);
     return MK.client.from('news_articles').update(patch).eq('id', ED.id).select().single();
   }).then(function(r){
     if(r.error) throw r.error;
@@ -8245,13 +8223,13 @@ document.getElementById('fdPreviewBtn').addEventListener('click', function(){
       : '<img src="' + mkEsc(u0) + '" alt="' + mkEsc(m0.alt_text || '') + '"/>';
   }
   var html = '<div class="preview-box">' + mediaHtml + '<div class="pb-body">'
-    + '<h4>' + mkEsc(enH || '(English headline)') + '</h4><p>' + mkEsc(clampWords(enS, 60) || '(English summary)') + '</p>'
-    + '<div class="dash-meta" style="margin-top:8px">' + mkEsc(mkFd('fdPublisher').value.trim() || 'Mana Khammam') + (mkFd('fdSource').value.trim() ? ' · Source: ' + mkEsc(mkFd('fdSource').value.trim()) : '') + '</div>'
+    + '<h4>' + mkEsc(teH || '(Telugu headline)') + '</h4><p>' + mkEsc(clampWords(teS, 60) || '(Telugu summary)') + '</p>'
+    + '<div class="dash-meta" style="margin-top:8px">' + mkEsc(mkFd('fdPublisher').value.trim() || 'Mana Khammam') + (mkFd('fdSource').value.trim() ? ' · Source: ' + mkEsc(mkFd('fdSource').value.trim()) : '') + ' · Telugu version — what readers see</div>'
     + '</div></div>';
-  if(teH || teS){
+  if(enH || enS){
     html += '<div class="preview-box" style="margin-top:10px"><div class="pb-body">'
-      + '<h4>' + mkEsc(teH || '(Telugu headline)') + '</h4><p>' + mkEsc(clampWords(teS, 60) || '(Telugu summary)') + '</p>'
-      + '<div class="dash-meta" style="margin-top:8px">Telugu version</div></div></div>';
+      + '<h4>' + mkEsc(enH || '(English headline)') + '</h4><p>' + mkEsc(clampWords(enS, 60) || '(English summary)') + '</p>'
+      + '<div class="dash-meta" style="margin-top:8px">English version — stored, not shown to readers</div></div></div>';
   }
   box.innerHTML = html; box.style.display = '';
 });
@@ -8792,7 +8770,7 @@ function npLoadMine(u){
       }
       box.innerHTML = rows.map(function(row){
         var en = mkTrOf(row, 'en'), te = mkTrOf(row, 'te');
-        var title = (en && en.headline) || (te && te.headline) || '(Untitled post)';
+        var title = (te && te.headline) || (en && en.headline) || '(Untitled post)';
         var badge, note;
         if(row.status === 'pending'){ badge = '<span class="badge pending">Pending</span>'; note = 'Waiting for founder approval — not public yet.'; }
         else if(row.status === 'published'){ badge = '<span class="badge published">Published</span>'; note = 'Live in Local News' + (row.published_at ? ' since ' + newsTimeLabel(row.published_at) : '') + '.'; }
