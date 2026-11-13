@@ -4064,21 +4064,16 @@ table.ng-table td b{color:var(--ink)}
         <div class="f-card" id="adEditor" style="display:none">
           <h3 id="adEditorTitle">New Article</h3>
           <p id="adEditorMeta" class="dash-meta" style="margin-bottom:12px"></p>
-          <p class="f-note" style="margin-bottom:12px">Word caps — the same limits as Post News, sized to one news sheet: headline up to <b>12 words</b>, summary up to <b>60 words</b>, full story up to <b>100 words</b>. The counter under each box shows words used and words left as you type; an article over a cap cannot be saved or published until it is shortened. Stories are written and shown in <b>Telugu only</b> — publishing needs the Telugu headline and summary. No Telugu keyboard needed: in every Telugu box, type with English letters and they turn into Telugu script as you type — <b>khammam</b> becomes <b>ఖమ్మం</b>, <b>varsham</b> becomes <b>వర్షం</b> (type aa, ee, oo for long sounds). A Telugu keyboard works too; Telugu letters you type stay as they are.</p>
+          <p class="f-note" style="margin-bottom:12px">Word caps — the same limits as Post News, sized to one news sheet: headline up to <b>12 words</b>, summary up to <b>100 words</b>. The counter under each box shows words used and words left as you type; an article over a cap cannot be saved or published until it is shortened. Stories are written and shown in <b>Telugu only</b> — publishing needs the Telugu headline and summary. No Telugu keyboard needed: in every Telugu box, type with English letters and they turn into Telugu script as you type — <b>khammam</b> becomes <b>ఖమ్మం</b>, <b>varsham</b> becomes <b>వర్షం</b> (type aa, ee, oo for long sounds). A Telugu keyboard works too; Telugu letters you type stay as they are. After a story is published, the editor clears itself — every box is empty and ready for the next story.</p>
           <div class="f-field">
             <label for="fdHeadlineTe">Headline — Telugu (max 12 words)</label>
             <input class="f-input" id="fdHeadlineTe" type="text" placeholder="Type here — khammam becomes ఖమ్మం" />
             <div class="wc-line" id="fdWcHeadTe"><span class="wc-msg">Fits 2 lines on the news sheet</span><span class="wc-count">0 / 12 words · 12 left</span></div>
           </div>
           <div class="f-field">
-            <label for="fdSummaryTe">Summary — Telugu (max 60 words, shown on the card — readers see Telugu only)</label>
+            <label for="fdSummaryTe">Summary — Telugu (max 100 words, shown on the card — readers see Telugu only)</label>
             <textarea class="f-input" id="fdSummaryTe" placeholder="ఇక్కడ రాయండి — or type in English letters: varsham → వర్షం"></textarea>
-            <div class="wc-line" id="fdWcSumTe"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 60 words · 60 left</span></div>
-          </div>
-          <div class="f-field">
-            <label for="fdBodyTe">Full story — Telugu (optional, max 100 words)</label>
-            <textarea class="f-input tall" id="fdBodyTe" placeholder="ఇక్కడ రాయండి — or type in English letters and they become Telugu as you type"></textarea>
-            <div class="wc-line" id="fdWcBodyTe"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 100 words · 100 left</span></div>
+            <div class="wc-line" id="fdWcSumTe"><span class="wc-msg">Fits the story area of one news sheet</span><span class="wc-count">0 / 100 words · 100 left</span></div>
           </div>
           <div class="f-field">
             <label for="fdSource">Source attribution</label>
@@ -4099,16 +4094,7 @@ table.ng-table td b{color:var(--ink)}
           </div>
 
           <span class="micro" style="color:var(--accent);display:block;margin:18px 0 4px">Photo / Video</span>
-          <p class="f-note" style="margin-bottom:10px">Photos go to the news-photos bucket, videos to news-videos. A video gets a poster captured from its first frames — or upload your own poster image. Save the draft first if this is a brand-new article; uploading will save it for you.</p>
-          <div class="f-field">
-            <label for="fdMediaFile">Choose photo or video</label>
-            <input class="f-input" id="fdMediaFile" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" />
-          </div>
-          <div class="f-field" id="fdPosterField" style="display:none">
-            <label for="fdPosterFile">Poster image for the video (optional)</label>
-            <input class="f-input" id="fdPosterFile" type="file" accept="image/jpeg,image/png,image/webp" />
-            <p class="f-note" id="fdPosterNote" style="margin-top:6px">A poster will be captured from the video automatically if you do not choose one.</p>
-          </div>
+          <p class="f-note" style="margin-bottom:10px">Photos go to the news-photos bucket, videos to news-videos. Fill in the media credit and description first if you want them on the photo, then tap <b>Upload media</b> and pick the photo or video — it uploads straight away, in one step; there is no separate file to choose and nothing sits chosen-but-not-uploaded. A video gets a poster captured automatically from its first frames. Uploading saves the draft for you if this is a brand-new article.</p>
           <div class="f-field">
             <label for="fdMediaCredit">Media credit</label>
             <input class="f-input" id="fdMediaCredit" type="text" placeholder="e.g. Photo: Mana Khammam" />
@@ -4117,6 +4103,7 @@ table.ng-table td b{color:var(--ink)}
             <label for="fdMediaAlt">Media description (alt text)</label>
             <input class="f-input" id="fdMediaAlt" type="text" placeholder="Describe the photo or video" />
           </div>
+          <input type="file" id="fdMediaFile" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" style="display:none" aria-hidden="true" tabindex="-1" />
           <button class="btn-ghost" id="fdUploadBtn" style="width:100%">Upload media</button>
           <div class="prog-wrap" id="fdProgWrap">
             <div class="prog-track"><i id="fdProgBar"></i></div>
@@ -5208,7 +5195,6 @@ table.ng-table td b{color:var(--ink)}
   <div class="nr-menu" id="nrMenu" role="menu" aria-label="Story options">
     <button id="nrMenuPrev" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Previous story</button>
     <button id="nrMenuNext" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>Next story</button>
-    <button id="nrMenuFull" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11v16H5z"/><path d="M8 8h5M8 12h5M8 16h3"/></svg>Read full story</button>
     <button id="nrMenuSave" role="menuitem" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v16l-5-3.6L7 20z"/></svg><span>Save story</span></button>
     <div class="sep"></div>
     <button id="nrMenuReport" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 5h11l-2.5 3.5L17 12H6"/></svg>Report issue</button>
@@ -6354,14 +6340,11 @@ function nrPageHTML(a, interactive, pos, total){
   /* Headline first under the image, then the story's COMPLETE text
      (summary + full body — see nrArticleTextHTML), then the meta foot
      — the recording's order. The page's own scroll area carries it
-     all; nothing is cut off behind the Read full story link. */
+     all, in full, on this one card — there is no separate full-story
+     view or option. */
   html += '<div class="nr-body"><h2>' + mkEsc(loc.headline) + '</h2>' + nrArticleTextHTML(loc) + '</div>';
   html += '<div class="nr-pg-foot">' + nrBylineHTML(a);
   if(a.source) html += '<div class="nr-source">Source: ' + mkEsc(a.source) + '</div>';
-  if(interactive && loc.body){
-    html += '<button class="nr-readfull" data-nr-readfull>Read full story'
-      + '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>';
-  }
   return html + '</div></div></div>' + meta + nrToolbarHTML();
 }
 function nrCloseMenu(){
@@ -7985,11 +7968,10 @@ function mkEditorMsg(errText, okText){
 }
 function mkOpenEditor(row){
   ED = { id:'', status:'draft', slug:'', publishedAt:'', createdAt:'', updatedAt:'', media:[], igUrl:'', igDropped:false };
-  mkFd('fdHeadlineTe').value = ''; mkFd('fdSummaryTe').value = ''; mkFd('fdBodyTe').value = '';
+  mkFd('fdHeadlineTe').value = ''; mkFd('fdSummaryTe').value = '';
   mkFd('fdSource').value = ''; mkFd('fdCorrection').value = ''; mkFd('fdPublisher').value = 'Mana Khammam';
   mkFd('fdIgUrl').value = '';
-  mkFd('fdMediaFile').value = ''; mkFd('fdPosterFile').value = ''; mkFd('fdMediaCredit').value = ''; mkFd('fdMediaAlt').value = '';
-  mkFd('fdPosterField').style.display = 'none';
+  mkFd('fdMediaFile').value = ''; mkFd('fdMediaCredit').value = ''; mkFd('fdMediaAlt').value = '';
   mkFd('fdPreview').style.display = 'none'; mkFd('fdPreview').innerHTML = '';
   mkEditorMsg('', '');
   if(row){
@@ -7997,7 +7979,7 @@ function mkOpenEditor(row){
     ED.publishedAt = row.published_at || ''; ED.createdAt = row.created_at || ''; ED.updatedAt = row.updated_at || '';
     ED.media = (row.article_media || []).slice().sort(function(a, b){ return (a.position || 0) - (b.position || 0); });
     var te = mkTrOf(row, 'te');
-    if(te){ mkFd('fdHeadlineTe').value = te.headline || ''; mkFd('fdSummaryTe').value = te.summary_60_words || ''; mkFd('fdBodyTe').value = te.body_full || ''; }
+    if(te){ mkFd('fdHeadlineTe').value = te.headline || ''; mkFd('fdSummaryTe').value = te.summary_60_words || ''; }
     mkFd('fdSource').value = row.source_attribution || '';
     mkFd('fdIgUrl').value = row.instagram_url || '';
     ED.igUrl = row.instagram_url || '';
@@ -8016,6 +7998,20 @@ function mkOpenEditor(row){
 }
 function mkCloseEditor(){ mkFd('adEditor').style.display = 'none'; ED.id = ''; ED.media = []; }
 document.getElementById('fdCloseBtn').addEventListener('click', mkCloseEditor);
+/* After a successful publish the editor must NOT stay bound to the
+   just-published article: while ED.id / ED.status still pointed at it,
+   the Publish button read “Unpublish”, so typing the next story into
+   the same boxes and tapping the button unpublished / overwrote the
+   first story instead of publishing a new one. Reset to a brand-new
+   blank article — every box empty, no media, Publish (not Unpublish),
+   no article id — so the next story starts clean. The success message
+   is painted AFTER the reset, because opening a blank editor clears
+   the message area. */
+function mkResetEditorForNext(okText){
+  mkOpenEditor(null);
+  try{ ED_PENDING_POSTER = null; }catch(e){}
+  if(okText) mkEditorMsg('', okText);
+}
 
 /* ---------- Roman → Telugu transliteration (typing aid) ----------
    Used by every news Telugu box (Post News and the founder editor):
@@ -8153,20 +8149,18 @@ function tlAttach(el, repaint){
 }
 
 /* ---------- Dashboard editor: word caps ----------
-   The same news-sheet limits as Post News (headline ≤ 12 words,
-   story ≤ 100 words), applied to the founder editor's Telugu fields:
-   headline ≤ 12, summary ≤ 60 (it is stored in summary_60_words and
-   shown on the card), full story ≤ 100 — counted by spaces. The
-   editor is Telugu-only (the English fields were removed at the
+   The same news-sheet limits as Post News, applied to the founder
+   editor's Telugu fields: headline ≤ 12, summary ≤ 100 (it is stored
+   in summary_60_words and shown on the card) — counted by spaces.
+   There is no separate full-story field in this editor (removed at
+   the founder's request): the summary IS the story readers see.
+   The editor is Telugu-only (the English fields were removed at the
    founder's request; readers only ever saw the Telugu version).
-   This editor previously had NO caps at all, so founder posts could
-   run far past one news sheet. The counters paint live as the
-   founder types, and Save / Publish refuse over-cap text with the
-   exact count and limit. */
+   The counters paint live as the founder types, and Save / Publish
+   refuse over-cap text with the exact count and limit. */
 var FD_WC_FIELDS = [
   { input:'fdHeadlineTe', line:'fdWcHeadTe', max:12, label:'Telugu headline', kind:'headline' },
-  { input:'fdSummaryTe', line:'fdWcSumTe', max:60, label:'Telugu summary', kind:'story' },
-  { input:'fdBodyTe', line:'fdWcBodyTe', max:100, label:'Telugu full story', kind:'story' }
+  { input:'fdSummaryTe', line:'fdWcSumTe', max:100, label:'Telugu summary', kind:'story' }
 ];
 function fdCountWords(text){
   var t = String(text || '').trim();
@@ -8254,10 +8248,12 @@ function mkSaveArticle(){
     ED.createdAt = r.data.created_at; ED.updatedAt = r.data.updated_at;
     if(!ED.igDropped) ED.igUrl = igUrl;
     var ups = [];
-    var teH = mkFd('fdHeadlineTe').value.trim(), teS = mkFd('fdSummaryTe').value.trim(), teB = mkFd('fdBodyTe').value;
-    if(teH || teS || teB.trim()){
+    var teH = mkFd('fdHeadlineTe').value.trim(), teS = mkFd('fdSummaryTe').value.trim();
+    if(teH || teS){
+      /* No full-story field any more: body_full is saved as null, so a
+         re-saved older story does not keep a hidden full story either. */
       ups.push(MK.client.from('article_translations').upsert(
-        { article_id:ED.id, lang:'te', headline:teH, summary_60_words:teS, body_full:teB.trim() ? teB : null },
+        { article_id:ED.id, lang:'te', headline:teH, summary_60_words:teS, body_full:null },
         { onConflict:'article_id,lang' }));
     }
     return Promise.all(ups).then(function(results){
@@ -8300,17 +8296,23 @@ document.getElementById('fdPublishBtn').addEventListener('click', function(){
   if(overMsg){ fdPaintAllWc(); mkEditorMsg(overMsg, ''); return; }
   var teH = mkFd('fdHeadlineTe').value.trim(), teS = mkFd('fdSummaryTe').value.trim();
   if(!teH || !teS){ mkEditorMsg('Add the Telugu headline and the Telugu summary before publishing — readers see stories in Telugu only, so the reader card needs the Telugu version.', ''); return; }
+  var publishedId = '';
   mkSaveArticle().then(function(){
+    publishedId = ED.id;
     var patch = { status:'published', published_at: ED.publishedAt || new Date().toISOString() };
     if(!ED.slug) patch.slug = mkSlugify(teH) + '-' + String(ED.id).slice(0, 6);
     return MK.client.from('news_articles').update(patch).eq('id', ED.id).select().single();
   }).then(function(r){
     if(r.error) throw r.error;
-    ED.status = 'published'; ED.publishedAt = r.data.published_at; ED.slug = r.data.slug || ED.slug;
-    mkFd('fdPublishBtn').textContent = 'Unpublish';
-    return mkAudit(ED.id, 'published', null);
+    return mkAudit(publishedId, 'published', null);
   }).then(function(){
-    mkEditorMsg('', 'Published — the story is live in the reader and on the homepage.' + (ED.igDropped ? ' Note: the Instagram link was not stored — run setup SQL section 8, then edit the story and save to attach it.' : ''));
+    var igNote = ED.igDropped ? ' Note: the Instagram link was not stored — run setup SQL section 8, then edit the story from the Articles list and save to attach it.' : '';
+    /* Clear EVERY box and unbind the editor from the published story
+       (new blank article, Publish button, no id) so the next story
+       can be written and published straight away. The published story
+       itself stays live and listed under Articles below, where it can
+       still be edited or unpublished. */
+    mkResetEditorForNext('Published — the story is live in the reader and on the homepage. All the boxes above are empty now — write the next story and publish it the same way.' + igNote);
     mkLoadList(); mkLoadFeed(true);
   }).catch(function(err){
     mkEditorMsg('Publish did not complete: ' + ((err && err.message) || 'unknown error'), '');
@@ -8329,7 +8331,7 @@ document.getElementById('fdPreviewBtn').addEventListener('click', function(){
       : '<img src="' + mkEsc(u0) + '" alt="' + mkEsc(m0.alt_text || '') + '"/>';
   }
   var html = '<div class="preview-box">' + mediaHtml + '<div class="pb-body">'
-    + '<h4>' + mkEsc(teH || '(Telugu headline)') + '</h4><p>' + mkEsc(clampWords(teS, 60) || '(Telugu summary)') + '</p>'
+    + '<h4>' + mkEsc(teH || '(Telugu headline)') + '</h4><p>' + mkEsc(clampWords(teS, 100) || '(Telugu summary)') + '</p>'
     + '<div class="dash-meta" style="margin-top:8px">' + mkEsc(mkFd('fdPublisher').value.trim() || 'Mana Khammam') + (mkFd('fdSource').value.trim() ? ' · Source: ' + mkEsc(mkFd('fdSource').value.trim()) : '') + ' · Telugu version — what readers see</div>'
     + '</div></div>';
   box.innerHTML = html; box.style.display = '';
@@ -8358,19 +8360,29 @@ function mkCapturePoster(file){
     setTimeout(function(){ finish(null); }, 6000);
   });
 }
+/* Single-step media flow: the file input is hidden — there is no
+   visible “Choose File” row any more. Tapping “Upload media” opens
+   the picker (see the button handler below), and the moment a file
+   is picked it uploads right away. A picked file can therefore never
+   sit chosen-but-not-uploaded and get silently lost when the story
+   is saved or published. For a video, a poster is captured from its
+   first frames first, then the video + poster upload together. */
 mkFd('fdMediaFile').addEventListener('change', function(){
   var f = this.files && this.files[0];
+  /* Clear the input at once (the File object stays valid) so picking
+     the same file again later fires change again. */
+  this.value = '';
+  if(!f) return;
   ED_PENDING_POSTER = null;
-  var isVideo = !!(f && f.type.indexOf('video/') === 0);
-  mkFd('fdPosterField').style.display = isVideo ? '' : 'none';
-  if(isVideo){
-    mkFd('fdPosterNote').textContent = 'Capturing a poster from the video…';
+  if(f.type.indexOf('video/') === 0){
+    var wrap0 = mkFd('fdProgWrap'), label0 = mkFd('fdProgLabel');
+    wrap0.classList.add('show'); label0.textContent = 'Capturing a poster from the video…';
     mkCapturePoster(f).then(function(blob){
       ED_PENDING_POSTER = blob;
-      mkFd('fdPosterNote').textContent = blob
-        ? 'Poster captured from the video. You can still choose your own poster image instead.'
-        : 'A poster could not be captured automatically — choose a poster image, or the video will show without one.';
+      mkUploadPickedMedia(f);
     });
+  } else {
+    mkUploadPickedMedia(f);
   }
 });
 function mkUploadXHR(bucket, path, blob, onProgress){
@@ -8419,11 +8431,17 @@ function mkRemoveMedia(i){
     showToast('Media removed.');
   }).catch(function(){ showToast('That media could not be removed — try again.'); });
 }
+/* “Upload media” is the whole flow: tap → pick → uploaded. */
 document.getElementById('fdUploadBtn').addEventListener('click', function(){
   var err = mkFd('fdMediaErr');
   err.textContent = ''; err.classList.remove('show');
-  var file = mkFd('fdMediaFile').files && mkFd('fdMediaFile').files[0];
-  if(!file){ err.textContent = 'Choose a photo or video file first.'; err.classList.add('show'); return; }
+  mkFd('fdMediaFile').click();
+});
+function mkUploadPickedMedia(file){
+  var err = mkFd('fdMediaErr');
+  err.textContent = ''; err.classList.remove('show');
+  var btn = document.getElementById('fdUploadBtn');
+  btn.disabled = true; btn.textContent = 'Uploading…';
   var isVideo = file.type.indexOf('video/') === 0;
   var bucket = isVideo ? 'news-videos' : 'news-photos';
   var wrap = mkFd('fdProgWrap'), bar = mkFd('fdProgBar'), label = mkFd('fdProgLabel');
@@ -8435,7 +8453,7 @@ document.getElementById('fdUploadBtn').addEventListener('click', function(){
     return mkUploadXHR(bucket, path, file, function(p){ bar.style.width = Math.round(p * (isVideo ? 80 : 100)) + '%'; })
       .then(function(){
         var posterPath = null;
-        var posterBlob = (mkFd('fdPosterFile').files && mkFd('fdPosterFile').files[0]) || ED_PENDING_POSTER;
+        var posterBlob = ED_PENDING_POSTER;
         if(isVideo && posterBlob){
           posterPath = ED.id + '/poster-' + Date.now() + '.jpg';
           label.textContent = 'Uploading poster…';
@@ -8457,17 +8475,18 @@ document.getElementById('fdUploadBtn').addEventListener('click', function(){
     if(r && r.data) ED.media.push(r.data);
     bar.style.width = '100%'; label.textContent = 'Upload complete.';
     setTimeout(function(){ wrap.classList.remove('show'); }, 900);
-    mkFd('fdMediaFile').value = ''; mkFd('fdPosterFile').value = ''; ED_PENDING_POSTER = null;
-    mkFd('fdPosterField').style.display = 'none';
+    ED_PENDING_POSTER = null;
+    btn.disabled = false; btn.textContent = 'Upload media';
     mkRenderMediaList(); mkLoadList();
     if(ED.status === 'published') mkLoadFeed(true);
   }).catch(function(e){
     wrap.classList.remove('show');
+    btn.disabled = false; btn.textContent = 'Upload media';
     var capMsg = fdOverCapMessage();
     err.textContent = capMsg || ('Upload failed: ' + ((e && e.message) || 'unknown error') + ' — uploads are founder-only, so a rejection usually means the sign-in is not a founder session or the storage policies are not in place yet.');
     err.classList.add('show');
   });
-});
+}
 
 /* ---------- Init: activate from saved config, if any ---------- */
 (function mkInit(){
