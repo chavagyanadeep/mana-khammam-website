@@ -21602,7 +21602,10 @@ function deRouteHash(){
    sign-in screen for users without their password handy; it is not
    part of signup. Sign-in uses email + password; an unconfirmed
    account attempting password sign-in is routed to the verify-once
-   screen, and only there. Recovery uses resetPasswordForEmail.
+   screen, and only there. Recovery uses resetPasswordForEmail with
+   an explicit production redirectTo (AU_RESET_REDIRECT); the
+   returning link lands on the 'resetpw' step (auStepResetPassword),
+   which sets the new password on the recovery session via updateUser.
    V1 is EMAIL OTP ONLY: phone/SMS signup is cancelled for launch, so
    no public screen offers it and AU.method is pinned to 'email'.
    Public content (news, weather, panchangam, rates, alerts) never
@@ -21622,9 +21625,24 @@ var AU = {
   method:'email', identifier:'', phoneE164:'', username:'',
   attempts:0, lockedUntil:0, resendAt:0, timer:null,
   pendingAfter:null, legalFrom:'profile', profile:null,
-  pendingProfile:null
+  pendingProfile:null, recoveryOpened:false
 };
 var AU_LOCALITIES_FALLBACK = ['Wyra Road','Rotary Nagar','Bonakal Road','Mamillagudem','Ballepalli','Kaviraj Nagar','Mustafa Nagar','Pakabanda','Gandhi Chowk','Zaffergudem','Other'];
+
+/* Production site origin. Password-reset emails MUST send the reader
+   back here: resetPasswordForEmail passes this origin explicitly as
+   redirectTo, because when it is omitted the provider falls back to
+   the dashboard "Site URL" — which still held a localhost address and
+   sent every reset link to a dead page ("localhost refused to
+   connect"). The dashboard Redirect URLs allowlist already contains
+   https://mana-khammam.com/**, so this redirect is accepted. The
+   ?mkreset=1 marker rides in the query string (never the hash — the
+   provider appends its own #access_token fragment, and this app's
+   routes live in the hash) so the landing page can recognise a
+   reset-link arrival even after the provider has consumed and
+   stripped the token fragment. */
+var AU_SITE_URL = 'https://mana-khammam.com';
+var AU_RESET_REDIRECT = AU_SITE_URL + '/?mkreset=1';
 
 /* ---------- pure validators (exercised by docs/security-tests.mjs) ---------- */
 function auValidEmail(s){
@@ -21756,6 +21774,7 @@ function auRender(){
   else if(AU.step === 'password') auStepPassword(body);
   else if(AU.step === 'signin') auStepSignin(body);
   else if(AU.step === 'forgot') auStepForgot(body);
+  else if(AU.step === 'resetpw') auStepResetPassword(body);
   window.scrollTo({ top:0 });
 }
 
@@ -22317,14 +22336,149 @@ function auStepForgot(body){
     if(!auValidEmail(v)){ auErr('auFgErr', 'Enter a complete email address.'); return; }
     auErr('auFgErr', '');
     var btn = this; auBusy(btn, true, 'Sending…');
-    auClient().auth.resetPasswordForEmail(v.toLowerCase()).then(function(){
+    /* redirectTo is passed EXPLICITLY: without it the email link
+       falls back to the provider dashboard's default Site URL, which
+       pointed at localhost and broke every reset ("localhost refused
+       to connect"). The link now always returns to mana-khammam.com,
+       where auCheckRecoveryLink recognises the ?mkreset=1 marker and
+       opens the set-a-new-password step. */
+    auClient().auth.resetPasswordForEmail(v.toLowerCase(), { redirectTo: AU_RESET_REDIRECT }).then(function(){
       auBusy(btn, false, 'Send reset link');
-      auOk('auFgOk', 'If that email is registered, a password-reset link is on its way. It expires shortly and can be used once.');
+      auOk('auFgOk', 'If that email is registered, a password-reset link is on its way. It opens this website — set your new password there. It expires shortly and can be used once.');
     }).catch(function(){
       auBusy(btn, false, 'Send reset link');
-      auOk('auFgOk', 'If that email is registered, a password-reset link is on its way.');
+      auOk('auFgOk', 'If that email is registered, a password-reset link is on its way. It opens this website — set your new password there.');
     });
   });
+}
+
+/* ---------- STEP: set a new password (arrival from a reset email link) ----------
+   The reset email returns the reader to mana-khammam.com carrying a
+   one-time recovery session (the provider exchanges the link token
+   and signs them in). This is the ONLY screen that completes the
+   reset: the new password is saved on that session with updateUser.
+   Without it, a working link landed on the homepage with a silent
+   session and no way to set a password — the account-settings form
+   cannot substitute, because it demands the current (forgotten)
+   password first. An expired or already-used link produces NO
+   session; the screen then says so and offers a fresh link instead
+   of pretending. */
+function auStepResetPassword(body){
+  if(!auClient()){
+    body.innerHTML = auBrandHTML() + auNotConnHTML();
+    auEl('auNcExplore').addEventListener('click', function(){ auReturn(); });
+    return;
+  }
+  var u = auSessionUser();
+  if(!u){
+    body.innerHTML = auBrandHTML()
+      + '<div class="f-card" style="margin-top:16px"><h3>This reset link has expired</h3>'
+      + '<p>Reset links work once and only for a short time, and this one is no longer active — it may already have been used. Request a fresh link and use the newest email.</p>'
+      + '<button class="btn-solid" id="auRpFresh" style="width:100%;margin-top:6px">Request a fresh reset link</button>'
+      + '<p class="f-note" style="margin-top:12px;text-align:center">Remembered it after all? <button id="auRpSignIn" style="background:none;border:none;font-family:inherit;font-weight:700;color:var(--accent-deep);cursor:pointer;padding:0">Sign in with your password</button></p>'
+      + '</div>';
+    auEl('auRpFresh').addEventListener('click', function(){ AU.step = 'forgot'; auRender(); });
+    auEl('auRpSignIn').addEventListener('click', function(){ AU.step = 'signin'; auRender(); });
+    return;
+  }
+  body.innerHTML = auBrandHTML()
+    + '<div class="f-card" style="margin-top:16px"><h3>Set a new password</h3>'
+    + '<p>Your reset link checked out — you are signed in once as <b>' + mkEsc(u.email || 'your account') + '</b> so you can choose a new password. From now on, sign in with this new password.</p>'
+    + '<div class="f-field"><label for="auRp1">New password</label><div class="au-passwrap"><input class="f-input" id="auRp1" type="password" autocomplete="new-password" placeholder="At least 10 characters" /><button type="button" class="au-eye" id="auRpEye1">Show</button></div>'
+    + '<div class="au-meter" id="auRpMeter"><i></i></div><div class="au-meter-txt" id="auRpMeterTxt">Tip: a passphrase like “coffee-morning-walk” is long, strong and easy to remember.</div></div>'
+    + '<div class="f-field"><label for="auRp2">Confirm new password</label><div class="au-passwrap"><input class="f-input" id="auRp2" type="password" autocomplete="new-password" placeholder="Type it again" /><button type="button" class="au-eye" id="auRpEye2">Show</button></div></div>'
+    + '<div class="f-err" id="auRpErr"></div>'
+    + '<button class="btn-solid" id="auRpBtn" style="width:100%;margin-top:6px">Save new password</button>'
+    + '</div>';
+  function wireEye(btnId, inputId){
+    auEl(btnId).addEventListener('click', function(){
+      var inp = auEl(inputId);
+      var show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      this.textContent = show ? 'Hide' : 'Show';
+    });
+  }
+  wireEye('auRpEye1', 'auRp1'); wireEye('auRpEye2', 'auRp2');
+  auEl('auRp1').addEventListener('input', function(){
+    var s = auPasswordScore(this.value);
+    var meter = auEl('auRpMeter');
+    meter.className = 'au-meter m' + s;
+    meter.querySelector('i').style.width = (s * 25) + '%';
+    auEl('auRpMeterTxt').textContent = this.value
+      ? 'Strength: ' + AU_PW_LABELS[s] + (s < 2 ? ' — add length to make it stronger.' : '')
+      : 'Tip: a passphrase like “coffee-morning-walk” is long, strong and easy to remember.';
+  });
+  auEl('auRp1').focus();
+  auEl('auRpBtn').addEventListener('click', function(){
+    var pw1 = auEl('auRp1').value, pw2 = auEl('auRp2').value;
+    var problem = auPasswordProblem(pw1);
+    if(problem){ auErr('auRpErr', problem); auEl('auRp1').classList.add('err'); return; }
+    if(pw1 !== pw2){ auErr('auRpErr', 'The two passwords do not match.'); auEl('auRp2').classList.add('err'); return; }
+    auErr('auRpErr', '');
+    var btn = this; auBusy(btn, true, 'Saving…');
+    auClient().auth.updateUser({ password: pw1 }).then(function(r){
+      auBusy(btn, false, 'Save new password');
+      if(r.error){
+        var em = (r.error.message || '').toLowerCase();
+        auErr('auRpErr', (em.indexOf('session') >= 0 || em.indexOf('expired') >= 0)
+          ? 'This reset link has expired or was already used. Request a fresh reset link and use the newest email.'
+          : 'The new password could not be saved (' + (r.error.message || 'provider error') + '). Your reset session is still active — try again.');
+        return;
+      }
+      /* Done: the recovery session is now an ordinary signed-in
+         session under the NEW password. Scrub the reset marker and
+         any token fragment from the address bar so a refresh or a
+         shared screenshot can never replay the link, and count this
+         as a fresh re-authentication for sensitive actions. */
+      MK.lastReauth = Date.now();
+      try{ history.replaceState(null, '', window.location.pathname); }catch(e){}
+      auAfterAuth('Password updated — you are signed in with your new password.');
+    }).catch(function(){
+      auBusy(btn, false, 'Save new password');
+      auErr('auRpErr', 'Could not reach the sign-in service. Your reset session is still active — try again.');
+    });
+  });
+}
+
+/* ---------- recovery arrival: recognise a reset-link landing ----------
+   Two signals, either is enough:
+   1. The ?mkreset=1 marker this app puts in its own reset redirectTo
+      (survives in the query string after the provider consumes the
+      token fragment — the fragment itself may already be gone by the
+      time this runs, so it is never the only check).
+   2. The provider's PASSWORD_RECOVERY auth event, for links sent
+      without the marker (e.g. an email requested before this fix,
+      which falls back to the dashboard Site URL).
+   The recovery session is established asynchronously by the client
+   on load, so the marker path polls briefly for the session before
+   opening the step; if none appears, the step opens anyway and
+   explains the link has expired. */
+function auOpenRecovery(){
+  if(AU.recoveryOpened) return;
+  AU.recoveryOpened = true;
+  AU.ret = 'profile'; AU.why = '';
+  AU.step = 'resetpw';
+  showView('auth');
+  document.querySelectorAll('.tab[data-goto]').forEach(function(t){ t.classList.remove('on'); });
+  window.scrollTo({ top:0 });
+  auRender();
+}
+function auCheckRecoveryLink(){
+  var marked = /[?&]mkreset=1(?:[&#]|$)/.test(window.location.search || '')
+    || (window.location.hash || '').indexOf('type=recovery') >= 0;
+  if(!marked) return;
+  var tries = 0;
+  (function poll(){
+    var c = auClient();
+    if(c){
+      c.auth.getSession().then(function(res){
+        var s = res && res.data ? res.data.session : null;
+        if(s && s.user){ MK.session = s; MK.user = s.user; auOpenRecovery(); return; }
+        if(++tries < 12) setTimeout(poll, 400); else auOpenRecovery();
+      }).catch(function(){ if(++tries < 12) setTimeout(poll, 400); else auOpenRecovery(); });
+    } else if(++tries < 12){ setTimeout(poll, 400); }
+    else auOpenRecovery();
+  })();
 }
 
 /* ---------- after successful auth: sync every module, resume the pending action ---------- */
@@ -22811,7 +22965,14 @@ function mkStartMfaEnroll(){
     if(!MK.client || MK.auHooked) return;
     MK.auHooked = true;
     try{
-      MK.client.auth.onAuthStateChange(function(){
+      MK.client.auth.onAuthStateChange(function(event){
+        /* A reset email link was followed: the provider fires
+           PASSWORD_RECOVERY as it signs the reader in with the
+           one-time recovery session. Route them to the set-a-new-
+           password step — slightly deferred so the session sync
+           below lands first. (The ?mkreset=1 marker poll in
+           auCheckRecoveryLink covers links this event misses.) */
+        if(event === 'PASSWORD_RECOVERY'){ setTimeout(auOpenRecovery, 350); }
         MK.client.auth.getSession().then(function(res){
           var s = res && res.data ? res.data.session : null;
           MK.session = s; MK.user = s ? s.user : null;
@@ -22829,6 +22990,9 @@ function mkStartMfaEnroll(){
   auHookSession();
   setTimeout(auHookSession, 1200);
   auSyncProfileCard();
+  /* If this page load IS a password-reset landing, open the
+     set-a-new-password step once the recovery session settles. */
+  auCheckRecoveryLink();
 })();
 </script>
 
