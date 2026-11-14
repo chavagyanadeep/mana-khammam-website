@@ -11923,7 +11923,10 @@ function reRenderBrowse(){
   reRenderTrending();
   if(!reClient()) return;
   var items = reFilteredProps();
-  document.getElementById('reResultCount').textContent = items.length + (items.length === 1 ? ' property' : ' properties');
+  /* Property count is never shown in the visitor view — the tab-row
+     count stays empty in List, Map and Reels. The founder still sees
+     counts in the founder panel. */
+  document.getElementById('reResultCount').textContent = '';
   if(RE.viewMode === 'map'){ reRenderMap(body, items); return; }
   if(RE.viewMode === 'reels'){ reRenderReelsView(body); return; }
   if(RE.viewMode === 'videos'){ if(typeof pnRenderVideos === 'function') pnRenderVideos(body, items); return; }
@@ -12406,7 +12409,7 @@ function reMapSideHTML(shown, items){
   if(shown.length && !withLoc){
     note += '<div class="remap-note"><b>No map locations shared yet.</b> These sellers have not shared an approximate location, so there is nothing honest to plot. Every property is still listed here — Mana Khammam never invents map pins.</div>';
   } else if(withLoc < shown.length){
-    note += '<div class="remap-note">Showing <b>' + withLoc + ' of ' + shown.length + '</b> properties on the map — the rest have not shared an approximate location. Exact addresses are never shown.</div>';
+    note += '<div class="remap-note">Properties with a shared location are shown on the map — the rest have not shared an approximate location. Exact addresses are never shown.</div>';
   }
   return note + shown.map(reMapCardHTML).join('');
 }
@@ -12477,14 +12480,14 @@ function reBindMapSide(root){
 function reRenderMap(body, items){
   var shown = reMapShown(items);
   var countEl = document.getElementById('reResultCount');
-  if(countEl) countEl.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties') + (OSM.boundsFilter ? ' in this area' : '');
+  if(countEl) countEl.textContent = '';
   var side = document.getElementById('remapList');
   if(OSM.shell && side && document.getElementById('remapCanvas')){
     side.innerHTML = reMapSideHTML(shown, items);
     var head = document.getElementById('remapSideCount');
-    if(head) head.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties') + ' for sale';
+    if(head) head.textContent = 'Properties for sale';
     var fc = document.getElementById('remapFsCount');
-    if(fc) fc.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties') + ' for sale · Khammam';
+    if(fc) fc.textContent = 'Properties for sale · Khammam';
     var tb = document.getElementById('remapToolbar');
     if(tb){ tb.innerHTML = reMapToolbarHTML(); reBindMapToolbar(tb); }
     reBindMapSide(side);
@@ -12506,13 +12509,13 @@ function reRenderMap(body, items){
     + '<button class="remap-search-area" id="remapSearchArea" style="display:none">Search this area</button>'
     + '<div id="remapPreview"></div>'
     + '</section>'
-    + '<aside class="remap-side" aria-label="Property results"><div class="remap-side-head"><h3 id="remapSideCount">' + shown.length + (shown.length === 1 ? ' property' : ' properties') + ' for sale</h3><span>Khammam, Telangana · Tap a marker or a card for full details</span></div>'
+    + '<aside class="remap-side" aria-label="Property results"><div class="remap-side-head"><h3 id="remapSideCount">Properties for sale</h3><span>Khammam, Telangana · Tap a marker or a card for full details</span></div>'
     + '<div id="remapList" class="remap-list">' + reMapSideHTML(shown, items) + '</div></aside></div>';
   reBindMapToolbar(body);
   reBindMapSide(body);
   reBindPaneState(body);
   var fc2 = document.getElementById('remapFsCount');
-  if(fc2) fc2.textContent = shown.length + (shown.length === 1 ? ' property' : ' properties') + ' for sale · Khammam';
+  if(fc2) fc2.textContent = 'Properties for sale · Khammam';
   var asel = document.getElementById('remapAreaSel');
   if(asel) asel.addEventListener('change', function(){ reAreaSelect(asel.value); });
   var sab = document.getElementById('remapSearchArea');
