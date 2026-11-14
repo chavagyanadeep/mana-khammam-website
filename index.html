@@ -4727,7 +4727,7 @@ table.ng-table td b{color:var(--ink)}
            for the dedicated columns. -->
       <div class="ig-setup-note" id="reIgSetupNote" style="display:none">
         <h4>Instagram Reels — storage &amp; one-time setup</h4>
-        <p><b>News</b> stores its link in <b>news_articles.instagram_url</b>, added by setup SQL <b>section 8</b>. <b>Reels are different:</b> a Reel is standalone — never attached to a property listing — and published Reels live in their own <b>public.standalone_reels</b> table, added by setup SQL <b>section 10</b>. Run section 10 once so the founder Reels section below can save new Reels. The Wyra Road Reel that was already published has been migrated into the site itself, so it stays live in Top Rated Properties Reels and the Reels tab even before section 10 is run:</p>
+        <p><b>News</b> stores its link in <b>news_articles.instagram_url</b>, added by setup SQL <b>section 8</b>. <b>Reels are different:</b> a Reel is standalone — never attached to a property listing — and published Reels live in their own <b>public.standalone_reels</b> table, added by setup SQL <b>section 10</b>. Run section 10 once so the founder Reels section below can save new Reels. The Wyra Road Reel that was already published has been migrated into the site itself, so it stays live in Top Rated Properties Reels and the Reels tab even before section 10 is run. Removing a Reel from the founder section below deletes its standalone_reels row; the migrated Reel has no row, so its removal is recorded in <b>public.standalone_reel_removals</b>, added by setup SQL <b>section 11</b> — run section 11 once so a removed migrated Reel stays removed for every visitor:</p>
         <code>-- Section 8 (news — run once if not already run):
 alter table public.news_articles
   add column if not exists instagram_url text;</code>
@@ -4747,6 +4747,20 @@ create policy "reels_public_read" on public.standalone_reels
 drop policy if exists "reels_founder_write" on public.standalone_reels;
 create policy "reels_founder_write" on public.standalone_reels
   for all using (public.is_founder()) with check (public.is_founder());</code>
+        <code>-- Section 11 (standalone Reel removals — run once):
+create table if not exists public.standalone_reel_removals (
+  id uuid primary key default gen_random_uuid(),
+  reel_url text not null unique,
+  created_by uuid references auth.users(id),
+  created_at timestamptz not null default now()
+);
+alter table public.standalone_reel_removals enable row level security;
+drop policy if exists "reel_removals_public_read" on public.standalone_reel_removals;
+create policy "reel_removals_public_read" on public.standalone_reel_removals
+  for select using (true);
+drop policy if exists "reel_removals_founder_write" on public.standalone_reel_removals;
+create policy "reel_removals_founder_write" on public.standalone_reel_removals
+  for all using (public.is_founder()) with check (public.is_founder());</code>
         <p style="margin:8px 0 0">Whether these already exist in your Supabase project can only be confirmed in the Supabase SQL Editor / Table Editor — this page cannot inspect the database schema. Top Rated Properties Reels and the Reels tab both read the same standalone Reels store either way.</p>
       </div>
       <div id="reQueueBody"></div>
@@ -4755,6 +4769,173 @@ create policy "reels_founder_write" on public.standalone_reels
       <div id="reReelsBody"></div>
       <div class="sec-head" style="margin:20px 0 6px"><h2 style="font-size:19px">Agent approvals</h2></div>
       <p class="sec-sub" style="margin:0 0 6px">Seller tools — the dashboard, public storefronts, Share &amp; Grow, the seller inbox, Founding Partners and posting — unlock only for sellers (agents and owners) you approve here. Each application shows the role and Instagram answers the applicant submitted.</p>
+      <!-- Founder-only setup note for Agent approvals: the one-time
+           setup SQL that adds the agent_status field has never been
+           run in Supabase, so the approvals list below fails with
+           "column property_seller_profiles.agent_status does not
+           exist" and decisions cannot be saved. The SQL is shown
+           verbatim from assets/mana-khammam-supabase-migrations.sql
+           (the Agent approval block, then Section 7 of the same
+           file) so the founder can run it once in the Supabase SQL
+           Editor. The error card below is rendered by
+           pnRenderAgentApprovals and stays until the field exists;
+           this note does not change the approvals logic. Shown to
+           founders only, by reLoadQueue, like the note above. -->
+      <div class="ig-setup-note" id="pnAgentSetupNote" style="display:none">
+        <h4>Agent approvals — one-time setup SQL (run once)</h4>
+        <p>If the section below shows “Agent approvals could not be loaded — column property_seller_profiles.agent_status does not exist”, this setup SQL has not been run in Supabase yet, and approvals cannot be saved until it is. Run the SQL below once — Supabase dashboard → SQL Editor → New query → paste → Run — then reopen this panel: the applications load and Approve / Reject saves with no app change. The SQL is copied word-for-word from the setup file (mana-khammam-supabase-migrations.sql): the first block adds the <b>agent_status</b> field, the founder-only guard on it, and the application’s Instagram answer fields; the second block is <b>Section 7</b> of the same file — the news reactions and comments tables behind the public engagement counts. Whether these have already been run can only be confirmed in Supabase — this page cannot inspect the database schema.</p>
+        <code>-- =====================================================================
+-- AGENT APPROVAL (founder rule, 2026-11-04)
+-- Seller tools (dashboard / Agent Studio, public agent storefront,
+-- Share &amp; Grow, seller inbox, Founding Property Partners, posting) are
+-- for ADMIN-APPROVED AGENTS ONLY. agent_status records the decision on
+-- the seller profile: an agent applies -&gt; 'pending'; the founder
+-- approves -&gt; 'approved' or rejects -&gt; 'rejected'. NULL (never
+-- applied, or column freshly added) never counts as approved.
+-- =====================================================================
+alter table public.property_seller_profiles
+  add column if not exists agent_status text
+  check (agent_status in ('pending','approved','rejected'));
+
+-- Only a founder may set or change an approval decision. A signed-in
+-- user may set their OWN status to 'pending' (apply / re-apply) and
+-- nothing else — self-approval is rejected by the database itself.
+create or replace function public.guard_agent_status()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if public.is_founder() then
+    return new;
+  end if;
+  if tg_op = 'INSERT' then
+    if new.agent_status is not null and new.agent_status &lt;&gt; 'pending' then
+      raise exception 'agent approval is decided by the founder only';
+    end if;
+  elsif new.agent_status is distinct from old.agent_status
+     and new.agent_status is distinct from 'pending' then
+    raise exception 'agent approval is decided by the founder only';
+  end if;
+  return new;
+end; $$;
+drop trigger if exists pseller_agent_status_guard on public.property_seller_profiles;
+create trigger pseller_agent_status_guard
+  before insert or update on public.property_seller_profiles
+  for each row execute function public.guard_agent_status();
+
+-- =====================================================================
+-- SELLER ROLE + INSTAGRAM (founder rules, 2026-11-04)
+-- seller_type on property_seller_profiles records the listing role
+-- ('agent' or 'owner'); the founder's agent_status approval unlocks
+-- the SAME seller features for both roles. has_instagram and
+-- instagram_username record the APPLICATION-flow answers only (the
+-- listing flow never asks for an Instagram profile): the username is
+-- stored exactly as typed and is never treated as verified.
+-- profiles.instagram_url is EVERY user's optional public Instagram
+-- link — linking needs no approval, and the link is displayed
+-- wherever the profile or storefront is shown.
+-- =====================================================================
+alter table public.property_seller_profiles
+  add column if not exists has_instagram boolean;
+alter table public.property_seller_profiles
+  add column if not exists instagram_username text;
+alter table public.profiles
+  add column if not exists instagram_url text;</code>
+        <code>-- ============================================================
+-- SECTION 7: NEWS ENGAGEMENT — REACTIONS + COMMENTS
+-- Backs the reader's bottom strip (like / dislike / comments).
+-- Reactions follow the per-device pattern Section 1 set for
+-- bookmarks: anonymous, keyed by a random device id the app
+-- generates and stores on first use, sent as the x-device-id
+-- header. A reaction row holds no personal data (article id +
+-- random device id + choice), so reads are public — that is what
+-- makes honest public counts possible. Writes are scoped to the
+-- caller's own device id by the header check, exactly like
+-- bookmarks. Comments are public to read; posting requires a
+-- signed-in account, the author name comes from public.profiles,
+-- authors can delete their own comments, and founders moderate
+-- by hiding (status = 'hidden') rather than deleting.
+-- ============================================================
+
+create table if not exists public.article_reactions (
+  article_id uuid not null references public.news_articles(id) on delete cascade,
+  device_id  text not null,
+  reaction   text not null check (reaction in ('like','dislike')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (article_id, device_id)
+);
+
+create table if not exists public.article_comments (
+  id         uuid primary key default gen_random_uuid(),
+  article_id uuid not null references public.news_articles(id) on delete cascade,
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  body       text not null check (char_length(body) between 1 and 1000),
+  status     text not null default 'visible' check (status in ('visible','hidden')),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_reactions_article
+  on public.article_reactions (article_id);
+create index if not exists idx_comments_article_at
+  on public.article_comments (article_id, created_at);
+
+alter table public.article_reactions enable row level security;
+alter table public.article_comments  enable row level security;
+
+-- Reactions: anyone may read (public counts); a device may only
+-- write rows carrying its own device id (x-device-id header).
+drop policy if exists "reactions_public_read" on public.article_reactions;
+create policy "reactions_public_read" on public.article_reactions
+  for select to anon, authenticated
+  using (true);
+
+drop policy if exists "reactions_own_insert" on public.article_reactions;
+create policy "reactions_own_insert" on public.article_reactions
+  for insert to anon, authenticated
+  with check (device_id = current_setting('request.headers', true)::json -&gt;&gt; 'x-device-id');
+
+drop policy if exists "reactions_own_update" on public.article_reactions;
+create policy "reactions_own_update" on public.article_reactions
+  for update to anon, authenticated
+  using (device_id = current_setting('request.headers', true)::json -&gt;&gt; 'x-device-id')
+  with check (device_id = current_setting('request.headers', true)::json -&gt;&gt; 'x-device-id');
+
+drop policy if exists "reactions_own_delete" on public.article_reactions;
+create policy "reactions_own_delete" on public.article_reactions
+  for delete to anon, authenticated
+  using (device_id = current_setting('request.headers', true)::json -&gt;&gt; 'x-device-id');
+
+-- Comments: visible comments are public; hidden ones are visible
+-- only to their author and to founders (moderation review).
+drop policy if exists "comments_public_read" on public.article_comments;
+create policy "comments_public_read" on public.article_comments
+  for select to anon, authenticated
+  using (status = 'visible' or user_id = auth.uid() or public.is_founder());
+
+drop policy if exists "comments_author_insert" on public.article_comments;
+create policy "comments_author_insert" on public.article_comments
+  for insert to authenticated
+  with check (user_id = auth.uid() and status = 'visible'
+    and exists (select 1 from public.news_articles a
+                where a.id = article_id and a.status = 'published'));
+
+-- Authors edit/delete their own; founders may update any comment
+-- (that is how Hide works) but never rewrite its body invisibly —
+-- the app only ever sends status changes as a founder.
+drop policy if exists "comments_author_or_founder_update" on public.article_comments;
+create policy "comments_author_or_founder_update" on public.article_comments
+  for update to authenticated
+  using (user_id = auth.uid() or public.is_founder())
+  with check (user_id = auth.uid() or public.is_founder());
+
+drop policy if exists "comments_author_or_founder_delete" on public.article_comments;
+create policy "comments_author_or_founder_delete" on public.article_comments
+  for delete to authenticated
+  using (user_id = auth.uid() or public.is_founder());
+
+grant select, insert, update, delete on public.article_reactions to anon, authenticated;
+grant select on public.article_comments to anon, authenticated;
+grant insert, update, delete on public.article_comments to authenticated;</code>
+      </div>
       <div id="pnAgentApprovalsBody"></div>
       <div class="sec-head" style="margin:20px 0 6px"><h2 style="font-size:19px">Team visit requests</h2></div>
       <div id="reFieldBody"></div>
@@ -11076,7 +11257,7 @@ var RE = {
   inited:false, user:null, profile:null, isFounder:false, isAgent:false, authMode:'signin',
   tab:'browse', props:[], myProps:[], sellerTypes:{}, locs:{},
   savedIds:{}, savedSearches:[], convs:[], convFilter:'all', visits:[], notifs:[],
-  queue:[], reels:[], reelsDbReady:false, reelsHintSeen:false, reports:[], history:[], fieldVisits:[], fieldTasks:[], agents:[],
+  queue:[], reels:[], reelsDbReady:false, removedReelPosts:[], reelRemovalsDbReady:false, reelsHintSeen:false, reports:[], history:[], fieldVisits:[], fieldTasks:[], agents:[],
   detail:null, detailLoc:null, chat:null, chatMsgs:[], chatChannel:null, notifChannel:null,
   compare:[], recent:[], typeFilter:'all', viewMode:'list', displayUnit:'',
   post:null, reportTarget:null, visitFor:null, pendingAfterAuth:null,
@@ -11779,7 +11960,17 @@ function reRenderBrowse(){
    section 10 is run; rows saved in the table merge on top of it,
    de-duplicated by canonical Reel URL. Only the Reels tab renders
    reStandaloneItems() for visitors — List and Map show properties
-   only, with no Reels section at all. */
+   only, with no Reels section at all.
+   REMOVALS: removing a saved Reel deletes its table row. The seed
+   has no row to delete, so removing it (or a saved row carrying the
+   seed's URL) records the Reel's canonical URL in the
+   public.standalone_reel_removals table (setup SQL section 11 —
+   public read, founder-only write), loaded into
+   RE.removedReelPosts. reStandaloneItems() filters those URLs out
+   for EVERY visitor, so a removed Reel stays removed after reload
+   and never comes back on its own. Until section 11 is run that
+   table does not exist, a seed removal fails with a VISIBLE error,
+   and the Reel stays published — never a silent or faked removal. */
 var REEL_SEED = [
   { id:'seed-de555uxrhb', reel_url:'https://www.instagram.com/reel/De_555Uxrhb/', creator_label:'@khammam_properties', creator_url:'https://www.instagram.com/khammam_properties/', created_at:'2026-11-13T20:22:00.000Z', seed:true }
 ];
@@ -11800,33 +11991,47 @@ function reReelCreator(r){
 }
 function reStandaloneItems(){
   var seen = {}, out = [];
+  var removed = {};
+  (RE.removedReelPosts || []).forEach(function(p){ if(p) removed[p] = 1; });
   (RE.reels || []).concat(REEL_SEED).forEach(function(r){
     var post = reReelPost(r);
-    if(!post || seen[post]) return;
+    if(!post || seen[post] || removed[post]) return;
     seen[post] = 1; out.push(r);
   });
   return out.sort(function(a, b){ return new Date(b.created_at || 0) - new Date(a.created_at || 0); });
 }
+function reIsSeedPost(post){
+  return !!post && REEL_SEED.some(function(s){ return reReelPost(s) === post; });
+}
 function reLoadStandaloneReels(){
   var c = reClient();
-  if(!c){ RE.reels = []; RE.reelsDbReady = false; reRenderTrending(); if(RE.viewMode === 'reels') reRenderBrowse(); return; }
+  if(!c){ RE.reels = []; RE.reelsDbReady = false; RE.removedReelPosts = []; RE.reelRemovalsDbReady = false; reRenderTrending(); if(RE.viewMode === 'reels') reRenderBrowse(); return; }
   /* No count limit: the founder can publish an unlimited number of
      Reels — this query deliberately sets no .limit(), and no other
-     code caps, slices or truncates the standalone Reels list. */
-  c.from('standalone_reels').select('id, reel_url, creator_label, creator_url, created_at')
+     code caps, slices or truncates the standalone Reels list. The
+     removals list (section 11) loads alongside it, and both visitor
+     surfaces re-render only once both have settled, so a removed
+     Reel never flashes back in during load. */
+  var reelsDone = c.from('standalone_reels').select('id, reel_url, creator_label, creator_url, created_at')
     .order('created_at', { ascending:false })
     .then(function(r){
       RE.reelsDbReady = !r.error;
       RE.reels = r.error ? [] : (r.data || []);
-      reRenderTrending();
-      if(RE.viewMode === 'reels') reRenderBrowse();
-      if(typeof reRenderFounderReels === 'function') reRenderFounderReels();
     }, function(){
       RE.reelsDbReady = false; RE.reels = [];
-      reRenderTrending();
-      if(RE.viewMode === 'reels') reRenderBrowse();
-      if(typeof reRenderFounderReels === 'function') reRenderFounderReels();
     });
+  var removalsDone = c.from('standalone_reel_removals').select('reel_url')
+    .then(function(r){
+      RE.reelRemovalsDbReady = !r.error;
+      RE.removedReelPosts = r.error ? [] : (r.data || []).map(function(x){ return reReelPost(x); }).filter(Boolean);
+    }, function(){
+      RE.reelRemovalsDbReady = false; RE.removedReelPosts = [];
+    });
+  Promise.all([reelsDone, removalsDone]).then(function(){
+    reRenderTrending();
+    if(RE.viewMode === 'reels') reRenderBrowse();
+    if(typeof reRenderFounderReels === 'function') reRenderFounderReels();
+  });
 }
 function reIgEmbedHTML(post, p){
   /* Click-to-load facade: the card renders ONLY the listing's own
@@ -14230,6 +14435,8 @@ function reLoadQueue(){
   if(!reClient()){ body.innerHTML = reNotConnectedHTML(); if(abody) abody.innerHTML = ''; fbody.innerHTML = ''; rbody.innerHTML = ''; hbody.innerHTML = ''; return; }
   var igNote = document.getElementById('reIgSetupNote');
   if(igNote) igNote.style.display = RE.isFounder ? '' : 'none';
+  var agNote = document.getElementById('pnAgentSetupNote');
+  if(agNote) agNote.style.display = RE.isFounder ? '' : 'none';
   if(!RE.isFounder){
     body.innerHTML = '<div class="f-card"><h3>Founder only</h3><p>The property review queue is restricted to the founder account — the database enforces this, not just this screen.</p></div>';
     if(abody) abody.innerHTML = ''; fbody.innerHTML = ''; rbody.innerHTML = ''; hbody.innerHTML = ''; return;
@@ -14302,10 +14509,19 @@ function reDuplicateWarn(p){
    go to public.standalone_reels (setup SQL section 10); until that
    one-time SQL is run the table does not exist, the save fails with
    a VISIBLE error, and nothing is published — never a silent or
-   faked save. Removing a saved Reel deletes its row the same way.
-   The migrated Wyra Road Reel is built into the site (REEL_SEED) and
-   is listed here for reference; it is not a table row. The published
-   count is shown ONLY in this founder section, never to visitors. */
+   faked save. EVERY published Reel here has a Remove Reel button —
+   saved Reels and the migrated Wyra Road Reel alike. Removing
+   always asks for confirmation first (the in-page confirm bar, the
+   same pattern as listing deletes): Cancel leaves the Reel
+   untouched, and only "Yes, remove Reel" removes it. A saved Reel's
+   row is deleted from standalone_reels; the migrated Reel is built
+   into the site (REEL_SEED) and has no row, so its removal is
+   recorded in public.standalone_reel_removals (setup SQL
+   section 11) and reStandaloneItems() then hides it for every
+   visitor, on every load — it stays removed and does not come
+   back. If a removal write fails, the error is shown and the Reel
+   stays published. The published count is shown ONLY in this
+   founder section, never to visitors. */
 function reParseCreatorInput(raw){
   var s = String(raw || '').trim();
   if(!s) return { label:'', url:'' };
@@ -14326,15 +14542,18 @@ function reRenderFounderReels(){
     + '<div class="f-err" id="reReelErr"></div><div class="f-ok" id="reReelOk"></div>'
     + '<button class="btn-solid" id="reReelAddBtn" style="width:100%">Publish Reel</button>'
     + (RE.reelsDbReady ? '' : '<p class="f-note" style="margin-top:8px">One-time setup still needed: publishing saves to the standalone_reels table, which is created by setup SQL <b>section 10</b> in the note at the top of this panel. Until it is run, a publish attempt shows an error and nothing is saved.</p>')
+    + (RE.reelRemovalsDbReady ? '' : '<p class="f-note" style="margin-top:8px">One-time setup still needed for removing the migrated Reel: removals are recorded in the standalone_reel_removals table, which is created by setup SQL <b>section 11</b> in the note at the top of this panel. Until it is run, removing the migrated Reel shows an error and it stays published. Removing a saved Reel works either way — its row is deleted.</p>')
     + '</div>'
     + '<p class="f-note" style="margin:12px 2px 6px">Published Reels (' + items.length + ') — this count is shown only here, never to visitors.</p>'
     + (items.length ? items.map(function(r){
         var post = reReelPost(r); var creator = reReelCreator(r);
         return '<div class="mp-queue-card">'
           + '<div style="display:flex;gap:8px;align-items:center"><h4 style="margin:0;font-weight:800;font-size:15px;flex:1;min-width:0;word-break:break-all">' + mkEsc(post) + '</h4></div>'
-          + '<div class="dash-meta" style="margin-top:4px">' + (creator.label ? 'Credit: ' + mkEsc(creator.label) + ' · ' : '') + (r.seed ? 'Migrated Reel — built into the site, stays published' : 'Saved Reel') + '</div>'
+          + '<div class="dash-meta" style="margin-top:4px">' + (creator.label ? 'Credit: ' + mkEsc(creator.label) + ' · ' : '') + (r.seed ? 'Migrated Reel — built into the site' : 'Saved Reel') + '</div>'
           + '<div class="dash-acts"><a href="' + mkEsc(post) + '" target="_blank" rel="noopener" style="text-decoration:none"><button type="button">Watch on Instagram</button></a>'
-          + (r.seed ? '' : '<button class="danger" data-re-reel-remove="' + r.id + '">Remove Reel</button>') + '</div></div>';
+          + '<button class="danger" data-re-reel-remove="' + r.id + '">Remove Reel</button></div>'
+          + '<div class="confirm-bar" data-re-reel-confirm="' + r.id + '">Remove this Reel permanently? It will disappear from Top Rated Properties Reels and the Reels tab for everyone, and it will stay removed — it will not come back after a reload.'
+          + '<div class="dash-acts"><button class="danger" data-re-reel-remove-yes="' + r.id + '">Yes, remove Reel</button><button data-re-reel-remove-no="1">Cancel</button></div></div></div>';
       }).join('') : '<p class="f-note">No Reels published yet.</p>');
   var add = document.getElementById('reReelAddBtn');
   if(add) add.addEventListener('click', function(){
@@ -14351,27 +14570,84 @@ function reRenderFounderReels(){
     add.disabled = true;
     reClient().from('standalone_reels').insert({ reel_url:post, creator_label:creator.label || null, creator_url:creator.url || null, created_by:(RE.user && RE.user.id) || null }).select('id, reel_url, creator_label, creator_url, created_at').single()
       .then(function(r){
-        add.disabled = false;
-        if(r.error){ if(err){ err.textContent = 'The Reel could not be published: ' + (r.error.message || 'the backend did not answer.') + ' If the standalone_reels table does not exist yet, run setup SQL section 10 once (note at the top of this panel). Nothing was published.'; err.classList.add('show'); } return; }
+        if(r.error){ add.disabled = false; if(err){ err.textContent = 'The Reel could not be published: ' + (r.error.message || 'the backend did not answer.') + ' If the standalone_reels table does not exist yet, run setup SQL section 10 once (note at the top of this panel). Nothing was published.'; err.classList.add('show'); } return; }
         RE.reels.unshift(r.data);
-        showToast('<b>Reel published.</b> It is live in Top Rated Properties Reels and the Reels tab now.');
-        reRenderFounderReels(); reRenderTrending();
-        if(RE.viewMode === 'reels') reRenderBrowse();
-      }, function(){ add.disabled = false; if(err){ err.textContent = 'The Reel could not be published — the backend did not answer. Nothing was published.'; err.classList.add('show'); } });
-  });
-  body.querySelectorAll('[data-re-reel-remove]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var id = b.getAttribute('data-re-reel-remove');
-      b.disabled = true;
-      reClient().from('standalone_reels').delete().eq('id', id)
-        .then(function(r){
-          if(r.error){ b.disabled = false; showToast('That Reel could not be removed: ' + (r.error.message || 'the backend did not answer.')); return; }
-          RE.reels = (RE.reels || []).filter(function(x){ return x.id !== id; });
-          showToast('<b>Reel removed.</b> It no longer appears in Top Rated Properties Reels or the Reels tab.');
+        var finishPublish = function(){
+          add.disabled = false;
+          showToast('<b>Reel published.</b> It is live in Top Rated Properties Reels and the Reels tab now.');
           reRenderFounderReels(); reRenderTrending();
           if(RE.viewMode === 'reels') reRenderBrowse();
-        }, function(){ b.disabled = false; showToast('That Reel could not be removed — the backend did not answer.'); });
+        };
+        /* Re-publishing a Reel the founder had removed earlier: its
+           URL is still recorded in standalone_reel_removals, which
+           would keep the new row hidden. Clear that record so this
+           deliberate re-publish actually goes live; if clearing
+           fails, say so visibly instead of pretending it is live. */
+        if((RE.removedReelPosts || []).indexOf(post) >= 0){
+          reClient().from('standalone_reel_removals').delete().eq('reel_url', post).then(function(rr){
+            if(rr && rr.error){ add.disabled = false; if(err){ err.textContent = 'The Reel was saved, but it is still hidden by its earlier removal record, which could not be cleared: ' + (rr.error.message || 'the backend did not answer.'); err.classList.add('show'); } reRenderFounderReels(); return; }
+            RE.removedReelPosts = (RE.removedReelPosts || []).filter(function(p){ return p !== post; });
+            finishPublish();
+          }, function(){ add.disabled = false; if(err){ err.textContent = 'The Reel was saved, but clearing its earlier removal record did not complete — it may stay hidden until you try publishing again.'; err.classList.add('show'); } reRenderFounderReels(); });
+        } else finishPublish();
+      }, function(){ add.disabled = false; if(err){ err.textContent = 'The Reel could not be published — the backend did not answer. Nothing was published.'; err.classList.add('show'); } });
+  });
+  /* Remove Reel — step 1: ask first. Clicking Remove Reel only
+     opens this card's confirm bar (the shared .confirm-bar
+     pattern); nothing is deleted yet. Cancel closes the bar and
+     the Reel stays exactly as it was. */
+  body.querySelectorAll('[data-re-reel-remove]').forEach(function(b){
+    b.addEventListener('click', function(){
+      body.querySelectorAll('.confirm-bar').forEach(function(x){ x.classList.remove('show'); });
+      var bar = body.querySelector('[data-re-reel-confirm="' + b.getAttribute('data-re-reel-remove') + '"]');
+      if(bar) bar.classList.add('show');
     });
+  });
+  body.querySelectorAll('[data-re-reel-remove-no]').forEach(function(b){
+    b.addEventListener('click', function(){
+      body.querySelectorAll('.confirm-bar').forEach(function(x){ x.classList.remove('show'); });
+    });
+  });
+  /* Remove Reel — step 2: only a tap on "Yes, remove Reel" removes
+     anything (reRemoveFounderReel). */
+  body.querySelectorAll('[data-re-reel-remove-yes]').forEach(function(b){
+    b.addEventListener('click', function(){
+      reRemoveFounderReel(b.getAttribute('data-re-reel-remove-yes'), b);
+    });
+  });
+}
+/* Founder Reel removal, after confirmation. A saved Reel's row is
+   deleted from standalone_reels. The migrated seed has no row, so
+   when the Reel being removed is the seed (or a saved row carrying
+   the seed's URL, which would otherwise let the seed resurface),
+   its canonical URL is also recorded in standalone_reel_removals
+   (section 11); reStandaloneItems() filters recorded URLs out for
+   every visitor, so the removal survives reloads and the Reel does
+   not come back. Only after every write succeeds is local state
+   updated and the visitor surfaces re-rendered — on any failure
+   the error is shown and the Reel stays published. */
+function reRemoveFounderReel(id, btn){
+  var item = reStandaloneItems().filter(function(x){ return x.id === id; })[0];
+  if(!item) return;
+  var post = reReelPost(item);
+  var c = reClient();
+  if(!c){ showToast('That Reel could not be removed — the backend is not connected. It stays published.'); return; }
+  if(btn) btn.disabled = true;
+  var jobs = [];
+  if(!item.seed) jobs.push(c.from('standalone_reels').delete().eq('id', item.id));
+  if(reIsSeedPost(post)) jobs.push(c.from('standalone_reel_removals').insert({ reel_url:post, created_by:(RE.user && RE.user.id) || null }));
+  var chain = jobs.length ? jobs[0] : Promise.resolve({});
+  for(var i = 1; i < jobs.length; i++){ (function(job){ chain = chain.then(function(r){ if(r && r.error) throw r.error; return job; }); })(jobs[i]); }
+  chain.then(function(r){
+    if(r && r.error) throw r.error;
+    RE.reels = (RE.reels || []).filter(function(x){ return x.id !== item.id && reReelPost(x) !== post; });
+    if(reIsSeedPost(post) && (RE.removedReelPosts || []).indexOf(post) < 0) RE.removedReelPosts.push(post);
+    showToast('<b>Reel removed.</b> It no longer appears in Top Rated Properties Reels or the Reels tab, and it stays removed.');
+    reRenderFounderReels(); reRenderTrending();
+    if(RE.viewMode === 'reels') reRenderBrowse();
+  }).catch(function(e){
+    if(btn) btn.disabled = false;
+    showToast('That Reel could not be removed: ' + ((e && e.message) || 'the backend did not answer.') + ' It stays published. If this is the migrated Reel and the standalone_reel_removals table does not exist yet, run setup SQL section 11 once (note at the top of this panel).');
   });
 }
 function reRenderQueue(){
