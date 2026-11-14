@@ -577,11 +577,9 @@ img{display:block;max-width:100%}
 .tr-empty h4{margin:0 0 5px;font-weight:800;font-size:16.5px}
 .tr-empty p{margin:0 auto;font-size:13px;line-height:1.55;color:var(--muted);max-width:38ch}
 .tr-empty .btn-ghost{margin-top:13px;padding:10px 18px}
-/* Trending Reels feed: a single vertical column of Reel cards —
-   one video after another in the page scroll. The visitor taps a
-   card to play that Reel inline, then scrolls down to the next
-   card and taps to play that one. There is no horizontal shelf
-   and no sideways scrolling anywhere in this section. */
+/* Legacy vertical feed layout — superseded in the Reels tab by
+   the horizontal swipe pager (.tr-pager below, founder order).
+   Kept only for the shared card-stage sizing rules that follow. */
 .tr-feed{
   display:flex;flex-direction:column;gap:18px;padding:2px;margin-top:2px;
 }
@@ -617,13 +615,54 @@ img{display:block;max-width:100%}
    matching the other segmented view buttons. */
 .re-viewbar .seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .re-viewbar .seg button svg{flex:none}
-/* Reels view (toolbar tab): the same Trending Reels feed as the
-   section below the toolbar — the same cards in the same vertical
-   scrolling list, rendered in the browse body. In the feed the
-   player stage is taller and portrait-first, like the Reel
-   itself, so one card fills the phone screen before the next. */
+/* Reel card stage sizing: taller and portrait-first, like the
+   Reel itself, so one card fills the phone screen in the pager. */
 .tr-feed .tr-card .ig-facade,.tr-feed .tr-card .ig-failed{min-height:400px}
 .tr-feed .tr-card .ig-frame iframe{height:520px}
+/* Reels tab pager (founder order): after tapping the Reels tab the
+   Reels view is a HORIZONTAL pager — one Reel card in view, swipe
+   left for the next Reel one by one, swipe right to go back. It is
+   a native scroll-snap strip contained inside the browse body, so
+   the page itself never scrolls sideways. Swiping only scrolls the
+   pager: it never loads a player — tap-to-load stays, a Reel's
+   player is built only when that card's poster is tapped. */
+.tr-pager-wrap{position:relative;margin-top:2px}
+.tr-pager{
+  display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;
+  padding:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+}
+.tr-pager::-webkit-scrollbar{display:none}
+.tr-pager:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:18px}
+.tr-slide{
+  flex:0 0 100%;min-width:0;scroll-snap-align:start;scroll-snap-stop:always;
+  display:flex;justify-content:center;padding:0 1px;
+}
+.tr-pager .tr-card{margin:0;width:100%}
+.tr-pager .tr-card .ig-facade,.tr-pager .tr-card .ig-failed{min-height:400px}
+.tr-pager .tr-card .ig-frame iframe{height:520px}
+@media (prefers-reduced-motion: reduce){ .tr-pager{scroll-behavior:auto} }
+/* One-time swipe hint — the same pattern as the news reader's hint
+   (nr-swipe-hint): a small floating pill, onboarding only, pointer-
+   events none so it never blocks a tap. An animated LEFT chevron
+   beside the word "Swipe" teaches the pager's direction. It shows
+   on the first open of the Reels view (when there is more than one
+   Reel to swipe to) and fades out for good after the first swipe —
+   RE.reelsHintSeen retires it for the rest of the session. */
+.tr-swipe-hint{
+  position:absolute;left:50%;bottom:16px;transform:translateX(-50%) translateY(6px);
+  z-index:11;display:flex;align-items:center;gap:7px;pointer-events:none;white-space:nowrap;
+  padding:7px 13px;border-radius:999px;background:rgba(13,22,18,.82);color:#EDF3EE;
+  font-size:12.5px;font-weight:700;
+  opacity:0;visibility:hidden;transition:opacity .3s ease,transform .3s ease,visibility 0s linear .3s;
+}
+.tr-swipe-hint.show{opacity:1;visibility:visible;transform:translateX(-50%);transition:opacity .3s ease,transform .3s ease}
+.tr-swipe-hint svg{flex:none;color:var(--mint)}
+.tr-swipe-hint .ic-left{animation:trHintNudgeLeft 2.2s ease-in-out infinite}
+@keyframes trHintNudgeLeft{0%,100%{transform:translateX(0)}50%{transform:translateX(-3px)}}
+@media (prefers-reduced-motion: reduce){
+  .tr-swipe-hint svg{animation:none}
+  .tr-swipe-hint{transition:none}
+}
 /* Click-to-load Instagram facade (shared by the feed, property
    detail and the Videos view): the card shows ONLY the listing's own
    cover photo as a poster — no request is made to Instagram, no
@@ -4606,15 +4645,10 @@ table.ng-table td b{color:var(--ink)}
         <button class="chip" id="reSaveSearchBtn" style="flex:none">Save this search</button>
       </div>
       </div>
-      <!-- TRENDING REELS: standalone creator Instagram Reels,
-           published by the founder directly (never attached to a
-           property listing), newest first, played through
-           Instagram's official embed player. Rendered by
-           reRenderTrending() from the same standalone Reels store
-           as the Reels tab, so the two always agree. -->
-      <section class="tr-shelf" id="reTrendingShelf" aria-label="Trending Properties Reels">
-        <div id="reTrendingBody"></div>
-      </section>
+      <!-- Reels render ONLY in the Reels tab view (inside
+           #reBrowseBody via reRenderReelsView). There is no Reels
+           section in List or Map view — List and Map show
+           properties only. -->
       <div class="re-results-head"><h3>Properties in Khammam</h3><p>Homes, plots and commercial spaces for sale</p></div>
       <div id="reBrowseBody"></div>
     </section>
@@ -4693,7 +4727,7 @@ table.ng-table td b{color:var(--ink)}
            for the dedicated columns. -->
       <div class="ig-setup-note" id="reIgSetupNote" style="display:none">
         <h4>Instagram Reels — storage &amp; one-time setup</h4>
-        <p><b>News</b> stores its link in <b>news_articles.instagram_url</b>, added by setup SQL <b>section 8</b>. <b>Reels are different:</b> a Reel is standalone — never attached to a property listing — and published Reels live in their own <b>public.standalone_reels</b> table, added by setup SQL <b>section 10</b>. Run section 10 once so the founder Reels section below can save new Reels. The Wyra Road Reel that was already published has been migrated into the site itself, so it stays live in Trending Reels and the Reels tab even before section 10 is run:</p>
+        <p><b>News</b> stores its link in <b>news_articles.instagram_url</b>, added by setup SQL <b>section 8</b>. <b>Reels are different:</b> a Reel is standalone — never attached to a property listing — and published Reels live in their own <b>public.standalone_reels</b> table, added by setup SQL <b>section 10</b>. Run section 10 once so the founder Reels section below can save new Reels. The Wyra Road Reel that was already published has been migrated into the site itself, so it stays live in Top Rated Properties Reels and the Reels tab even before section 10 is run:</p>
         <code>-- Section 8 (news — run once if not already run):
 alter table public.news_articles
   add column if not exists instagram_url text;</code>
@@ -4713,11 +4747,11 @@ create policy "reels_public_read" on public.standalone_reels
 drop policy if exists "reels_founder_write" on public.standalone_reels;
 create policy "reels_founder_write" on public.standalone_reels
   for all using (public.is_founder()) with check (public.is_founder());</code>
-        <p style="margin:8px 0 0">Whether these already exist in your Supabase project can only be confirmed in the Supabase SQL Editor / Table Editor — this page cannot inspect the database schema. Trending Reels and the Reels tab both read the same standalone Reels store either way.</p>
+        <p style="margin:8px 0 0">Whether these already exist in your Supabase project can only be confirmed in the Supabase SQL Editor / Table Editor — this page cannot inspect the database schema. Top Rated Properties Reels and the Reels tab both read the same standalone Reels store either way.</p>
       </div>
       <div id="reQueueBody"></div>
       <div class="sec-head" style="margin:20px 0 6px"><h2 style="font-size:19px">Standalone Reels — founder only</h2></div>
-      <p class="sec-sub" style="margin:0 0 6px">Reels are standalone — never attached to a property listing. Publish a Reel directly here: paste the Instagram Reel link, save, and it appears in Trending Reels and the Reels tab straight away. No property is needed and nothing goes through the review queue.</p>
+      <p class="sec-sub" style="margin:0 0 6px">Reels are standalone — never attached to a property listing. Publish a Reel directly here: paste the Instagram Reel link, save, and it appears in Top Rated Properties Reels and the Reels tab straight away. No property is needed and nothing goes through the review queue.</p>
       <div id="reReelsBody"></div>
       <div class="sec-head" style="margin:20px 0 6px"><h2 style="font-size:19px">Agent approvals</h2></div>
       <p class="sec-sub" style="margin:0 0 6px">Seller tools — the dashboard, public storefronts, Share &amp; Grow, the seller inbox, Founding Partners and posting — unlock only for sellers (agents and owners) you approve here. Each application shows the role and Instagram answers the applicant submitted.</p>
@@ -11042,7 +11076,7 @@ var RE = {
   inited:false, user:null, profile:null, isFounder:false, isAgent:false, authMode:'signin',
   tab:'browse', props:[], myProps:[], sellerTypes:{}, locs:{},
   savedIds:{}, savedSearches:[], convs:[], convFilter:'all', visits:[], notifs:[],
-  queue:[], reels:[], reelsDbReady:false, reports:[], history:[], fieldVisits:[], fieldTasks:[], agents:[],
+  queue:[], reels:[], reelsDbReady:false, reelsHintSeen:false, reports:[], history:[], fieldVisits:[], fieldTasks:[], agents:[],
   detail:null, detailLoc:null, chat:null, chatMsgs:[], chatChannel:null, notifChannel:null,
   compare:[], recent:[], typeFilter:'all', viewMode:'list', displayUnit:'',
   post:null, reportTarget:null, visitFor:null, pendingAfterAuth:null,
@@ -11451,10 +11485,8 @@ function reShowTab(tab, authWhy){
 var RE_PROP_SELECT = 'id, seller_id, title, property_type, price, currency, negotiable, description, listing_kind, availability, status, rejection_reason, moderation_note, area_value, area_unit, area_measure, area_sqft, bhk, locality, landmark, sponsored, team_visited, availability_confirmed_at, approved_at, details, amenities, created_at, updated_at, property_media(id, kind, storage_path, external_url, caption, position, is_cover)';
 function reLoadBrowse(){
   var body = document.getElementById('reBrowseBody');
-  /* The Trending Reels shelf renders immediately from the standalone
-     Reels store (the migrated Reel is built in, so it shows at once),
-     then re-renders when the standalone_reels fetch lands — it never
-     waits on the properties fetch. */
+  /* Standalone Reels load for the Reels tab only — no Reels section
+     is rendered in List or Map view. List shows properties only. */
   reRenderTrending();
   reLoadStandaloneReels();
   if(!reClient()){ document.getElementById('reResultCount').textContent = ''; if(RE.viewMode === 'map'){ body.innerHTML = reMapOfflineHTML(); reBindPaneState(body); } else { body.innerHTML = reNotConnectedHTML(); } return; }
@@ -11745,9 +11777,9 @@ function reRenderBrowse(){
    (De_555Uxrhb, by @khammam_properties) was migrated into this store
    as the built-in seed below, so it stays published even before
    section 10 is run; rows saved in the table merge on top of it,
-   de-duplicated by canonical Reel URL. The List shelf and the Reels
-   tab both render reStandaloneItems(), so the two can never
-   disagree — that disagreement was the bug this replaces. */
+   de-duplicated by canonical Reel URL. Only the Reels tab renders
+   reStandaloneItems() for visitors — List and Map show properties
+   only, with no Reels section at all. */
 var REEL_SEED = [
   { id:'seed-de555uxrhb', reel_url:'https://www.instagram.com/reel/De_555Uxrhb/', creator_label:'@khammam_properties', creator_url:'https://www.instagram.com/khammam_properties/', created_at:'2026-11-13T20:22:00.000Z', seed:true }
 ];
@@ -11856,14 +11888,11 @@ function reBindIgEmbeds(root){
   });
 }
 function reTrendingItems(){
-  /* The one list both Trending Reels surfaces render — standalone
-     Reels only, never property listings, so the shelf and the tab
-     always agree. */
+  /* The list the Reels tab renders — standalone Reels only, never
+     property listings. List and Map never render this list. */
   return reStandaloneItems();
 }
-/* One card builder for every Trending Reels surface (the feed below
-   the toolbar and the Reels toolbar view), so both always show the
-   same standalone Reels under the same rules. A standalone Reel card
+/* Card builder for the Reels tab feed. A standalone Reel card
    is ONLY the Reel itself: the click-to-load Instagram player, the
    creator's credit + profile link, and a "Watch on Instagram" link.
    No property price, no property title or locality, no "View
@@ -11881,52 +11910,92 @@ function reTrendingCardHTML(r){
 }
 function reTrendingEmptyHTML(){
   return '<div class="tr-empty"><div class="tr-empty-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></div>'
-    + '<h4>Trending Properties Reels coming soon</h4>'
+    + '<h4>Top Rated Properties Reels coming soon</h4>'
     + '<p>No Reel has been published yet. Reels are standalone: the founder publishes a Reel here directly, with the creator’s permission — nothing is shown until then.</p></div>';
 }
-/* The Reels toolbar view: the Trending Reels as a full view in the
-   browse body, reached in one tap from the List / Map / Reels row.
-   Same items, same cards, same vertical feed, same click-to-load
-   rule as the section below the toolbar — the visitor taps one
-   card to play it inline, scrolls down to the next card and taps
-   again; scrolling never loads a player. Read from
-   reTrendingItems() — the same standalone Reels store as the shelf
-   below the toolbar — and the honest "coming soon" state shows
-   until the founder publishes the first Reel. */
+/* The Reels toolbar view: the ONLY visitor surface that renders
+   Top Rated Properties Reels — a full view in the browse body,
+   reached in one tap from the List / Map / Reels row. List and Map
+   never render Reels. The view is a HORIZONTAL PAGER (founder
+   order, superseding the vertical feed): one Reel card in view,
+   swipe left for the next Reel one by one, swipe right to go
+   back — a native scroll-snap strip, so one gesture moves exactly
+   one card. Same items, same standalone cards, same click-to-load
+   rule: swiping only scrolls the pager and never loads a player;
+   the visitor taps a card's poster to play that Reel inline.
+   Read from reTrendingItems() — the standalone Reels store — and
+   the honest "coming soon" state shows until the founder
+   publishes the first Reel. */
 function reRenderReelsView(body){
   var items = reTrendingItems();
   /* The Reel count is never shown in the visitor view — the founder
      sees the count only in the founder Reels section of the review
      queue panel — so the tab-row count stays empty here. */
   document.getElementById('reResultCount').textContent = '';
-  var head = '<div class="tr-head" style="margin-top:14px"><h3>Trending Properties Reels</h3></div>'
+  var head = '<div class="tr-head" style="margin-top:14px"><h3>Top Rated Properties Reels</h3></div>'
     + '<p class="tr-sub">Reels from Khammam creators, published by the founder with the creator’s permission. The video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>';
   if(!items.length){
     body.innerHTML = head + reTrendingEmptyHTML();
     return;
   }
-  body.innerHTML = head + '<div class="tr-feed">' + items.map(reTrendingCardHTML).join('') + '</div>'
+  /* One-time swipe hint: shown only when there is a next Reel to
+     swipe to and only until the first swipe (RE.reelsHintSeen —
+     the same in-session one-time pattern as the news reader's
+     NR.hintSeen). With a single Reel there is nothing to swipe
+     to, so no hint is shown. */
+  var showHint = items.length > 1 && !RE.reelsHintSeen;
+  body.innerHTML = head
+    + '<div class="tr-pager-wrap">'
+    + '<div class="tr-pager" id="reReelsPager" tabindex="0" role="group" aria-label="Top Rated Properties Reels — swipe left for the next Reel, swipe right to go back">'
+    + items.map(function(r){ return '<div class="tr-slide">' + reTrendingCardHTML(r) + '</div>'; }).join('')
+    + '</div>'
+    + '<div class="tr-swipe-hint' + (showHint ? ' show' : '') + '" id="reReelsSwipeHint" aria-hidden="' + (showHint ? 'false' : 'true') + '">'
+    + '<svg class="ic-left" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 6l-6 6 6 6"/></svg>'
+    + '<span>Swipe</span></div>'
+    + '</div>'
     + '<p class="f-note" style="margin:12px 2px 0">Reels play through Instagram’s official player — Mana Khammam never downloads or re-uploads a creator’s video.</p>';
   reBindCards(body);
   reBindIgEmbeds(body);
+  reBindReelsPager(body);
+}
+/* Pager binding: native scroll-snap does the swiping (left = next
+   Reel one by one, right = back); this listener only retires the
+   one-time swipe hint. The first real swipe — the pager scrolling
+   past a small threshold in either direction — sets
+   RE.reelsHintSeen, fades the hint out, and it never shows again
+   this session (re-renders of the view check the flag). Scrolling
+   the pager never touches any card's player: tap-to-load stays
+   the only way a player is built (reIgLoadEmbed). */
+function reBindReelsPager(root){
+  var pager = root ? root.querySelector('#reReelsPager') : null;
+  if(!pager) return;
+  var hint = root.querySelector('#reReelsSwipeHint');
+  var startLeft = pager.scrollLeft;
+  var ticking = false;
+  pager.addEventListener('scroll', function(){
+    if(RE.reelsHintSeen || ticking) return;
+    ticking = true;
+    requestAnimationFrame(function(){
+      ticking = false;
+      if(RE.reelsHintSeen) return;
+      if(Math.abs(pager.scrollLeft - startLeft) > 24){
+        RE.reelsHintSeen = true;
+        if(hint){ hint.classList.remove('show'); hint.setAttribute('aria-hidden', 'true'); }
+      }
+    });
+  }, { passive:true });
 }
 function reRenderTrending(){
+  /* Reels-tab-only: there is no Top Rated Properties Reels shelf/section in
+     List or Map view. List and Map show properties only. The Reels
+     feed renders only inside #reBrowseBody when the visitor taps
+     the Reels tab (reRenderReelsView, called from reRenderBrowse).
+     This function is kept as the call sites' no-op guard: it
+     removes any legacy shelf element if one is ever present, and
+     never renders a Reels section outside the Reels tab. */
   var shelf = document.getElementById('reTrendingShelf');
-  var body = document.getElementById('reTrendingBody');
-  if(!shelf || !body) return;
-  shelf.style.display = (RE.viewMode && RE.viewMode !== 'list') ? 'none' : '';
-  if(RE.viewMode && RE.viewMode !== 'list') return;
-  var items = reTrendingItems();
-  var head = '<div class="tr-head"><h3>Trending Properties Reels</h3></div>'
-    + '<p class="tr-sub">Reels from Khammam creators, published by the founder with the creator’s permission. The video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>';
-  if(!items.length){
-    body.innerHTML = head + reTrendingEmptyHTML();
-    return;
-  }
-  body.innerHTML = head + '<div class="tr-feed">' + items.map(reTrendingCardHTML).join('') + '</div>'
-    + '<p class="f-note" style="margin:12px 2px 0">Reels play through Instagram’s official player — Mana Khammam never downloads or re-uploads a creator’s video.</p>';
-  reBindCards(body);
-  reBindIgEmbeds(body);
+  if(shelf && shelf.parentNode) shelf.parentNode.removeChild(shelf);
+  return;
 }
 
 function reMapFsBarHTML(withArea){
@@ -14228,7 +14297,7 @@ function reDuplicateWarn(p){
 /* ---------- FOUNDER STANDALONE REELS ----------
    The founder publishes a Reel directly here: paste the Instagram
    Reel URL (plus the creator's Instagram, when known, for the
-   credit), save, and it appears in Trending Reels and the Reels tab
+   credit), save, and it appears in Top Rated Properties Reels and the Reels tab
    straight away — no property, no listing, no approval queue. Saves
    go to public.standalone_reels (setup SQL section 10); until that
    one-time SQL is run the table does not exist, the save fails with
@@ -14251,7 +14320,7 @@ function reRenderFounderReels(){
   if(!RE.isFounder){ body.innerHTML = ''; return; }
   var items = reStandaloneItems();
   body.innerHTML = '<div class="f-card"><h3>Publish a Reel</h3>'
-    + '<p>Reels are standalone — they are not attached to any property. Paste an Instagram Reel link, save, and it appears in Trending Reels and the Reels tab straight away. Publish only Reels the creator has given permission to feature; the video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>'
+    + '<p>Reels are standalone — they are not attached to any property. Paste an Instagram Reel link, save, and it appears in Top Rated Properties Reels and the Reels tab straight away. Publish only Reels the creator has given permission to feature; the video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>'
     + '<div class="f-field"><label for="reReelUrlInput">Instagram Reel link</label><input class="f-input" id="reReelUrlInput" type="text" placeholder="https://www.instagram.com/reel/…"/></div>'
     + '<div class="f-field"><label for="reReelCreatorInput">Creator’s Instagram (optional — shown as the credit)</label><input class="f-input" id="reReelCreatorInput" type="text" placeholder="@creator or https://www.instagram.com/creator/"/></div>'
     + '<div class="f-err" id="reReelErr"></div><div class="f-ok" id="reReelOk"></div>'
@@ -14276,7 +14345,7 @@ function reRenderFounderReels(){
     var post = raw ? ((typeof nrIgPostUrl === 'function') ? nrIgPostUrl(raw) : '') : '';
     if(!post){ if(err){ err.textContent = 'That Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…).'; err.classList.add('show'); } return; }
     var dup = reStandaloneItems().filter(function(r){ return reReelPost(r) === post; }).length > 0;
-    if(dup){ if(err){ err.textContent = 'That Reel is already published — it is in Trending Reels and the Reels tab now.'; err.classList.add('show'); } return; }
+    if(dup){ if(err){ err.textContent = 'That Reel is already published — it is in Top Rated Properties Reels and the Reels tab now.'; err.classList.add('show'); } return; }
     if(!reClient()){ if(err){ err.textContent = 'The Reel could not be published — the backend is not connected.'; err.classList.add('show'); } return; }
     var creator = reParseCreatorInput(document.getElementById('reReelCreatorInput').value || '');
     add.disabled = true;
@@ -14285,7 +14354,7 @@ function reRenderFounderReels(){
         add.disabled = false;
         if(r.error){ if(err){ err.textContent = 'The Reel could not be published: ' + (r.error.message || 'the backend did not answer.') + ' If the standalone_reels table does not exist yet, run setup SQL section 10 once (note at the top of this panel). Nothing was published.'; err.classList.add('show'); } return; }
         RE.reels.unshift(r.data);
-        showToast('<b>Reel published.</b> It is live in Trending Reels and the Reels tab now.');
+        showToast('<b>Reel published.</b> It is live in Top Rated Properties Reels and the Reels tab now.');
         reRenderFounderReels(); reRenderTrending();
         if(RE.viewMode === 'reels') reRenderBrowse();
       }, function(){ add.disabled = false; if(err){ err.textContent = 'The Reel could not be published — the backend did not answer. Nothing was published.'; err.classList.add('show'); } });
@@ -14298,7 +14367,7 @@ function reRenderFounderReels(){
         .then(function(r){
           if(r.error){ b.disabled = false; showToast('That Reel could not be removed: ' + (r.error.message || 'the backend did not answer.')); return; }
           RE.reels = (RE.reels || []).filter(function(x){ return x.id !== id; });
-          showToast('<b>Reel removed.</b> It no longer appears in Trending Reels or the Reels tab.');
+          showToast('<b>Reel removed.</b> It no longer appears in Top Rated Properties Reels or the Reels tab.');
           reRenderFounderReels(); reRenderTrending();
           if(RE.viewMode === 'reels') reRenderBrowse();
         }, function(){ b.disabled = false; showToast('That Reel could not be removed — the backend did not answer.'); });
