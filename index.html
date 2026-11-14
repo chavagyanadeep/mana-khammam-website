@@ -4691,6 +4691,9 @@ alter table public.properties
         <p style="margin:8px 0 0">Whether the section 8 column already exists in your Supabase project can only be confirmed in the Supabase SQL Editor / Table Editor — this page cannot inspect the database schema. Property posting, approval and the Trending Reels shelf work from details.reel_url either way.</p>
       </div>
       <div id="reQueueBody"></div>
+      <div class="sec-head" style="margin:20px 0 6px"><h2 style="font-size:19px">Approved listings — Reel links</h2></div>
+      <p class="sec-sub" style="margin:0 0 6px">Already-approved listings never come back through the review queue. Add or change a listing's Instagram Reel link here — or open the listing itself and use the founder-only Reel field on its page — and it appears in Trending Reels straight away, with no re-approval.</p>
+      <div id="reApprovedBody"></div>
       <div class="sec-head" style="margin:20px 0 6px"><h2 style="font-size:19px">Agent approvals</h2></div>
       <p class="sec-sub" style="margin:0 0 6px">Seller tools — the dashboard, public storefronts, Share &amp; Grow, the seller inbox, Founding Partners and posting — unlock only for sellers (agents and owners) you approve here. Each application shows the role and Instagram answers the applicant submitted.</p>
       <div id="pnAgentApprovalsBody"></div>
@@ -11014,7 +11017,7 @@ var RE = {
   inited:false, user:null, profile:null, isFounder:false, isAgent:false, authMode:'signin',
   tab:'browse', props:[], myProps:[], sellerTypes:{}, locs:{},
   savedIds:{}, savedSearches:[], convs:[], convFilter:'all', visits:[], notifs:[],
-  queue:[], reports:[], history:[], fieldVisits:[], fieldTasks:[], agents:[],
+  queue:[], approvedProps:[], reports:[], history:[], fieldVisits:[], fieldTasks:[], agents:[],
   detail:null, detailLoc:null, chat:null, chatMsgs:[], chatChannel:null, notifChannel:null,
   compare:[], recent:[], typeFilter:'all', viewMode:'list', displayUnit:'',
   post:null, reportTarget:null, visitFor:null, pendingAfterAuth:null,
@@ -12527,6 +12530,17 @@ function reRenderDetail(){
           + reIgEmbedHTML(reIgPostUrl(p), p)
           + '<a class="nr-ig-btn" style="border:1px solid var(--line);border-radius:12px;margin-top:10px" target="_blank" rel="noopener" href="' + mkEsc(reIgCreator(p).url) + '">' + NR_IG_ICON + '<span>' + mkEsc(reIgCreator(p).label.charAt(0) === '@' ? reIgCreator(p).label + ' on Instagram' : 'Watch on Instagram') + '</span></a>'
         : '')
+    + (RE.isFounder
+        ? '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">Instagram / Reel link — founder only</h2></div>'
+          + '<p style="font-size:14px;line-height:1.6;color:var(--ink-2);margin:0 0 10px">Only you, the founder, see this field. Paste the Instagram Reel link for this listing and save — it is stored on the listing itself (details.reel_url). '
+          + (['active','reserved','sold'].indexOf(p.status) >= 0
+              ? 'This listing is already approved, so the Reel appears in Trending Reels and the Reels tab straight away — no re-approval needed.'
+              : 'This listing is not live yet, so its Reel appears in Trending Reels only once the listing is approved.')
+          + ' Clear the box and save to remove the link.</p>'
+          + '<div class="f-field"><label for="reFounderReelInput">Instagram / Reel link</label>'
+          + '<div class="mp-price-row"><input class="f-input" id="reFounderReelInput" type="text" value="' + mkEsc((p.details && p.details.reel_url) || p.instagram_url || '') + '" placeholder="https://www.instagram.com/reel/…"/><button class="btn-solid" style="flex:none;padding:11px 16px" id="reFounderReelSave">Save Reel link</button></div>'
+          + '<div class="f-err" id="reFounderReelErr"></div><div class="f-ok" id="reFounderReelOk"></div></div>'
+        : '')
     + '<button class="mp-seller-card" id="reSellerCard">'
     + '<span class="avatar">' + mkEsc((seller.display_name || 'M').charAt(0).toUpperCase()) + '</span>'
     + '<span style="flex:1;min-width:0"><h4>' + mkEsc(seller.display_name || 'Member') + '</h4>'
@@ -12560,6 +12574,18 @@ function reRenderDetail(){
   body.innerHTML = html;
   body.scrollTop = 0;
   reBindIgEmbeds(body);
+  /* Founder-only Reel link field (rendered above only when
+     RE.isFounder): saves to details.reel_url through the shared
+     founder save path — a bad Instagram link shows a visible error
+     and saves nothing. */
+  var reFounderReelBtn = document.getElementById('reFounderReelSave');
+  if(reFounderReelBtn) reFounderReelBtn.addEventListener('click', function(){
+    var inp = document.getElementById('reFounderReelInput');
+    reFounderReelSave(p, inp ? inp.value : '',
+      document.getElementById('reFounderReelErr'),
+      document.getElementById('reFounderReelOk'), reFounderReelBtn,
+      function(post){ if(inp) inp.value = post || ''; });
+  });
   reRenderCompleteness(p);
   var reGalIdx = 0;
   function reGalShow(i){
@@ -14100,18 +14126,29 @@ function reRefreshQueueBadge(){
 function reLoadQueue(){
   if(typeof pnRenderAgentApprovals === 'function') pnRenderAgentApprovals();
   var body = document.getElementById('reQueueBody');
+  var abody = document.getElementById('reApprovedBody');
   var fbody = document.getElementById('reFieldBody');
   var rbody = document.getElementById('reReportsBody');
   var hbody = document.getElementById('reHistoryBody');
-  if(!reClient()){ body.innerHTML = reNotConnectedHTML(); fbody.innerHTML = ''; rbody.innerHTML = ''; hbody.innerHTML = ''; return; }
+  if(!reClient()){ body.innerHTML = reNotConnectedHTML(); if(abody) abody.innerHTML = ''; fbody.innerHTML = ''; rbody.innerHTML = ''; hbody.innerHTML = ''; return; }
   var igNote = document.getElementById('reIgSetupNote');
   if(igNote) igNote.style.display = RE.isFounder ? '' : 'none';
   if(!RE.isFounder){
     body.innerHTML = '<div class="f-card"><h3>Founder only</h3><p>The property review queue is restricted to the founder account — the database enforces this, not just this screen.</p></div>';
-    fbody.innerHTML = ''; rbody.innerHTML = ''; hbody.innerHTML = ''; return;
+    if(abody) abody.innerHTML = ''; fbody.innerHTML = ''; rbody.innerHTML = ''; hbody.innerHTML = ''; return;
   }
   body.innerHTML = '<p class="f-note" style="padding:8px 0">Loading the queue…</p>';
+  if(abody) abody.innerHTML = '<p class="f-note" style="padding:8px 0">Loading approved listings…</p>';
   var c = reClient();
+  /* Already-approved listings (active / reserved / sold) load here too,
+     so the founder can add or change a Reel link on any of them without
+     the listing ever returning to the review queue. */
+  c.from('properties').select(RE_PROP_SELECT).in('status', ['active','reserved','sold']).order('updated_at', { ascending:false }).limit(50)
+    .then(function(r){
+      if(r.error){ if(abody) abody.innerHTML = '<p class="f-note">Approved listings could not be loaded.</p>'; return; }
+      RE.approvedProps = r.data || [];
+      reRenderApprovedReels();
+    }, function(){ if(abody) abody.innerHTML = '<p class="f-note">Approved listings could not be loaded.</p>'; });
   c.from('properties').select(RE_PROP_SELECT).eq('status', 'pending_review').order('created_at', { ascending:true }).limit(50)
     .then(function(r){
       if(r.error){ body.innerHTML = '<div class="f-card"><h3>Queue could not be loaded</h3><p>' + mkEsc(r.error.message || '') + '</p></div>'; return; }
@@ -14165,6 +14202,89 @@ function reDuplicateWarn(p){
     }
   }
   return '';
+}
+/* ---------- FOUNDER REEL LINK — ANY LISTING, INCLUDING APPROVED ----------
+   One save path for the founder-only Instagram / Reel link field on the
+   property detail page and in the founder panel's approved-listings
+   section. The link is stored normalized in the listing's own details
+   record (details.reel_url — no new SQL). A link that is not an
+   Instagram post / Reel URL is rejected with a VISIBLE error and
+   nothing is saved — never a silent failure. On success every
+   in-memory copy of the listing is synced, so an already-approved
+   listing's Reel appears in the Trending Reels shelf and the Reels tab
+   (both read RE.props) immediately, with no re-approval and no reload. */
+function reFounderReelSave(p, raw, errEl, okEl, btn, done){
+  if(errEl){ errEl.textContent = ''; errEl.classList.remove('show'); }
+  if(okEl){ okEl.textContent = ''; okEl.classList.remove('show'); }
+  raw = String(raw || '').trim();
+  var post = raw ? ((typeof nrIgPostUrl === 'function') ? nrIgPostUrl(raw) : '') : '';
+  if(raw && !post){
+    if(errEl){ errEl.textContent = 'That Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…), or clear the box to remove the link.'; errEl.classList.add('show'); }
+    return;
+  }
+  if(!reClient()){
+    if(errEl){ errEl.textContent = 'The Reel link could not be saved — the backend is not connected.'; errEl.classList.add('show'); }
+    return;
+  }
+  var details = Object.assign({}, p.details || {});
+  if(post) details.reel_url = post; else delete details.reel_url;
+  if(btn) btn.disabled = true;
+  reClient().from('properties').update({ details:details }).eq('id', p.id)
+    .then(function(r){
+      if(btn) btn.disabled = false;
+      if(r.error){ if(errEl){ errEl.textContent = 'The Reel link could not be saved: ' + (r.error.message || 'the backend did not answer.'); errEl.classList.add('show'); } return; }
+      [RE.props, RE.queue, RE.myProps, RE.approvedProps].forEach(function(pool){
+        (pool || []).forEach(function(x){ if(x.id === p.id) x.details = details; });
+      });
+      if(RE.detail && RE.detail.id === p.id) RE.detail.details = details;
+      if(typeof PN !== 'undefined' && PN.cache && PN.cache[p.id]) PN.cache[p.id].details = details;
+      p.details = details;
+      var live = ['active','reserved','sold'].indexOf(p.status) >= 0;
+      if(okEl){
+        okEl.textContent = post
+          ? (live ? 'Saved — this Reel now appears in Trending Reels and the Reels tab.' : 'Saved — this Reel appears in Trending Reels once this listing is approved.')
+          : 'Reel link removed — this listing no longer appears in Trending Reels.';
+        okEl.classList.add('show');
+      }
+      showToast(post ? '<b>Reel link saved.</b>' + (live ? ' It is live in Trending Reels now.' : '') : '<b>Reel link removed.</b>');
+      reRenderTrending();
+      if(done) done(post);
+    }, function(){
+      if(btn) btn.disabled = false;
+      if(errEl){ errEl.textContent = 'The Reel link could not be saved — the backend did not answer.'; errEl.classList.add('show'); }
+    });
+}
+function reRenderApprovedReels(){
+  var body = document.getElementById('reApprovedBody'); if(!body) return;
+  if(!RE.approvedProps.length){
+    body.innerHTML = '<p class="f-note" style="padding:8px 0">No approved listings yet — once you approve a property, it appears here so you can add or change its Reel link any time.</p>';
+    return;
+  }
+  body.innerHTML = RE.approvedProps.map(function(p){
+    return '<div class="mp-queue-card">'
+      + '<div style="display:flex;gap:8px;align-items:center"><h4 style="margin:0;font-weight:800;font-size:15.5px;flex:1;min-width:0">' + mkEsc(p.title) + '</h4>' + reStatusBadge(p.status) + '</div>'
+      + '<div class="dash-meta" style="margin-top:4px">' + reFmtINR(p.price) + ' · ' + mkEsc(p.locality) + ', Khammam</div>'
+      + '<div class="f-field" style="margin-top:12px"><label>Instagram / Reel link — founder only</label>'
+      + '<div class="mp-price-row"><input class="f-input" data-re-appr-input="' + p.id + '" type="text" value="' + mkEsc((p.details && p.details.reel_url) || p.instagram_url || '') + '" placeholder="https://www.instagram.com/reel/…"/><button class="btn-solid" style="flex:none;padding:11px 16px" data-re-appr-save="' + p.id + '">Save Reel link</button></div>'
+      + '<p class="f-note" style="margin-top:6px">Paste the Instagram Reel link for this approved listing and save — it appears in Trending Reels and the Reels tab straight away, no re-approval needed. Clear the box and save to remove it.</p>'
+      + '<div class="f-err" data-re-appr-err="' + p.id + '"></div><div class="f-ok" data-re-appr-ok="' + p.id + '"></div></div>'
+      + '<div class="dash-acts"><button data-re-appr-open="' + p.id + '">Open listing</button></div>'
+      + '</div>';
+  }).join('');
+  body.querySelectorAll('[data-re-appr-save]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var id = b.getAttribute('data-re-appr-save');
+      var p = RE.approvedProps.filter(function(x){ return x.id === id; })[0]; if(!p) return;
+      var inp = body.querySelector('[data-re-appr-input="' + id + '"]');
+      reFounderReelSave(p, inp ? inp.value : '',
+        body.querySelector('[data-re-appr-err="' + id + '"]'),
+        body.querySelector('[data-re-appr-ok="' + id + '"]'), b,
+        function(post){ if(inp) inp.value = post || ''; });
+    });
+  });
+  body.querySelectorAll('[data-re-appr-open]').forEach(function(b){
+    b.addEventListener('click', function(){ reOpenDetail(b.getAttribute('data-re-appr-open')); });
+  });
 }
 function reRenderQueue(){
   var body = document.getElementById('reQueueBody');
