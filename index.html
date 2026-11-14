@@ -607,6 +607,12 @@ img{display:block;max-width:100%}
 .tr-creator:active{opacity:.7}
 .tr-open{margin-top:auto;padding-top:8px}
 .tr-open button{width:100%}
+.tr-watch{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  margin-top:2px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;
+  font-size:13px;font-weight:700;color:var(--accent-deep);text-decoration:none;
+}
+.tr-watch:active{opacity:.7}
 /* Reels toolbar tab: Instagram glyph sits inline with the label,
    matching the other segmented view buttons. */
 .re-viewbar .seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
@@ -4600,11 +4606,12 @@ table.ng-table td b{color:var(--ink)}
         <button class="chip" id="reSaveSearchBtn" style="flex:none">Save this search</button>
       </div>
       </div>
-      <!-- TRENDING REELS: creator Instagram Reels attached to approved
-           property listings only, newest first, played through
+      <!-- TRENDING REELS: standalone creator Instagram Reels,
+           published by the founder directly (never attached to a
+           property listing), newest first, played through
            Instagram's official embed player. Rendered by
-           reRenderTrending() from the same live property records as
-           the List — nothing is seeded or staged here. -->
+           reRenderTrending() from the same standalone Reels store
+           as the Reels tab, so the two always agree. -->
       <section class="tr-shelf" id="reTrendingShelf" aria-label="Trending Reels">
         <div id="reTrendingBody"></div>
       </section>
@@ -4686,19 +4693,32 @@ table.ng-table td b{color:var(--ink)}
            for the dedicated columns. -->
       <div class="ig-setup-note" id="reIgSetupNote" style="display:none">
         <h4>Instagram Reels — storage &amp; one-time setup</h4>
-        <p><b>News</b> stores its link in <b>news_articles.instagram_url</b>, added by setup SQL <b>section 8</b>. <b>Properties are different:</b> a property's Reel link is saved inside the listing's own <b>details</b> record (<b>details.reel_url</b>), which already exists — so property Reel links save today with <b>no new SQL</b>, and the property side does <b>not</b> need the news column. If you also want a dedicated, queryable column on properties for parity with news, run section 9 of the setup SQL once — it is optional and changes nothing in the app until a future version reads it:</p>
+        <p><b>News</b> stores its link in <b>news_articles.instagram_url</b>, added by setup SQL <b>section 8</b>. <b>Reels are different:</b> a Reel is standalone — never attached to a property listing — and published Reels live in their own <b>public.standalone_reels</b> table, added by setup SQL <b>section 10</b>. Run section 10 once so the founder Reels section below can save new Reels. The Wyra Road Reel that was already published has been migrated into the site itself, so it stays live in Trending Reels and the Reels tab even before section 10 is run:</p>
         <code>-- Section 8 (news — run once if not already run):
 alter table public.news_articles
   add column if not exists instagram_url text;</code>
-        <code>-- Section 9 (properties — OPTIONAL dedicated column):
-alter table public.properties
-  add column if not exists instagram_url text;</code>
-        <p style="margin:8px 0 0">Whether the section 8 column already exists in your Supabase project can only be confirmed in the Supabase SQL Editor / Table Editor — this page cannot inspect the database schema. Property posting, approval and the Trending Reels shelf work from details.reel_url either way.</p>
+        <code>-- Section 10 (standalone Reels — run once):
+create table if not exists public.standalone_reels (
+  id uuid primary key default gen_random_uuid(),
+  reel_url text not null,
+  creator_label text,
+  creator_url text,
+  created_by uuid references auth.users(id),
+  created_at timestamptz not null default now()
+);
+alter table public.standalone_reels enable row level security;
+drop policy if exists "reels_public_read" on public.standalone_reels;
+create policy "reels_public_read" on public.standalone_reels
+  for select using (true);
+drop policy if exists "reels_founder_write" on public.standalone_reels;
+create policy "reels_founder_write" on public.standalone_reels
+  for all using (public.is_founder()) with check (public.is_founder());</code>
+        <p style="margin:8px 0 0">Whether these already exist in your Supabase project can only be confirmed in the Supabase SQL Editor / Table Editor — this page cannot inspect the database schema. Trending Reels and the Reels tab both read the same standalone Reels store either way.</p>
       </div>
       <div id="reQueueBody"></div>
-      <div class="sec-head" style="margin:20px 0 6px"><h2 style="font-size:19px">Approved listings — Reel links</h2></div>
-      <p class="sec-sub" style="margin:0 0 6px">Already-approved listings never come back through the review queue. Add or change a listing's Instagram Reel link here — or open the listing itself and use the founder-only Reel field on its page — and it appears in Trending Reels straight away, with no re-approval.</p>
-      <div id="reApprovedBody"></div>
+      <div class="sec-head" style="margin:20px 0 6px"><h2 style="font-size:19px">Standalone Reels — founder only</h2></div>
+      <p class="sec-sub" style="margin:0 0 6px">Reels are standalone — never attached to a property listing. Publish a Reel directly here: paste the Instagram Reel link, save, and it appears in Trending Reels and the Reels tab straight away. No property is needed and nothing goes through the review queue.</p>
+      <div id="reReelsBody"></div>
       <div class="sec-head" style="margin:20px 0 6px"><h2 style="font-size:19px">Agent approvals</h2></div>
       <p class="sec-sub" style="margin:0 0 6px">Seller tools — the dashboard, public storefronts, Share &amp; Grow, the seller inbox, Founding Partners and posting — unlock only for sellers (agents and owners) you approve here. Each application shows the role and Instagram answers the applicant submitted.</p>
       <div id="pnAgentApprovalsBody"></div>
@@ -11022,7 +11042,7 @@ var RE = {
   inited:false, user:null, profile:null, isFounder:false, isAgent:false, authMode:'signin',
   tab:'browse', props:[], myProps:[], sellerTypes:{}, locs:{},
   savedIds:{}, savedSearches:[], convs:[], convFilter:'all', visits:[], notifs:[],
-  queue:[], approvedProps:[], reports:[], history:[], fieldVisits:[], fieldTasks:[], agents:[],
+  queue:[], reels:[], reelsDbReady:false, reports:[], history:[], fieldVisits:[], fieldTasks:[], agents:[],
   detail:null, detailLoc:null, chat:null, chatMsgs:[], chatChannel:null, notifChannel:null,
   compare:[], recent:[], typeFilter:'all', viewMode:'list', displayUnit:'',
   post:null, reportTarget:null, visitFor:null, pendingAfterAuth:null,
@@ -11431,11 +11451,12 @@ function reShowTab(tab, authWhy){
 var RE_PROP_SELECT = 'id, seller_id, title, property_type, price, currency, negotiable, description, listing_kind, availability, status, rejection_reason, moderation_note, area_value, area_unit, area_measure, area_sqft, bhk, locality, landmark, sponsored, team_visited, availability_confirmed_at, approved_at, details, amenities, created_at, updated_at, property_media(id, kind, storage_path, external_url, caption, position, is_cover)';
 function reLoadBrowse(){
   var body = document.getElementById('reBrowseBody');
-  /* The Trending Reels shelf renders immediately from whatever
-     approved listings are already loaded (the honest "coming soon"
-     state when there are none), then re-renders with fresh data
-     when this fetch lands — it never waits on the network. */
+  /* The Trending Reels shelf renders immediately from the standalone
+     Reels store (the migrated Reel is built in, so it shows at once),
+     then re-renders when the standalone_reels fetch lands — it never
+     waits on the properties fetch. */
   reRenderTrending();
+  reLoadStandaloneReels();
   if(!reClient()){ document.getElementById('reResultCount').textContent = ''; if(RE.viewMode === 'map'){ body.innerHTML = reMapOfflineHTML(); reBindPaneState(body); } else { body.innerHTML = reNotConnectedHTML(); } return; }
   body.innerHTML = '<p class="f-note" style="padding:8px 0">Loading properties…</p>';
   var c = reClient();
@@ -11707,39 +11728,70 @@ function reRenderBrowse(){
     : mpEmptyHTML('No properties match', 'Try a wider price or area range, or a different property type. New Khammam properties appear here the moment the founder approves them.', '', ''));
   reBindCards(body);
 }
-/* ---------- TRENDING REELS ----------
-   Creator Instagram Reels attached to property listings. PUBLISHING
-   IS FOUNDER-ONLY: an agent/seller may attach a Reel link while
-   drafting a listing, but the listing (and its Reel) stays in
-   Pending Review until the founder approves it in the review queue
-   — approval transitions are founder-only in the database (the same
-   rule as every property), and this shelf reads ONLY the public
-   statuses (active / reserved / sold) that reLoadBrowse loaded, so
-   a draft or pending Reel can never appear here. Creators never get
-   a publish control anywhere; they only give permission in DM.
-   Playback uses Instagram's official embed player — the exact PR #30
-   news pattern (iframe src = canonical post URL + "embed"). The
-   video is never downloaded, copied, scraped or re-hosted. */
-function reIgPostUrl(p){
-  if(!p) return '';
-  var raw = p.instagram_url || (p.details && p.details.reel_url) || '';
+/* ---------- TRENDING REELS — STANDALONE ----------
+   Reels are standalone: a Reel is NOT a property and is never
+   attached to a property listing. The founder publishes a Reel
+   directly (paste the Instagram Reel URL in the founder Reels
+   section of the review queue panel — no property, no listing, no
+   approval queue), with the creator's permission given in DM.
+   Creators never get a publish control anywhere. Playback uses
+   Instagram's official embed player — the exact PR #30 news pattern
+   (iframe src = canonical post URL + "embed"). The video is never
+   downloaded, copied, scraped or re-hosted. */
+/* ---------- STANDALONE REELS STORE ----------
+   The published list lives in the public.standalone_reels table
+   (setup SQL section 10 — public read, founder-only write), loaded
+   into RE.reels. The Wyra Road Reel the founder already published
+   (De_555Uxrhb, by @khammam_properties) was migrated into this store
+   as the built-in seed below, so it stays published even before
+   section 10 is run; rows saved in the table merge on top of it,
+   de-duplicated by canonical Reel URL. The List shelf and the Reels
+   tab both render reStandaloneItems(), so the two can never
+   disagree — that disagreement was the bug this replaces. */
+var REEL_SEED = [
+  { id:'seed-de555uxrhb', reel_url:'https://www.instagram.com/reel/De_555Uxrhb/', creator_label:'@khammam_properties', creator_url:'https://www.instagram.com/khammam_properties/', created_at:'2026-11-13T20:22:00.000Z', seed:true }
+];
+function reReelPost(r){
+  if(!r) return '';
+  var raw = r.reel_url || r.url || '';
   return (typeof nrIgPostUrl === 'function') ? nrIgPostUrl(raw) : '';
 }
-function reIgCreator(p){
-  /* The creator's handle comes from the seller's own linked Instagram
-     profile (profiles.instagram_url) when it names one. When it does
-     not, nothing is invented: the card links to the Reel itself. */
-  var prof = (typeof MP !== 'undefined' && MP.profiles) ? MP.profiles[p.seller_id] : null;
-  var v = prof && prof.instagram_url ? String(prof.instagram_url).trim() : '';
-  var handle = '';
-  if(v){
-    var m = v.match(/instagram\.com\/([A-Za-z0-9._]+)/i);
-    if(m && ['reel','reels','p','tv','explore','stories'].indexOf(m[1].toLowerCase()) < 0) handle = m[1];
-    else if(/^@[A-Za-z0-9._]+$/.test(v)) handle = v.slice(1);
-    else if(/^[A-Za-z0-9._]+$/.test(v)) handle = v;
-  }
-  if(handle) return { label:'@' + handle, url:'https://www.instagram.com/' + handle + '/' };
-  return { label:'Watch on Instagram', url:reIgPostUrl(p) };
+function reReelCreator(r){
+  /* Creator credit comes only from what the founder recorded for
+     this Reel (or the migrated seed). Nothing is invented: with no
+     recorded creator the card shows only "Watch on Instagram". */
+  var label = String((r && r.creator_label) || '').trim();
+  var url = String((r && r.creator_url) || '').trim();
+  if(label && label.charAt(0) !== '@' && /^[A-Za-z0-9._]+$/.test(label)) label = '@' + label;
+  if(!url && label.charAt(0) === '@') url = 'https://www.instagram.com/' + label.slice(1) + '/';
+  return { label:label, url:url };
+}
+function reStandaloneItems(){
+  var seen = {}, out = [];
+  (RE.reels || []).concat(REEL_SEED).forEach(function(r){
+    var post = reReelPost(r);
+    if(!post || seen[post]) return;
+    seen[post] = 1; out.push(r);
+  });
+  return out.sort(function(a, b){ return new Date(b.created_at || 0) - new Date(a.created_at || 0); });
+}
+function reLoadStandaloneReels(){
+  var c = reClient();
+  if(!c){ RE.reels = []; RE.reelsDbReady = false; reRenderTrending(); if(RE.viewMode === 'reels') reRenderBrowse(); return; }
+  c.from('standalone_reels').select('id, reel_url, creator_label, creator_url, created_at')
+    .order('created_at', { ascending:false }).limit(100)
+    .then(function(r){
+      RE.reelsDbReady = !r.error;
+      RE.reels = r.error ? [] : (r.data || []);
+      reRenderTrending();
+      if(RE.viewMode === 'reels') reRenderBrowse();
+      if(typeof reRenderFounderReels === 'function') reRenderFounderReels();
+    }, function(){
+      RE.reelsDbReady = false; RE.reels = [];
+      reRenderTrending();
+      if(RE.viewMode === 'reels') reRenderBrowse();
+      if(typeof reRenderFounderReels === 'function') reRenderFounderReels();
+    });
 }
 function reIgEmbedHTML(post, p){
   /* Click-to-load facade: the card renders ONLY the listing's own
@@ -11801,32 +11853,33 @@ function reBindIgEmbeds(root){
   });
 }
 function reTrendingItems(){
-  return (RE.props || []).filter(function(p){ return !!reIgPostUrl(p); })
-    .slice().sort(function(a, b){ return new Date(b.created_at) - new Date(a.created_at); });
+  /* The one list both Trending Reels surfaces render — standalone
+     Reels only, never property listings, so the shelf and the tab
+     always agree. */
+  return reStandaloneItems();
 }
 /* One card builder for every Trending Reels surface (the feed below
    the toolbar and the Reels toolbar view), so both always show the
-   same founder-approved Reels under the same rules: official
-   Instagram embed behind a click-to-load poster, creator credit +
-   profile link, no phone numbers. */
-function reTrendingCardHTML(p){
-  var post = reIgPostUrl(p);
-  var creator = reIgCreator(p);
+   same standalone Reels under the same rules. A standalone Reel card
+   is ONLY the Reel itself: the click-to-load Instagram player, the
+   creator's credit + profile link, and a "Watch on Instagram" link.
+   No property price, no property title or locality, no "View
+   property", no property badges — a Reel is not a property card. */
+function reTrendingCardHTML(r){
+  var post = reReelPost(r);
+  if(!post) return '';
+  var creator = reReelCreator(r);
   return '<article class="tr-card">'
-    + reIgEmbedHTML(post, p)
+    + reIgEmbedHTML(post, null)
     + '<div class="cb">'
-    + '<div class="tr-badges"><span class="tr-badge creator">Creator listing</span><span class="tr-badge">Not Mana-verified</span></div>'
-    + '<div class="tr-price">' + reFmtINR(p.price) + (p.negotiable ? ' <span style="font-size:12px;color:var(--accent);font-weight:700">Negotiable</span>' : '') + '</div>'
-    + '<div class="tr-title">' + mkEsc(p.title) + '</div>'
-    + '<div class="tr-meta">' + mkEsc(p.locality) + ', Khammam · ' + mkEsc(reTypeLabel(p.property_type)) + '</div>'
-    + '<a class="tr-creator" href="' + mkEsc(creator.url) + '" target="_blank" rel="noopener">' + NR_IG_ICON + '<span>' + mkEsc(creator.label) + (creator.label.charAt(0) === '@' ? ' on Instagram' : '') + '</span></a>'
-    + '<div class="tr-open"><button class="btn-ghost" data-re-open="' + p.id + '">View property</button></div>'
+    + (creator.label ? '<a class="tr-creator" href="' + mkEsc(creator.url || post) + '" target="_blank" rel="noopener">' + NR_IG_ICON + '<span>' + mkEsc(creator.label) + (creator.label.charAt(0) === '@' ? ' on Instagram' : '') + '</span></a>' : '')
+    + '<a class="tr-watch" href="' + mkEsc(post) + '" target="_blank" rel="noopener">' + NR_IG_ICON + '<span>Watch on Instagram</span></a>'
     + '</div></article>';
 }
 function reTrendingEmptyHTML(){
   return '<div class="tr-empty"><div class="tr-empty-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></div>'
     + '<h4>Trending Reels coming soon</h4>'
-    + '<p>No creator Reel has been published yet. Reels appear here only after a creator gives permission and the founder publishes the approved listing — nothing is shown until then.</p></div>';
+    + '<p>No Reel has been published yet. Reels are standalone: the founder publishes a Reel here directly, with the creator’s permission — nothing is shown until then.</p></div>';
 }
 /* The Reels toolbar view: the Trending Reels as a full view in the
    browse body, reached in one tap from the List / Map / Reels row.
@@ -11834,18 +11887,21 @@ function reTrendingEmptyHTML(){
    rule as the section below the toolbar — the visitor taps one
    card to play it inline, scrolls down to the next card and taps
    again; scrolling never loads a player. Read from
-   reTrendingItems(), so only founder-approved listings with a Reel
-   ever appear, and the honest "coming soon" state shows until the
-   first one is approved. */
+   reTrendingItems() — the same standalone Reels store as the shelf
+   below the toolbar — and the honest "coming soon" state shows
+   until the founder publishes the first Reel. */
 function reRenderReelsView(body){
   var items = reTrendingItems();
-  document.getElementById('reResultCount').textContent = items.length + (items.length === 1 ? ' Reel' : ' Reels');
+  /* The Reel count is never shown in the visitor view — the founder
+     sees the count only in the founder Reels section of the review
+     queue panel — so the tab-row count stays empty here. */
+  document.getElementById('reResultCount').textContent = '';
   if(!items.length){
     body.innerHTML = '<div style="margin-top:14px">' + reTrendingEmptyHTML() + '</div>';
     return;
   }
   body.innerHTML = '<div class="tr-feed">' + items.map(reTrendingCardHTML).join('') + '</div>'
-    + '<p class="f-note" style="margin:12px 2px 0">Reels play through Instagram’s official player — Mana Khammam never downloads or re-uploads a creator’s video. Contact on every listing stays in-app chat only.</p>';
+    + '<p class="f-note" style="margin:12px 2px 0">Reels play through Instagram’s official player — Mana Khammam never downloads or re-uploads a creator’s video.</p>';
   reBindCards(body);
   reBindIgEmbeds(body);
 }
@@ -11856,16 +11912,14 @@ function reRenderTrending(){
   shelf.style.display = (RE.viewMode && RE.viewMode !== 'list') ? 'none' : '';
   if(RE.viewMode && RE.viewMode !== 'list') return;
   var items = reTrendingItems();
-  var head = '<div class="tr-head"><h3>Trending Reels</h3>'
-    + (items.length ? '<span class="tr-count">' + items.length + (items.length === 1 ? ' Reel' : ' Reels') + '</span>' : '')
-    + '</div>'
-    + '<p class="tr-sub">Property Reels from Khammam creators, published by the founder with the creator’s permission. The video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>';
+  var head = '<div class="tr-head"><h3>Trending Reels</h3></div>'
+    + '<p class="tr-sub">Reels from Khammam creators, published by the founder with the creator’s permission. The video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>';
   if(!items.length){
     body.innerHTML = head + reTrendingEmptyHTML();
     return;
   }
   body.innerHTML = head + '<div class="tr-feed">' + items.map(reTrendingCardHTML).join('') + '</div>'
-    + '<p class="f-note" style="margin:12px 2px 0">Reels play through Instagram’s official player — Mana Khammam never downloads or re-uploads a creator’s video. Contact on every listing stays in-app chat only.</p>';
+    + '<p class="f-note" style="margin:12px 2px 0">Reels play through Instagram’s official player — Mana Khammam never downloads or re-uploads a creator’s video.</p>';
   reBindCards(body);
   reBindIgEmbeds(body);
 }
@@ -12531,24 +12585,6 @@ function reRenderDetail(){
         ? '<div class="re-mapwrap"><iframe title="Approximate location map (OpenStreetMap)" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=' + encodeURIComponent((loc.lng - 0.02) + ',' + (loc.lat - 0.02) + ',' + (loc.lng + 0.02) + ',' + (loc.lat + 0.02)) + '&layer=mapnik&marker=' + encodeURIComponent(loc.lat + ',' + loc.lng) + '"></iframe></div><p class="f-note" style="margin-top:7px">Approximate area only, shared with the seller’s consent. Map © OpenStreetMap contributors.</p>'
         : '<p class="f-note" style="margin-top:6px">The seller has not shared a map location. The exact address is private and is shared by the seller in chat when you arrange a visit.</p>')
     + (tour ? '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">360° tour</h2></div><p style="font-size:14px;line-height:1.6;color:var(--ink-2);margin:0 0 8px">The seller has provided a 360° tour captured from this property.</p><button class="btn-ghost" id="reTourBtn" style="width:100%">Open the 360° tour</button>' : '')
-    + (reIgPostUrl(p)
-        ? '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">Instagram Reel</h2></div>'
-          + '<div class="tr-badges" style="margin:0 0 8px"><span class="tr-badge creator">Creator listing</span><span class="tr-badge">Not Mana-verified</span></div>'
-          + '<p style="font-size:14px;line-height:1.6;color:var(--ink-2);margin:0 0 10px">Published by the founder with the creator’s permission. It plays here through Instagram’s official player — the video stays on the creator’s Instagram and is never downloaded or copied to Mana Khammam.</p>'
-          + reIgEmbedHTML(reIgPostUrl(p), p)
-          + '<a class="nr-ig-btn" style="border:1px solid var(--line);border-radius:12px;margin-top:10px" target="_blank" rel="noopener" href="' + mkEsc(reIgCreator(p).url) + '">' + NR_IG_ICON + '<span>' + mkEsc(reIgCreator(p).label.charAt(0) === '@' ? reIgCreator(p).label + ' on Instagram' : 'Watch on Instagram') + '</span></a>'
-        : '')
-    + (RE.isFounder
-        ? '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">Instagram / Reel link — founder only</h2></div>'
-          + '<p style="font-size:14px;line-height:1.6;color:var(--ink-2);margin:0 0 10px">Only you, the founder, see this field. Paste the Instagram Reel link for this listing and save — it is stored on the listing itself (details.reel_url). '
-          + (['active','reserved','sold'].indexOf(p.status) >= 0
-              ? 'This listing is already approved, so the Reel appears in Trending Reels and the Reels tab straight away — no re-approval needed.'
-              : 'This listing is not live yet, so its Reel appears in Trending Reels only once the listing is approved.')
-          + ' Clear the box and save to remove the link.</p>'
-          + '<div class="f-field"><label for="reFounderReelInput">Instagram / Reel link</label>'
-          + '<div class="mp-price-row"><input class="f-input" id="reFounderReelInput" type="text" value="' + mkEsc((p.details && p.details.reel_url) || p.instagram_url || '') + '" placeholder="https://www.instagram.com/reel/…"/><button class="btn-solid" style="flex:none;padding:11px 16px" id="reFounderReelSave">Save Reel link</button></div>'
-          + '<div class="f-err" id="reFounderReelErr"></div><div class="f-ok" id="reFounderReelOk"></div></div>'
-        : '')
     + '<button class="mp-seller-card" id="reSellerCard">'
     + '<span class="avatar">' + mkEsc((seller.display_name || 'M').charAt(0).toUpperCase()) + '</span>'
     + '<span style="flex:1;min-width:0"><h4>' + mkEsc(seller.display_name || 'Member') + '</h4>'
@@ -12582,18 +12618,6 @@ function reRenderDetail(){
   body.innerHTML = html;
   body.scrollTop = 0;
   reBindIgEmbeds(body);
-  /* Founder-only Reel link field (rendered above only when
-     RE.isFounder): saves to details.reel_url through the shared
-     founder save path — a bad Instagram link shows a visible error
-     and saves nothing. */
-  var reFounderReelBtn = document.getElementById('reFounderReelSave');
-  if(reFounderReelBtn) reFounderReelBtn.addEventListener('click', function(){
-    var inp = document.getElementById('reFounderReelInput');
-    reFounderReelSave(p, inp ? inp.value : '',
-      document.getElementById('reFounderReelErr'),
-      document.getElementById('reFounderReelOk'), reFounderReelBtn,
-      function(post){ if(inp) inp.value = post || ''; });
-  });
   reRenderCompleteness(p);
   var reGalIdx = 0;
   function reGalShow(i){
@@ -13493,7 +13517,7 @@ function rePostDefaults(){
     areaValue:'', areaUnit:'sqyd', areaMeasure:'total', bhk:'', facing:'',
     state:'Telangana', district:'Khammam', city:'Khammam', locality:'Wyra Road', landmark:'', pincode:'',
     exactAddress:'', consent:'none', lat:'', lng:'', locConfirmed:false, pinnedAddress:'',
-    media:[], tourUrl:'', reelUrl:'', details:{}, amenities:[], busy:false
+    media:[], tourUrl:'', details:{}, amenities:[], busy:false
   };
 }
 /* Property posting follows the exact same pattern as the Marketplace
@@ -13552,7 +13576,6 @@ function reRenderPostStep(){
       + reField('Listing', reSeg('rpKind', [['new','New construction'],['resale','Resale']], s.kind))
       + reField('Availability', reSelect('rpAvail', [['ready_to_move','Ready to move'],['under_construction','Under construction'],['available','Available (land / commercial)']], s.availability), 'rpAvail')
       + reField('Description', '<textarea class="f-input" id="rpDesc" placeholder="What makes this property worth a visit? Layout, light, water, road, neighbourhood — facts, not hype.">' + mkEsc(s.desc) + '</textarea>', 'rpDesc')
-      + reField('Instagram Reel link (optional)', '<input class="f-input" id="rpReelUrl" type="text" placeholder="https://www.instagram.com/reel/…" value="' + mkEsc(s.reelUrl || '') + '"/><p class="f-note" style="margin-top:6px">Draft only: link a Reel you own, or one the creator has given permission to feature. The video stays on Instagram and plays on the listing through Instagram’s own player — it is never copied. Attaching a link publishes nothing: this listing stays <b>Pending Review</b>, and its Reel appears in Trending Reels only if the <b>founder approves</b> it. Creators never publish here themselves.</p>', 'rpReelUrl')
       + '<div class="f-err" id="rpErr"></div>';
   } else if(s.step === 3){
     inner = '<h3 class="mp-step-title">Price &amp; location</h3><p class="mp-step-sub">Set your asking price, then give the exact location. The exact address and pin stay <b>private</b> — they help our review team verify the listing. Buyers only ever see the locality and landmark.</p>'
@@ -13582,7 +13605,6 @@ function reRenderPostStep(){
       { ok:reParseMoney(s.price) > 0, label:'Price added — ' + (reParseMoney(s.price) ? reFmtINR(reParseMoney(s.price)) : 'missing') },
       { ok:isFinite(sq2) && sq2 > 0, label:'Area added — ' + (isFinite(sq2) && sq2 > 0 ? reFmtNum(parseFloat(s.areaValue)) + ' ' + RE_UNITS[s.areaUnit] + ' (' + RE_MEASURES[s.areaMeasure] + ') = ' + reFmtNum(sq2) + ' sq ft' : 'missing') },
       { ok:!!s.locality, label:'Locality: ' + s.locality + ', Khammam' },
-      { ok:true, label:(s.reelUrl && s.reelUrl.trim()) ? 'Instagram Reel linked as a draft — it shows in Trending Reels only after the founder approves this listing' : 'No Instagram Reel linked (optional)' },
       { ok:!!(isFinite(parseFloat(s.lat)) && isFinite(parseFloat(s.lng)) && s.locConfirmed), label:(isFinite(parseFloat(s.lat)) && s.locConfirmed) ? 'Exact location pinned & confirmed (private): ' + (s.pinnedAddress || s.exactAddress || '').trim().slice(0, 70) : 'Pin the exact location in step 3 and tick the confirmation' },
       { ok:true, label:'Buyers see only the locality and landmark — your exact address, phone number and email are never published' }
     ];
@@ -13643,7 +13665,6 @@ function rePostCollect(){
     s.kind = seg('rpKind') || s.kind;
     s.availability = g('rpAvail') || s.availability;
     s.desc = g('rpDesc') != null ? g('rpDesc') : s.desc;
-    var ru = g('rpReelUrl'); if(ru != null) s.reelUrl = ru;
   } else if(s.step === 3){
     s.price = g('rpPrice') != null ? g('rpPrice') : s.price;
     s.negotiable = seg('rpNeg') === 'yes';
@@ -13660,7 +13681,6 @@ function rePostValidateStep(){
     if((s.title || '').trim().length < 4) return 'Give the property a title (at least 4 characters).';
     var v = parseFloat(s.areaValue);
     if(!(isFinite(v) && v > 0)) return 'Enter the property area exactly as in your documents.';
-    if((s.reelUrl || '').trim() && !(typeof nrIgPostUrl === 'function' && nrIgPostUrl(s.reelUrl))) return 'That Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…), or clear the box.';
     return '';
   }
   if(s.step === 3){
@@ -13884,15 +13904,11 @@ function rePostSave(submit){
   var areaSqft = reToSqft(areaVal, s.areaUnit);
   if(!isFinite(areaSqft) || areaSqft <= 0){ fail('Enter the property area exactly as in your documents.'); return; }
   if(!s.locality){ fail('Choose the locality.'); return; }
-  /* Instagram Reel draft link: validated here again (failure path is a
-     visible error, never a silent drop), then stored normalized in the
-     listing's own details record (details.reel_url) — no extra column
-     needed for properties. It publishes ONLY through founder approval:
-     submit below moves the listing to pending_review, never live. */
-  var rpIgUrl = (typeof nrIgPostUrl === 'function') ? nrIgPostUrl(s.reelUrl || '') : '';
-  if((s.reelUrl || '').trim() && !rpIgUrl){ fail('That Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…), or clear the box.'); return; }
+  /* Reels are standalone and are never attached to a listing, so a
+     legacy reel_url left in an older listing's details record is
+     stripped on save — the listing stays a plain property. */
   s.details = Object.assign({}, s.details || {});
-  if(rpIgUrl) s.details.reel_url = rpIgUrl; else delete s.details.reel_url;
+  delete s.details.reel_url;
   s.busy = true;
   var busyBtn = document.getElementById(submit ? 'rpSubmit' : 'rpDraft');
   if(busyBtn){ busyBtn.disabled = true; busyBtn.textContent = 'Saving…'; }
@@ -13992,7 +14008,6 @@ function reEditProperty(p, loc, media){
   });
   var tour = (media || []).filter(function(m){ return m.kind === 'tour360'; })[0];
   s.tourUrl = tour ? (tour.external_url || '') : '';
-  s.reelUrl = (p.details && p.details.reel_url) || '';
   RE.post = s;
   reShowTab('post');
 }
@@ -14134,7 +14149,7 @@ function reRefreshQueueBadge(){
 function reLoadQueue(){
   if(typeof pnRenderAgentApprovals === 'function') pnRenderAgentApprovals();
   var body = document.getElementById('reQueueBody');
-  var abody = document.getElementById('reApprovedBody');
+  var abody = document.getElementById('reReelsBody');
   var fbody = document.getElementById('reFieldBody');
   var rbody = document.getElementById('reReportsBody');
   var hbody = document.getElementById('reHistoryBody');
@@ -14146,17 +14161,11 @@ function reLoadQueue(){
     if(abody) abody.innerHTML = ''; fbody.innerHTML = ''; rbody.innerHTML = ''; hbody.innerHTML = ''; return;
   }
   body.innerHTML = '<p class="f-note" style="padding:8px 0">Loading the queue…</p>';
-  if(abody) abody.innerHTML = '<p class="f-note" style="padding:8px 0">Loading approved listings…</p>';
+  if(abody) abody.innerHTML = '<p class="f-note" style="padding:8px 0">Loading Reels…</p>';
   var c = reClient();
-  /* Already-approved listings (active / reserved / sold) load here too,
-     so the founder can add or change a Reel link on any of them without
-     the listing ever returning to the review queue. */
-  c.from('properties').select(RE_PROP_SELECT).in('status', ['active','reserved','sold']).order('updated_at', { ascending:false }).limit(50)
-    .then(function(r){
-      if(r.error){ if(abody) abody.innerHTML = '<p class="f-note">Approved listings could not be loaded.</p>'; return; }
-      RE.approvedProps = r.data || [];
-      reRenderApprovedReels();
-    }, function(){ if(abody) abody.innerHTML = '<p class="f-note">Approved listings could not be loaded.</p>'; });
+  /* Standalone Reels load here too: the founder publishes and removes
+     Reels in the section below, entirely separate from listings. */
+  reLoadStandaloneReels();
   c.from('properties').select(RE_PROP_SELECT).eq('status', 'pending_review').order('created_at', { ascending:true }).limit(50)
     .then(function(r){
       if(r.error){ body.innerHTML = '<div class="f-card"><h3>Queue could not be loaded</h3><p>' + mkEsc(r.error.message || '') + '</p></div>'; return; }
@@ -14211,87 +14220,84 @@ function reDuplicateWarn(p){
   }
   return '';
 }
-/* ---------- FOUNDER REEL LINK — ANY LISTING, INCLUDING APPROVED ----------
-   One save path for the founder-only Instagram / Reel link field on the
-   property detail page and in the founder panel's approved-listings
-   section. The link is stored normalized in the listing's own details
-   record (details.reel_url — no new SQL). A link that is not an
-   Instagram post / Reel URL is rejected with a VISIBLE error and
-   nothing is saved — never a silent failure. On success every
-   in-memory copy of the listing is synced, so an already-approved
-   listing's Reel appears in the Trending Reels shelf and the Reels tab
-   (both read RE.props) immediately, with no re-approval and no reload. */
-function reFounderReelSave(p, raw, errEl, okEl, btn, done){
-  if(errEl){ errEl.textContent = ''; errEl.classList.remove('show'); }
-  if(okEl){ okEl.textContent = ''; okEl.classList.remove('show'); }
-  raw = String(raw || '').trim();
-  var post = raw ? ((typeof nrIgPostUrl === 'function') ? nrIgPostUrl(raw) : '') : '';
-  if(raw && !post){
-    if(errEl){ errEl.textContent = 'That Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…), or clear the box to remove the link.'; errEl.classList.add('show'); }
-    return;
-  }
-  if(!reClient()){
-    if(errEl){ errEl.textContent = 'The Reel link could not be saved — the backend is not connected.'; errEl.classList.add('show'); }
-    return;
-  }
-  var details = Object.assign({}, p.details || {});
-  if(post) details.reel_url = post; else delete details.reel_url;
-  if(btn) btn.disabled = true;
-  reClient().from('properties').update({ details:details }).eq('id', p.id)
-    .then(function(r){
-      if(btn) btn.disabled = false;
-      if(r.error){ if(errEl){ errEl.textContent = 'The Reel link could not be saved: ' + (r.error.message || 'the backend did not answer.'); errEl.classList.add('show'); } return; }
-      [RE.props, RE.queue, RE.myProps, RE.approvedProps].forEach(function(pool){
-        (pool || []).forEach(function(x){ if(x.id === p.id) x.details = details; });
-      });
-      if(RE.detail && RE.detail.id === p.id) RE.detail.details = details;
-      if(typeof PN !== 'undefined' && PN.cache && PN.cache[p.id]) PN.cache[p.id].details = details;
-      p.details = details;
-      var live = ['active','reserved','sold'].indexOf(p.status) >= 0;
-      if(okEl){
-        okEl.textContent = post
-          ? (live ? 'Saved — this Reel now appears in Trending Reels and the Reels tab.' : 'Saved — this Reel appears in Trending Reels once this listing is approved.')
-          : 'Reel link removed — this listing no longer appears in Trending Reels.';
-        okEl.classList.add('show');
-      }
-      showToast(post ? '<b>Reel link saved.</b>' + (live ? ' It is live in Trending Reels now.' : '') : '<b>Reel link removed.</b>');
-      reRenderTrending();
-      if(done) done(post);
-    }, function(){
-      if(btn) btn.disabled = false;
-      if(errEl){ errEl.textContent = 'The Reel link could not be saved — the backend did not answer.'; errEl.classList.add('show'); }
-    });
+/* ---------- FOUNDER STANDALONE REELS ----------
+   The founder publishes a Reel directly here: paste the Instagram
+   Reel URL (plus the creator's Instagram, when known, for the
+   credit), save, and it appears in Trending Reels and the Reels tab
+   straight away — no property, no listing, no approval queue. Saves
+   go to public.standalone_reels (setup SQL section 10); until that
+   one-time SQL is run the table does not exist, the save fails with
+   a VISIBLE error, and nothing is published — never a silent or
+   faked save. Removing a saved Reel deletes its row the same way.
+   The migrated Wyra Road Reel is built into the site (REEL_SEED) and
+   is listed here for reference; it is not a table row. The published
+   count is shown ONLY in this founder section, never to visitors. */
+function reParseCreatorInput(raw){
+  var s = String(raw || '').trim();
+  if(!s) return { label:'', url:'' };
+  var m = s.match(/instagram\.com\/([A-Za-z0-9._]+)/i);
+  if(m && ['reel','reels','p','tv','explore','stories'].indexOf(m[1].toLowerCase()) < 0) return { label:'@' + m[1], url:'https://www.instagram.com/' + m[1] + '/' };
+  if(/^@[A-Za-z0-9._]+$/.test(s)) return { label:s, url:'https://www.instagram.com/' + s.slice(1) + '/' };
+  if(/^[A-Za-z0-9._]+$/.test(s)) return { label:'@' + s, url:'https://www.instagram.com/' + s + '/' };
+  return { label:s, url:'' };
 }
-function reRenderApprovedReels(){
-  var body = document.getElementById('reApprovedBody'); if(!body) return;
-  if(!RE.approvedProps.length){
-    body.innerHTML = '<p class="f-note" style="padding:8px 0">No approved listings yet — once you approve a property, it appears here so you can add or change its Reel link any time.</p>';
-    return;
-  }
-  body.innerHTML = RE.approvedProps.map(function(p){
-    return '<div class="mp-queue-card">'
-      + '<div style="display:flex;gap:8px;align-items:center"><h4 style="margin:0;font-weight:800;font-size:15.5px;flex:1;min-width:0">' + mkEsc(p.title) + '</h4>' + reStatusBadge(p.status) + '</div>'
-      + '<div class="dash-meta" style="margin-top:4px">' + reFmtINR(p.price) + ' · ' + mkEsc(p.locality) + ', Khammam</div>'
-      + '<div class="f-field" style="margin-top:12px"><label>Instagram / Reel link — founder only</label>'
-      + '<div class="mp-price-row"><input class="f-input" data-re-appr-input="' + p.id + '" type="text" value="' + mkEsc((p.details && p.details.reel_url) || p.instagram_url || '') + '" placeholder="https://www.instagram.com/reel/…"/><button class="btn-solid" style="flex:none;padding:11px 16px" data-re-appr-save="' + p.id + '">Save Reel link</button></div>'
-      + '<p class="f-note" style="margin-top:6px">Paste the Instagram Reel link for this approved listing and save — it appears in Trending Reels and the Reels tab straight away, no re-approval needed. Clear the box and save to remove it.</p>'
-      + '<div class="f-err" data-re-appr-err="' + p.id + '"></div><div class="f-ok" data-re-appr-ok="' + p.id + '"></div></div>'
-      + '<div class="dash-acts"><button data-re-appr-open="' + p.id + '">Open listing</button></div>'
-      + '</div>';
-  }).join('');
-  body.querySelectorAll('[data-re-appr-save]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var id = b.getAttribute('data-re-appr-save');
-      var p = RE.approvedProps.filter(function(x){ return x.id === id; })[0]; if(!p) return;
-      var inp = body.querySelector('[data-re-appr-input="' + id + '"]');
-      reFounderReelSave(p, inp ? inp.value : '',
-        body.querySelector('[data-re-appr-err="' + id + '"]'),
-        body.querySelector('[data-re-appr-ok="' + id + '"]'), b,
-        function(post){ if(inp) inp.value = post || ''; });
-    });
+function reRenderFounderReels(){
+  var body = document.getElementById('reReelsBody'); if(!body) return;
+  if(!RE.isFounder){ body.innerHTML = ''; return; }
+  var items = reStandaloneItems();
+  body.innerHTML = '<div class="f-card"><h3>Publish a Reel</h3>'
+    + '<p>Reels are standalone — they are not attached to any property. Paste an Instagram Reel link, save, and it appears in Trending Reels and the Reels tab straight away. Publish only Reels the creator has given permission to feature; the video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>'
+    + '<div class="f-field"><label for="reReelUrlInput">Instagram Reel link</label><input class="f-input" id="reReelUrlInput" type="text" placeholder="https://www.instagram.com/reel/…"/></div>'
+    + '<div class="f-field"><label for="reReelCreatorInput">Creator’s Instagram (optional — shown as the credit)</label><input class="f-input" id="reReelCreatorInput" type="text" placeholder="@creator or https://www.instagram.com/creator/"/></div>'
+    + '<div class="f-err" id="reReelErr"></div><div class="f-ok" id="reReelOk"></div>'
+    + '<button class="btn-solid" id="reReelAddBtn" style="width:100%">Publish Reel</button>'
+    + (RE.reelsDbReady ? '' : '<p class="f-note" style="margin-top:8px">One-time setup still needed: publishing saves to the standalone_reels table, which is created by setup SQL <b>section 10</b> in the note at the top of this panel. Until it is run, a publish attempt shows an error and nothing is saved.</p>')
+    + '</div>'
+    + '<p class="f-note" style="margin:12px 2px 6px">Published Reels (' + items.length + ') — this count is shown only here, never to visitors.</p>'
+    + (items.length ? items.map(function(r){
+        var post = reReelPost(r); var creator = reReelCreator(r);
+        return '<div class="mp-queue-card">'
+          + '<div style="display:flex;gap:8px;align-items:center"><h4 style="margin:0;font-weight:800;font-size:15px;flex:1;min-width:0;word-break:break-all">' + mkEsc(post) + '</h4></div>'
+          + '<div class="dash-meta" style="margin-top:4px">' + (creator.label ? 'Credit: ' + mkEsc(creator.label) + ' · ' : '') + (r.seed ? 'Migrated Reel — built into the site, stays published' : 'Saved Reel') + '</div>'
+          + '<div class="dash-acts"><a href="' + mkEsc(post) + '" target="_blank" rel="noopener" style="text-decoration:none"><button type="button">Watch on Instagram</button></a>'
+          + (r.seed ? '' : '<button class="danger" data-re-reel-remove="' + r.id + '">Remove Reel</button>') + '</div></div>';
+      }).join('') : '<p class="f-note">No Reels published yet.</p>');
+  var add = document.getElementById('reReelAddBtn');
+  if(add) add.addEventListener('click', function(){
+    var err = document.getElementById('reReelErr'); var ok = document.getElementById('reReelOk');
+    if(err){ err.textContent = ''; err.classList.remove('show'); }
+    if(ok){ ok.textContent = ''; ok.classList.remove('show'); }
+    var raw = (document.getElementById('reReelUrlInput').value || '').trim();
+    var post = raw ? ((typeof nrIgPostUrl === 'function') ? nrIgPostUrl(raw) : '') : '';
+    if(!post){ if(err){ err.textContent = 'That Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…).'; err.classList.add('show'); } return; }
+    var dup = reStandaloneItems().filter(function(r){ return reReelPost(r) === post; }).length > 0;
+    if(dup){ if(err){ err.textContent = 'That Reel is already published — it is in Trending Reels and the Reels tab now.'; err.classList.add('show'); } return; }
+    if(!reClient()){ if(err){ err.textContent = 'The Reel could not be published — the backend is not connected.'; err.classList.add('show'); } return; }
+    var creator = reParseCreatorInput(document.getElementById('reReelCreatorInput').value || '');
+    add.disabled = true;
+    reClient().from('standalone_reels').insert({ reel_url:post, creator_label:creator.label || null, creator_url:creator.url || null, created_by:(RE.user && RE.user.id) || null }).select('id, reel_url, creator_label, creator_url, created_at').single()
+      .then(function(r){
+        add.disabled = false;
+        if(r.error){ if(err){ err.textContent = 'The Reel could not be published: ' + (r.error.message || 'the backend did not answer.') + ' If the standalone_reels table does not exist yet, run setup SQL section 10 once (note at the top of this panel). Nothing was published.'; err.classList.add('show'); } return; }
+        RE.reels.unshift(r.data);
+        showToast('<b>Reel published.</b> It is live in Trending Reels and the Reels tab now.');
+        reRenderFounderReels(); reRenderTrending();
+        if(RE.viewMode === 'reels') reRenderBrowse();
+      }, function(){ add.disabled = false; if(err){ err.textContent = 'The Reel could not be published — the backend did not answer. Nothing was published.'; err.classList.add('show'); } });
   });
-  body.querySelectorAll('[data-re-appr-open]').forEach(function(b){
-    b.addEventListener('click', function(){ reOpenDetail(b.getAttribute('data-re-appr-open')); });
+  body.querySelectorAll('[data-re-reel-remove]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var id = b.getAttribute('data-re-reel-remove');
+      b.disabled = true;
+      reClient().from('standalone_reels').delete().eq('id', id)
+        .then(function(r){
+          if(r.error){ b.disabled = false; showToast('That Reel could not be removed: ' + (r.error.message || 'the backend did not answer.')); return; }
+          RE.reels = (RE.reels || []).filter(function(x){ return x.id !== id; });
+          showToast('<b>Reel removed.</b> It no longer appears in Trending Reels or the Reels tab.');
+          reRenderFounderReels(); reRenderTrending();
+          if(RE.viewMode === 'reels') reRenderBrowse();
+        }, function(){ b.disabled = false; showToast('That Reel could not be removed — the backend did not answer.'); });
+    });
   });
 }
 function reRenderQueue(){
@@ -14325,10 +14331,6 @@ function reRenderQueue(){
           + (sp.registration_checked_at ? ' · checked ' + newsTimeLabel(sp.registration_checked_at) : ' · not checked')
           + (sp.registration_checked_at ? '' : ' <button class="chip" style="margin-left:6px" data-re-rera-check="' + p.seller_id + '">Record manual check</button>') + '</div>' : '')
       + (dup ? '<div class="mp-reject-note" style="background:#FBF0DC;color:#7A5410">' + mkEsc(dup) + '</div>' : '')
-      + '<div class="f-field" style="margin-top:12px"><label>Instagram Reel link — founder publishing</label>'
-      + '<div class="mp-price-row"><input class="f-input" data-re-reel-input="' + p.id + '" type="text" value="' + mkEsc((p.details && p.details.reel_url) || p.instagram_url || '') + '" placeholder="https://www.instagram.com/reel/…"/><button class="btn-solid" style="flex:none;padding:11px 16px" data-re-reel-save="' + p.id + '">Save Reel link</button></div>'
-      + '<p class="f-note" style="margin-top:6px">Only you, the founder, can publish a Reel: approving this property below publishes its saved Reel link to Trending Reels (played through Instagram’s official player). An agent may have attached the link while drafting — it stays unpublished until your approval. Clear the box and save to remove the link before approving.</p>'
-      + '<div class="f-err" data-re-reel-err="' + p.id + '"></div></div>'
       + '<div class="mp-big-acts"><button class="ap" data-re-approve="' + p.id + '">Approve</button><button class="rj" data-re-reject="' + p.id + '">Reject</button></div>'
       + '<div class="dash-acts"><button data-re-changes="' + p.id + '">Request changes</button></div>'
       + '<div class="confirm-bar" data-re-rej-bar="' + p.id + '">Reject this property? The seller sees your reason and can fix and resubmit.'
@@ -14373,33 +14375,6 @@ function reRenderQueue(){
       var note = (body.querySelector('[data-re-chg-note="' + id + '"]').value || '').trim();
       if(!note){ showToast('<b>Say what must change</b> so the seller can fix it in one pass.'); return; }
       reModerate(id, 'changes', note);
-    });
-  });
-  body.querySelectorAll('[data-re-reel-save]').forEach(function(b){
-    b.addEventListener('click', function(){
-      var id = b.getAttribute('data-re-reel-save');
-      var p = RE.queue.filter(function(x){ return x.id === id; })[0]; if(!p) return;
-      var inp = body.querySelector('[data-re-reel-input="' + id + '"]');
-      var err = body.querySelector('[data-re-reel-err="' + id + '"]');
-      if(err){ err.textContent = ''; err.classList.remove('show'); }
-      var raw = inp ? inp.value.trim() : '';
-      var post = raw ? ((typeof nrIgPostUrl === 'function') ? nrIgPostUrl(raw) : '') : '';
-      if(raw && !post){
-        /* Failure path is visible, never silent — and nothing is saved. */
-        if(err){ err.textContent = 'That Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…), or clear the box to remove the link.'; err.classList.add('show'); }
-        return;
-      }
-      var details = Object.assign({}, p.details || {});
-      if(post) details.reel_url = post; else delete details.reel_url;
-      b.disabled = true;
-      reClient().from('properties').update({ details:details }).eq('id', id)
-        .then(function(r){
-          b.disabled = false;
-          if(r.error){ if(err){ err.textContent = 'The Reel link could not be saved: ' + (r.error.message || 'the backend did not answer.'); err.classList.add('show'); } return; }
-          p.details = details;
-          if(inp) inp.value = post || '';
-          showToast(post ? '<b>Reel link saved.</b> It publishes to Trending Reels only when you approve this property.' : '<b>Reel link removed.</b> This property will not appear in Trending Reels.');
-        }, function(){ b.disabled = false; if(err){ err.textContent = 'The Reel link could not be saved — the backend did not answer.'; err.classList.add('show'); } });
     });
   });
   body.querySelectorAll('[data-re-rera-check]').forEach(function(b){
@@ -24598,13 +24573,15 @@ function pnVideoCardHTML(p, m, creatorName){
    records the List and Map use. Standard HTML5 video, lazy-loaded as cards
    approach the screen, played only when the viewer presses play — no
    autoplay, no adaptive-streaming claims. Founder-published Instagram
-   Reels appear here on the same approved listings and play through
+   Standalone founder-published Reels appear here too and play through
    Instagram's official embed player; Reel content is never downloaded,
-   copied or re-hosted. */
+   copied or re-hosted. Reels are standalone — never attached to a
+   listing — so they render from the standalone Reels store, not from
+   these property records. */
 function pnRenderVideos(body, items){
   var vids = [];
   items.forEach(function(p){ reMediaOf(p).forEach(function(m){ if(m.kind === 'video' && m.storage_path) vids.push({ p:p, m:m }); }); });
-  var reels = items.filter(function(p){ return !!reIgPostUrl(p); });
+  var reels = reStandaloneItems();
   var total = vids.length + reels.length;
   pnEl('reResultCount').textContent = total + (total === 1 ? ' tour video' : ' tour videos');
   if(!total){
@@ -24613,7 +24590,7 @@ function pnRenderVideos(body, items){
   }
   body.innerHTML = '<div class="ng-feed">'
     + vids.map(function(v){ return ngFeedCardHTML(v.p, v.m); }).join('')
-    + reels.map(function(p){ return ngReelCardHTML(p); }).join('')
+    + reels.map(function(r){ return ngReelCardHTML(r); }).join('')
     + '</div>'
     + '<p class="f-note" style="text-align:center;margin-top:16px">Standard video playback — a tour loads only when its card reaches your screen and plays only when you press play.</p>';
   pnBindLocal(body);
@@ -24643,25 +24620,23 @@ function ngFeedCardHTML(p, m){
     + '<button type="button" class="primary" data-ng-feed-visit="' + p.id + '">Request a visit</button>'
     + '</div></article>';
 }
-function ngReelCardHTML(p){
-  var post = reIgPostUrl(p);
-  var creator = reIgCreator(p);
-  return '<article class="ng-vcard" id="ng-vid-' + p.id + '">'
+function ngReelCardHTML(r){
+  /* Standalone Reel card: only the Reel itself — the player, the
+     creator's credit + profile link, and "Watch on Instagram". No
+     property price, title, locality, badges or property actions. */
+  var post = reReelPost(r);
+  if(!post) return '';
+  var creator = reReelCreator(r);
+  return '<article class="ng-vcard" id="ng-vid-' + r.id + '">'
     + '<div class="ng-vstage"><div class="ng-reel-stage">'
-    + reIgEmbedHTML(post, p)
-    + '<div class="ng-reel-bar"><span class="ng-avail">Instagram Reel · Creator listing · Not Mana-verified</span>'
-    + '<div class="p" style="font-size:23px;font-weight:800;letter-spacing:-.02em">' + reFmtINR(p.price) + '</div>'
-    + '<div class="m" style="font-size:13px;color:#D8E6DC">' + mkEsc(reTypeLabel(p.property_type)) + ' · ' + reFmtNum(Number(p.area_value)) + ' ' + mkEsc(RE_UNITS[p.area_unit] || '') + '<br/>' + mkEsc(p.locality) + ', Khammam</div></div>'
+    + reIgEmbedHTML(post, null)
+    + '<div class="ng-reel-bar"><span class="ng-avail">Instagram Reel</span></div>'
     + '</div></div>'
-    + '<div class="ng-vmeta"><h4>' + mkEsc(p.title) + '</h4>'
+    + '<div class="ng-vmeta">'
     + '<p>Published by the founder with the creator’s permission. It plays here through Instagram’s official player — the video stays on Instagram and is never downloaded, copied or re-hosted by Mana Khammam.</p></div>'
     + '<div class="ng-vacts">'
-    + '<a href="' + mkEsc(creator.url) + '" target="_blank" rel="noopener" style="flex:1 1 auto;text-align:center;font-size:12.5px;font-weight:700;padding:9px 10px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none">' + mkEsc(creator.label.charAt(0) === '@' ? creator.label + ' on Instagram' : 'Watch on Instagram') + '</a>'
-    + '<button type="button" data-ng-feed-save="' + p.id + '" class="' + (RE.savedIds[p.id] ? 'on' : '') + '">' + (RE.savedIds[p.id] ? 'Saved' : 'Save') + '</button>'
-    + '<button type="button" data-ng-feed-map="' + p.id + '">View on Map</button>'
-    + '<button type="button" data-ng-feed-open="' + p.id + '">Full details</button>'
-    + '<a class="wa-feed" href="' + waPropHref(p) + '" target="_blank" rel="noopener">' + WA_ICON + '<span>WhatsApp</span></a>'
-    + '<button type="button" class="primary" data-ng-feed-visit="' + p.id + '">Request a visit</button>'
+    + (creator.label ? '<a href="' + mkEsc(creator.url || post) + '" target="_blank" rel="noopener" style="flex:1 1 auto;text-align:center;font-size:12.5px;font-weight:700;padding:9px 10px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none">' + mkEsc(creator.label.charAt(0) === '@' ? creator.label + ' on Instagram' : creator.label) + '</a>' : '')
+    + '<a href="' + mkEsc(post) + '" target="_blank" rel="noopener" style="flex:1 1 auto;text-align:center;font-size:12.5px;font-weight:700;padding:9px 10px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none">Watch on Instagram</a>'
     + '</div></article>';
 }
 
