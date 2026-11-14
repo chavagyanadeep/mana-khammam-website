@@ -4612,7 +4612,7 @@ table.ng-table td b{color:var(--ink)}
            Instagram's official embed player. Rendered by
            reRenderTrending() from the same standalone Reels store
            as the Reels tab, so the two always agree. -->
-      <section class="tr-shelf" id="reTrendingShelf" aria-label="Trending Reels">
+      <section class="tr-shelf" id="reTrendingShelf" aria-label="Trending Properties Reels">
         <div id="reTrendingBody"></div>
       </section>
       <div class="re-results-head"><h3>Properties in Khammam</h3><p>Homes, plots and commercial spaces for sale</p></div>
@@ -11778,8 +11778,11 @@ function reStandaloneItems(){
 function reLoadStandaloneReels(){
   var c = reClient();
   if(!c){ RE.reels = []; RE.reelsDbReady = false; reRenderTrending(); if(RE.viewMode === 'reels') reRenderBrowse(); return; }
+  /* No count limit: the founder can publish an unlimited number of
+     Reels — this query deliberately sets no .limit(), and no other
+     code caps, slices or truncates the standalone Reels list. */
   c.from('standalone_reels').select('id, reel_url, creator_label, creator_url, created_at')
-    .order('created_at', { ascending:false }).limit(100)
+    .order('created_at', { ascending:false })
     .then(function(r){
       RE.reelsDbReady = !r.error;
       RE.reels = r.error ? [] : (r.data || []);
@@ -11878,7 +11881,7 @@ function reTrendingCardHTML(r){
 }
 function reTrendingEmptyHTML(){
   return '<div class="tr-empty"><div class="tr-empty-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></div>'
-    + '<h4>Trending Reels coming soon</h4>'
+    + '<h4>Trending Properties Reels coming soon</h4>'
     + '<p>No Reel has been published yet. Reels are standalone: the founder publishes a Reel here directly, with the creator’s permission — nothing is shown until then.</p></div>';
 }
 /* The Reels toolbar view: the Trending Reels as a full view in the
@@ -11896,11 +11899,13 @@ function reRenderReelsView(body){
      sees the count only in the founder Reels section of the review
      queue panel — so the tab-row count stays empty here. */
   document.getElementById('reResultCount').textContent = '';
+  var head = '<div class="tr-head" style="margin-top:14px"><h3>Trending Properties Reels</h3></div>'
+    + '<p class="tr-sub">Reels from Khammam creators, published by the founder with the creator’s permission. The video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>';
   if(!items.length){
-    body.innerHTML = '<div style="margin-top:14px">' + reTrendingEmptyHTML() + '</div>';
+    body.innerHTML = head + reTrendingEmptyHTML();
     return;
   }
-  body.innerHTML = '<div class="tr-feed">' + items.map(reTrendingCardHTML).join('') + '</div>'
+  body.innerHTML = head + '<div class="tr-feed">' + items.map(reTrendingCardHTML).join('') + '</div>'
     + '<p class="f-note" style="margin:12px 2px 0">Reels play through Instagram’s official player — Mana Khammam never downloads or re-uploads a creator’s video.</p>';
   reBindCards(body);
   reBindIgEmbeds(body);
@@ -11912,7 +11917,7 @@ function reRenderTrending(){
   shelf.style.display = (RE.viewMode && RE.viewMode !== 'list') ? 'none' : '';
   if(RE.viewMode && RE.viewMode !== 'list') return;
   var items = reTrendingItems();
-  var head = '<div class="tr-head"><h3>Trending Reels</h3></div>'
+  var head = '<div class="tr-head"><h3>Trending Properties Reels</h3></div>'
     + '<p class="tr-sub">Reels from Khammam creators, published by the founder with the creator’s permission. The video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>';
   if(!items.length){
     body.innerHTML = head + reTrendingEmptyHTML();
