@@ -604,6 +604,15 @@ img{display:block;max-width:100%}
 .tr-creator:active{opacity:.7}
 .tr-open{margin-top:auto;padding-top:8px}
 .tr-open button{width:100%}
+/* Reels toolbar tab: Instagram glyph sits inline with the label,
+   matching the other segmented view buttons. */
+.re-viewbar .seg button{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.re-viewbar .seg button svg{flex:none}
+/* Reels view (toolbar tab): the same Trending Reels cards as the
+   shelf, stacked vertically in the browse body instead of the
+   horizontal shelf track. */
+.tr-stack{display:flex;flex-direction:column;gap:16px;margin-top:14px}
+.tr-stack .tr-card{flex:none;width:100%}
 /* Click-to-load Instagram facade (shared by the shelf, property
    detail and the Videos view): the card shows ONLY the listing's own
    cover photo as a poster — no request is made to Instagram, no
@@ -874,6 +883,22 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 }
 .nr-float-back:active{transform:scale(.92)}
 .nr-float-back svg{width:20px;height:20px}
+/* Floating close (X) — top-right counterpart to the back chevron.
+   A direct child of the fixed reader overlay (not of any scrolling
+   page), enlarged to a 44px tap target so it stays pinned and easy
+   to tap at the top while any story — short or long, preview or
+   full-story view — scrolls underneath. Same dark pill treatment
+   as .nr-float-back so it reads clearly over hero photos and over
+   light story pages alike. */
+.nr-float-close{
+  position:absolute;top:calc(10px + env(safe-area-inset-top));right:10px;z-index:36;
+  width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(9,15,12,.58);color:#FFFFFF;
+  box-shadow:0 2px 10px rgba(9,15,12,.28);
+}
+.nr-float-close:active{transform:scale(.92)}
+.nr-float-close svg{width:22px;height:22px}
+.nr-float-close:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* Shared round back button (full-story view, comments, marketplace
    overlays) — unchanged from before. */
 .nr-back{
@@ -1037,16 +1062,26 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 .nr-cal-rows .r span{color:var(--muted)}
 .nr-cal-rows .r b{font-weight:700;text-align:right}
 /* Swipe hint — a small floating pill near the bottom, onboarding only;
-   it never takes layout space and retires after the first flip. */
+   it never takes layout space and retires after the first flip. It
+   teaches BOTH flip directions — swipe down for the previous story,
+   swipe up for the next — each with its own chevron nudging in the
+   direction of its gesture. It floats just above the page's bottom
+   toolbar, so it never covers the hero image or the headline, and it
+   fades out for good once the reader has flipped a story. */
 .nr-swipe-hint{
-  position:absolute;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);
-  z-index:11;display:none;align-items:center;gap:6px;pointer-events:none;white-space:nowrap;
+  position:absolute;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(6px);
+  z-index:11;display:flex;align-items:center;gap:8px;pointer-events:none;white-space:nowrap;
   padding:7px 13px;border-radius:999px;background:rgba(13,22,18,.82);color:#EDF3EE;
   font-size:12.5px;font-weight:700;
+  opacity:0;visibility:hidden;transition:opacity .3s ease,transform .3s ease,visibility 0s linear .3s;
 }
-.nr-swipe-hint.show{display:flex}
-.nr-swipe-hint svg{flex:none;color:var(--mint);animation:nrHintNudge 2.2s ease-in-out infinite}
+.nr-swipe-hint.show{opacity:1;visibility:visible;transform:translateX(-50%);transition:opacity .3s ease,transform .3s ease}
+.nr-swipe-hint svg{flex:none;color:var(--mint)}
+.nr-swipe-hint .ic-up{animation:nrHintNudge 2.2s ease-in-out infinite}
+.nr-swipe-hint .ic-down{animation:nrHintNudgeDown 2.2s ease-in-out infinite}
+.nr-swipe-hint .nr-hint-sep{width:3px;height:3px;border-radius:50%;background:rgba(237,243,238,.45);flex:none}
 @keyframes nrHintNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes nrHintNudgeDown{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
 /* Bottom interaction strip INSIDE each page (it flips with the story):
    like · dislike · comments · overflow · blue share arrow. Every
    control sits INSIDE the bar on one baseline, in normal flow at the
@@ -1145,6 +1180,7 @@ body.mk-offline .install-card{bottom:calc(var(--nav-h) + env(safe-area-inset-bot
 }
 @media (prefers-reduced-motion: reduce){
   .nr-swipe-hint svg{animation:none}
+  .nr-swipe-hint{transition:none}
   .nr-comments{transition:none}
 }
 .nr-empty{
@@ -4553,7 +4589,7 @@ table.ng-table td b{color:var(--ink)}
         <div class="seg" role="group" aria-label="Results view">
           <button id="reViewList" class="on">List</button>
           <button id="reViewMap">Map</button>
-          <button id="reViewVideos">Videos</button>
+          <button id="reViewReels"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>Reels</button>
         </div>
         <span class="re-count" id="reResultCount" aria-live="polite"></span>
         <button class="chip" id="reSaveSearchBtn" style="flex:none">Save this search</button>
@@ -5312,13 +5348,19 @@ alter table public.properties
       <button class="btn-solid" id="nrEmptyBack">Back to home</button>
     </div>
     <div class="nr-swipe-hint" id="nrSwipeHint" aria-hidden="true">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14l6-6 6 6"/></svg>
-      <span>Swipe up for more</span>
+      <svg class="ic-down" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 10l6 6 6-6"/></svg>
+      <span>Swipe down</span>
+      <span class="nr-hint-sep" aria-hidden="true"></span>
+      <svg class="ic-up" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 14l6-6 6 6"/></svg>
+      <span>Swipe up</span>
     </div>
   </div>
   <output class="nr-notice" id="nrNotice" hidden aria-live="polite"></output>
   <button class="nr-float-back" id="nrBack" aria-label="Back to news list">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <button class="nr-float-close" id="nrClose" aria-label="Close news">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
   <div class="nr-menu" id="nrMenu" role="menu" aria-label="Story options">
     <button id="nrMenuPrev" role="menuitem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>Previous story</button>
@@ -6482,14 +6524,16 @@ function nrCloseMenu(){
 }
 function nrPaintChrome(){
   /* The swipe hint + overflow menu reflect the current story — no
-     counter, no large Prev/Next row. The hint appears only when
-     another story actually follows this one. */
+     counter, no large Prev/Next row. The hint teaches both flip
+     directions at once, so it appears whenever a flip is actually
+     possible from here (a next OR a previous story exists), and it
+     retires for the session after the first successful flip. */
   var L = newsList(), total = L.length;
   var onStory = total > 0 && NR.idx < total;
   if(nrEl.hint){
-    var hasNextStory = onStory && NR.idx < total - 1 && !NR.hintSeen;
-    nrEl.hint.classList.toggle('show', hasNextStory);
-    nrEl.hint.setAttribute('aria-hidden', hasNextStory ? 'false' : 'true');
+    var canFlip = onStory && (NR.idx < total - 1 || NR.idx > 0) && !NR.hintSeen;
+    nrEl.hint.classList.toggle('show', canFlip);
+    nrEl.hint.setAttribute('aria-hidden', canFlip ? 'false' : 'true');
   }
   if(nrEl.menuPrev) nrEl.menuPrev.disabled = NR.idx <= 0;
   if(nrEl.menuNext) nrEl.menuNext.disabled = NR.idx >= total;
@@ -7104,6 +7148,7 @@ function closeNews(){
   }
 }
 document.getElementById('nrBack').addEventListener('click', closeNews);
+document.getElementById('nrClose').addEventListener('click', closeNews);
 document.getElementById('nrEmptyBack').addEventListener('click', closeNews);
 document.getElementById('nrLightClose').addEventListener('click', function(){
   nrEl.light.classList.remove('open'); nrEl.light.setAttribute('aria-hidden','true');
@@ -11272,7 +11317,7 @@ function reInit(){
   document.getElementById('reBackBrowse').addEventListener('click', function(){ reShowTab('browse'); });
   document.getElementById('reViewList').addEventListener('click', reExitMapMode);
   document.getElementById('reViewMap').addEventListener('click', function(){ RE.viewMode = 'map'; OSM.shell = false; rePaintViewMode(); reRenderBrowse(); });
-  document.getElementById('reViewVideos').addEventListener('click', function(){ RE.viewMode = 'videos'; OSM.shell = false; rePaintViewMode(); reRenderBrowse(); });
+  document.getElementById('reViewReels').addEventListener('click', function(){ RE.viewMode = 'reels'; OSM.shell = false; rePaintViewMode(); reRenderBrowse(); });
   document.getElementById('reSaveSearchBtn').addEventListener('click', reSaveCurrentSearch);
   document.getElementById('reFilterToggle').addEventListener('click', function(){
     var p = document.getElementById('reFilterPanel');
@@ -11314,8 +11359,8 @@ function reInit(){
 function rePaintViewMode(){
   document.getElementById('reViewList').classList.toggle('on', RE.viewMode === 'list');
   document.getElementById('reViewMap').classList.toggle('on', RE.viewMode === 'map');
-  var vv = document.getElementById('reViewVideos');
-  if(vv) vv.classList.toggle('on', RE.viewMode === 'videos');
+  var vr = document.getElementById('reViewReels');
+  if(vr) vr.classList.toggle('on', RE.viewMode === 'reels');
   var v = document.getElementById('view-realestate');
   if(v) v.classList.toggle('map-on', RE.viewMode === 'map');
   /* Map mode is a full-screen takeover — lock page scroll behind it. */
@@ -11638,6 +11683,7 @@ function reRenderBrowse(){
   var items = reFilteredProps();
   document.getElementById('reResultCount').textContent = items.length + (items.length === 1 ? ' property' : ' properties');
   if(RE.viewMode === 'map'){ reRenderMap(body, items); return; }
+  if(RE.viewMode === 'reels'){ reRenderReelsView(body); return; }
   if(RE.viewMode === 'videos'){ if(typeof pnRenderVideos === 'function') pnRenderVideos(body, items); return; }
   var recentHtml = '';
   if(RE.recent.length && !(document.getElementById('reSearchInput').value || '').trim()){
@@ -11750,6 +11796,48 @@ function reTrendingItems(){
   return (RE.props || []).filter(function(p){ return !!reIgPostUrl(p); })
     .slice().sort(function(a, b){ return new Date(b.created_at) - new Date(a.created_at); });
 }
+/* One card builder for every Trending Reels surface (the shelf below
+   the toolbar and the Reels toolbar view), so both always show the
+   same founder-approved Reels under the same rules: official
+   Instagram embed behind a click-to-load poster, creator credit +
+   profile link, no phone numbers. */
+function reTrendingCardHTML(p){
+  var post = reIgPostUrl(p);
+  var creator = reIgCreator(p);
+  return '<article class="tr-card">'
+    + reIgEmbedHTML(post, p)
+    + '<div class="cb">'
+    + '<div class="tr-badges"><span class="tr-badge creator">Creator listing</span><span class="tr-badge">Not Mana-verified</span></div>'
+    + '<div class="tr-price">' + reFmtINR(p.price) + (p.negotiable ? ' <span style="font-size:12px;color:var(--accent);font-weight:700">Negotiable</span>' : '') + '</div>'
+    + '<div class="tr-title">' + mkEsc(p.title) + '</div>'
+    + '<div class="tr-meta">' + mkEsc(p.locality) + ', Khammam · ' + mkEsc(reTypeLabel(p.property_type)) + '</div>'
+    + '<a class="tr-creator" href="' + mkEsc(creator.url) + '" target="_blank" rel="noopener">' + NR_IG_ICON + '<span>' + mkEsc(creator.label) + (creator.label.charAt(0) === '@' ? ' on Instagram' : '') + '</span></a>'
+    + '<div class="tr-open"><button class="btn-ghost" data-re-open="' + p.id + '">View property</button></div>'
+    + '</div></article>';
+}
+function reTrendingEmptyHTML(){
+  return '<div class="tr-empty"><div class="tr-empty-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></div>'
+    + '<h4>Trending Reels coming soon</h4>'
+    + '<p>No creator Reel has been published yet. Reels appear here only after a creator gives permission and the founder publishes the approved listing — nothing is shown until then.</p></div>';
+}
+/* The Reels toolbar view: the Trending Reels as a full view in the
+   browse body, reached in one tap from the List / Map / Reels row.
+   Same items, same cards, same click-to-load rule as the shelf —
+   read from reTrendingItems(), so only founder-approved listings
+   with a Reel ever appear, and the honest "coming soon" state shows
+   until the first one is approved. */
+function reRenderReelsView(body){
+  var items = reTrendingItems();
+  document.getElementById('reResultCount').textContent = items.length + (items.length === 1 ? ' Reel' : ' Reels');
+  if(!items.length){
+    body.innerHTML = '<div style="margin-top:14px">' + reTrendingEmptyHTML() + '</div>';
+    return;
+  }
+  body.innerHTML = '<div class="tr-stack">' + items.map(reTrendingCardHTML).join('') + '</div>'
+    + '<p class="f-note" style="margin:12px 2px 0">Reels play through Instagram’s official player — Mana Khammam never downloads or re-uploads a creator’s video. Contact on every listing stays in-app chat only.</p>';
+  reBindCards(body);
+  reBindIgEmbeds(body);
+}
 function reRenderTrending(){
   var shelf = document.getElementById('reTrendingShelf');
   var body = document.getElementById('reTrendingBody');
@@ -11762,26 +11850,10 @@ function reRenderTrending(){
     + '</div>'
     + '<p class="tr-sub">Property Reels from Khammam creators, published by the founder with the creator’s permission. The video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>';
   if(!items.length){
-    body.innerHTML = head
-      + '<div class="tr-empty"><div class="tr-empty-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></div>'
-      + '<h4>Trending Reels coming soon</h4>'
-      + '<p>No creator Reel has been published yet. Reels appear here only after a creator gives permission and the founder publishes the approved listing — nothing is shown until then.</p></div>';
+    body.innerHTML = head + reTrendingEmptyHTML();
     return;
   }
-  body.innerHTML = head + '<div class="tr-track">' + items.map(function(p){
-    var post = reIgPostUrl(p);
-    var creator = reIgCreator(p);
-    return '<article class="tr-card">'
-      + reIgEmbedHTML(post, p)
-      + '<div class="cb">'
-      + '<div class="tr-badges"><span class="tr-badge creator">Creator listing</span><span class="tr-badge">Not Mana-verified</span></div>'
-      + '<div class="tr-price">' + reFmtINR(p.price) + (p.negotiable ? ' <span style="font-size:12px;color:var(--accent);font-weight:700">Negotiable</span>' : '') + '</div>'
-      + '<div class="tr-title">' + mkEsc(p.title) + '</div>'
-      + '<div class="tr-meta">' + mkEsc(p.locality) + ', Khammam · ' + mkEsc(reTypeLabel(p.property_type)) + '</div>'
-      + '<a class="tr-creator" href="' + mkEsc(creator.url) + '" target="_blank" rel="noopener">' + NR_IG_ICON + '<span>' + mkEsc(creator.label) + (creator.label.charAt(0) === '@' ? ' on Instagram' : '') + '</span></a>'
-      + '<div class="tr-open"><button class="btn-ghost" data-re-open="' + p.id + '">View property</button></div>'
-      + '</div></article>';
-  }).join('') + '</div>'
+  body.innerHTML = head + '<div class="tr-track">' + items.map(reTrendingCardHTML).join('') + '</div>'
     + '<p class="f-note" style="margin:2px 2px 0">Reels play through Instagram’s official player — Mana Khammam never downloads or re-uploads a creator’s video. Contact on every listing stays in-app chat only.</p>';
   reBindCards(body);
   reBindIgEmbeds(body);
