@@ -555,6 +555,99 @@ img{display:block;max-width:100%}
 .re-media-item .cap{width:100%;font-size:11px;padding:6px 7px;border:0;background:var(--surface);color:var(--ink);outline:none}
 .re-media-item .mk-cover{position:absolute;left:0;right:0;bottom:30px;font-size:10px;font-weight:700;background:rgba(255,255,255,.92);padding:4px 0;color:var(--ink);text-align:center}
 
+/* ============ TRENDING REELS (Properties) ============
+   Creator Reels for approved property listings, played through
+   Instagram's own official embed player (the PR #30 news pattern:
+   iframe src = canonical post URL + "embed"). The video is never
+   downloaded, copied or re-hosted by Mana Khammam. Light theme only,
+   using the shared tokens above. */
+.tr-shelf{margin:22px 0 2px}
+.tr-head{display:flex;align-items:baseline;gap:10px;margin:0 2px 4px}
+.tr-head h3{margin:0;font-size:20px;font-weight:800;letter-spacing:-.015em;color:var(--forest)}
+.tr-head .tr-count{font-size:12.5px;color:var(--muted);font-weight:600}
+.tr-sub{margin:0 2px 12px;font-size:13px;color:var(--muted);line-height:1.5;max-width:52ch}
+.tr-empty{
+  border:1.5px dashed var(--line);border-radius:16px;background:var(--surface);
+  padding:22px 18px;text-align:center;
+}
+.tr-empty .tr-empty-ic{
+  width:52px;height:52px;border-radius:16px;background:var(--paper-2);color:var(--accent);
+  display:grid;place-items:center;margin:0 auto 11px;
+}
+.tr-empty h4{margin:0 0 5px;font-weight:800;font-size:16.5px}
+.tr-empty p{margin:0 auto;font-size:13px;line-height:1.55;color:var(--muted);max-width:38ch}
+.tr-empty .btn-ghost{margin-top:13px;padding:10px 18px}
+.tr-track{
+  display:flex;gap:14px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;
+  scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.tr-track::-webkit-scrollbar{display:none}
+.tr-card{
+  flex:0 0 min(80vw,302px);scroll-snap-align:start;background:var(--surface);
+  border:1px solid var(--line);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;
+}
+@media (min-width:760px){ .tr-card{flex-basis:320px} }
+.tr-card .cb{padding:11px 13px 13px;display:flex;flex-direction:column;gap:5px;flex:1}
+.tr-badges{display:flex;gap:6px;flex-wrap:wrap}
+.tr-badge{
+  font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  padding:4px 8px;border-radius:6px;background:#FBF0DC;color:#7A5410;
+}
+.tr-badge.creator{background:var(--green-tint);color:var(--accent-deep)}
+.tr-price{font-weight:800;font-size:17px;letter-spacing:-.01em}
+.tr-title{font-weight:700;font-size:14px;line-height:1.3}
+.tr-meta{font-size:12.5px;color:var(--muted)}
+.tr-creator{
+  display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--accent-deep);
+  text-decoration:none;margin-top:2px;word-break:break-all;
+}
+.tr-creator:active{opacity:.7}
+.tr-open{margin-top:auto;padding-top:8px}
+.tr-open button{width:100%}
+/* Click-to-load Instagram facade (shared by the shelf, property
+   detail and the Videos view): the card shows ONLY the listing's own
+   cover photo as a poster — no request is made to Instagram, no
+   player exists and nothing autoplays on load or on scroll. Only a
+   tap on the card swaps in Instagram's official player iframe, for
+   that one Reel alone. A failed or deleted Reel affects only its
+   own card; every other card stays a poster. */
+.ig-embed{background:#101613;position:relative}
+.ig-facade{
+  position:relative;width:100%;min-height:340px;display:grid;place-items:center;overflow:hidden;
+  background:var(--forest);color:#FFFFFF;padding:0;text-align:center;
+}
+.ig-facade .ig-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ig-facade .ig-play{
+  position:relative;z-index:2;width:62px;height:62px;border-radius:50%;border:3px solid #FFFFFF;
+  background:rgba(16,43,36,.52);display:grid;place-items:center;color:#FFFFFF;flex:none;
+  box-shadow:0 4px 18px rgba(9,24,19,.35);
+}
+.ig-facade .ig-play svg{width:27px;height:27px;margin-left:3px}
+.ig-facade:active .ig-play{transform:scale(.93)}
+.ig-failed{
+  min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  color:#F2F5EF;font-size:13.5px;font-weight:600;line-height:1.5;padding:24px 18px;text-align:center;
+}
+.ig-failed a{color:var(--mint);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.ig-frame iframe{display:block;width:100%;height:480px;max-height:128vw;border:0;background:#101613}
+.tr-card .ig-facade,.tr-card .ig-failed{min-height:300px}
+.tr-card .ig-frame iframe{height:430px;max-height:none}
+.ng-reel-stage .ig-embed{flex:1;min-height:0;display:flex;flex-direction:column}
+.ng-reel-stage .ig-facade{flex:1;min-height:0}
+.ng-reel-stage .ig-failed{flex:1;min-height:0}
+.ng-reel-stage .ig-frame{flex:1;min-height:0;display:flex}
+.ng-reel-stage .ig-frame iframe{flex:1;height:auto;max-height:none;min-height:0}
+.ig-setup-note{
+  border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:13px 14px;margin:0 0 14px;
+}
+.ig-setup-note h4{margin:0 0 5px;font-size:14px;font-weight:800}
+.ig-setup-note p{margin:0 0 8px;font-size:12.5px;line-height:1.55;color:var(--muted)}
+.ig-setup-note code{
+  display:block;font-size:11.5px;line-height:1.5;background:var(--paper-2);border-radius:9px;
+  padding:9px 11px;white-space:pre-wrap;word-break:break-word;color:var(--ink-2);
+}
+.ig-setup-note code+code{margin-top:7px}
+
 /* ============ EXPERIENCES ============ */
 .exp-lead{position:relative;border-radius:16px;overflow:hidden;width:100%;text-align:left;display:block}
 .exp-lead img{width:100%;height:204px;object-fit:cover}
@@ -1724,6 +1817,10 @@ textarea.f-input.tall{min-height:120px}
 .de-empty{border:1px dashed var(--line);border-radius:14px;padding:18px 14px;text-align:center;background:var(--surface)}
 .de-empty h4{margin:0 0 5px;font-size:14.5px;font-weight:800}
 .de-empty p{margin:0 auto;font-size:12.5px;color:var(--muted);line-height:1.55;max-width:36ch}
+.de-soon{border:1px dashed var(--line);border-radius:14px;padding:26px 16px;text-align:center;background:var(--surface)}
+.de-soon h4{margin:10px 0 5px;font-size:15.5px;font-weight:800}
+.de-soon p{margin:0 auto;font-size:12.5px;color:var(--muted);line-height:1.55;max-width:38ch}
+.de-soon .soon-pill{margin-left:0;font-size:10px;padding:2px 9px}
 .de-empty .btn-ghost,.de-empty .btn-solid{margin-top:12px}
 .de-src-tag{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--paper-2);color:var(--ink-2)}
 .de-src-tag.official{background:var(--green-tint);color:var(--accent-deep)}
@@ -1777,6 +1874,13 @@ textarea.f-input.tall{min-height:120px}
 .de-seg{display:flex;background:var(--paper-2);border-radius:12px;padding:3px;gap:2px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none}
 .de-seg::-webkit-scrollbar{display:none}
 .de-seg button{flex:1;font-size:12.5px;font-weight:700;padding:8px 8px;border-radius:9px;color:var(--muted);white-space:nowrap}
+/* Market seg carries a Soon pill on three tabs — tighten it (scoped to the
+   public market seg only) so all four tabs fit without scrolling on phones. */
+.de-seg-mkt button{padding:8px 5px}
+@media (max-width:520px){
+  .de-seg-mkt button{font-size:11px;padding:8px 3px}
+  .de-seg-mkt .soon-pill-sm{margin-left:2px;padding:0 2px}
+}
 .de-seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(23,32,29,.14)}
 
 /* data tables */
@@ -3246,8 +3350,10 @@ table.ng-table td b{color:var(--ink)}
          below them. Useful Numbers and Places to See are no longer
          separate tiles or pages — they are merged into Local Alerts as
          sections on that page. Summaries show only real values: weather
-         is live, Tithi is calculated on-device, market/alert lines
-         appear only when the backend returns real records. -->
+         is live, Tithi is calculated on-device, alert lines appear only
+         when the backend returns real records. The Market Rates summary
+         stays static: Vegetables, Essentials and Fuel are "Coming Soon"
+         in the public view, so their values are never surfaced here. -->
     <section class="sec reveal" style="padding-top:16px">
       <div class="sec-head">
         <h2>Daily Essentials</h2>
@@ -3261,7 +3367,7 @@ table.ng-table td b{color:var(--ink)}
         <button class="de-tile" id="deTileMarket" aria-label="Open Daily Market Prices">
           <span class="de-ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2" transform="translate(-1 0)"/><path d="M3 20h18"/></svg></span>
           <h4>Market Rates</h4>
-          <p id="deSumMarket">Vegetables, fuel, gold &amp; silver</p>
+          <p id="deSumMarket">Gold &amp; silver rates · Vegetables, essentials &amp; fuel coming soon</p>
         </button>
         <button class="de-tile" id="deTileAlerts" aria-label="Open Local Alerts — power notices, useful numbers and places to see">
           <span class="de-ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4.5 13.5H11L9.5 22 19 10h-6.5L13 2z"/></svg></span>
@@ -4453,6 +4559,14 @@ table.ng-table td b{color:var(--ink)}
         <button class="chip" id="reSaveSearchBtn" style="flex:none">Save this search</button>
       </div>
       </div>
+      <!-- TRENDING REELS: creator Instagram Reels attached to approved
+           property listings only, newest first, played through
+           Instagram's official embed player. Rendered by
+           reRenderTrending() from the same live property records as
+           the List — nothing is seeded or staged here. -->
+      <section class="tr-shelf" id="reTrendingShelf" aria-label="Trending Reels">
+        <div id="reTrendingBody"></div>
+      </section>
       <div class="re-results-head"><h3>Properties in Khammam</h3><p>Homes, plots and commercial spaces for sale</p></div>
       <div id="reBrowseBody"></div>
     </section>
@@ -4526,6 +4640,20 @@ table.ng-table td b{color:var(--ink)}
     <section class="mp-panel" id="rePanel-queue">
       <div class="sec-head" style="margin-bottom:6px"><h2 style="font-size:19px">Property review queue</h2></div>
       <p class="sec-sub" style="margin:0 0 6px">Nothing becomes public until you approve it here. Approving a listing does not verify its title — it only approves its appearance on Mana Khammam.</p>
+      <!-- Founder-only setup note (shown by reLoadQueue for founders):
+           how Instagram links are stored, and the exact one-time SQL
+           for the dedicated columns. -->
+      <div class="ig-setup-note" id="reIgSetupNote" style="display:none">
+        <h4>Instagram Reels — storage &amp; one-time setup</h4>
+        <p><b>News</b> stores its link in <b>news_articles.instagram_url</b>, added by setup SQL <b>section 8</b>. <b>Properties are different:</b> a property's Reel link is saved inside the listing's own <b>details</b> record (<b>details.reel_url</b>), which already exists — so property Reel links save today with <b>no new SQL</b>, and the property side does <b>not</b> need the news column. If you also want a dedicated, queryable column on properties for parity with news, run section 9 of the setup SQL once — it is optional and changes nothing in the app until a future version reads it:</p>
+        <code>-- Section 8 (news — run once if not already run):
+alter table public.news_articles
+  add column if not exists instagram_url text;</code>
+        <code>-- Section 9 (properties — OPTIONAL dedicated column):
+alter table public.properties
+  add column if not exists instagram_url text;</code>
+        <p style="margin:8px 0 0">Whether the section 8 column already exists in your Supabase project can only be confirmed in the Supabase SQL Editor / Table Editor — this page cannot inspect the database schema. Property posting, approval and the Trending Reels shelf work from details.reel_url either way.</p>
+      </div>
       <div id="reQueueBody"></div>
       <div class="sec-head" style="margin:20px 0 6px"><h2 style="font-size:19px">Agent approvals</h2></div>
       <p class="sec-sub" style="margin:0 0 6px">Seller tools — the dashboard, public storefronts, Share &amp; Grow, the seller inbox, Founding Partners and posting — unlock only for sellers (agents and owners) you approve here. Each application shows the role and Instagram answers the applicant submitted.</p>
@@ -11250,6 +11378,11 @@ function reShowTab(tab, authWhy){
 var RE_PROP_SELECT = 'id, seller_id, title, property_type, price, currency, negotiable, description, listing_kind, availability, status, rejection_reason, moderation_note, area_value, area_unit, area_measure, area_sqft, bhk, locality, landmark, sponsored, team_visited, availability_confirmed_at, approved_at, details, amenities, created_at, updated_at, property_media(id, kind, storage_path, external_url, caption, position, is_cover)';
 function reLoadBrowse(){
   var body = document.getElementById('reBrowseBody');
+  /* The Trending Reels shelf renders immediately from whatever
+     approved listings are already loaded (the honest "coming soon"
+     state when there are none), then re-renders with fresh data
+     when this fetch lands — it never waits on the network. */
+  reRenderTrending();
   if(!reClient()){ document.getElementById('reResultCount').textContent = ''; if(RE.viewMode === 'map'){ body.innerHTML = reMapOfflineHTML(); reBindPaneState(body); } else { body.innerHTML = reNotConnectedHTML(); } return; }
   body.innerHTML = '<p class="f-note" style="padding:8px 0">Loading properties…</p>';
   var c = reClient();
@@ -11257,7 +11390,7 @@ function reLoadBrowse(){
     .in('status', ['active','reserved','sold'])
     .order('created_at', { ascending:false }).limit(120)
     .then(function(r){
-      if(r.error){ body.innerHTML = '<div class="f-card"><h3>Properties could not be loaded</h3><p>' + mkEsc(r.error.message || 'The backend did not answer.') + '</p></div>'; return; }
+      if(r.error){ body.innerHTML = '<div class="f-card"><h3>Properties could not be loaded</h3><p>' + mkEsc(r.error.message || 'The backend did not answer.') + '</p></div>'; reRenderTrending(); return; }
       RE.props = (r.data || []).filter(function(p){
         return !(RE.user && (MP.blocks[p.seller_id] || MP.blockedBy[p.seller_id]));
       });
@@ -11270,7 +11403,7 @@ function reLoadBrowse(){
       }
       return Promise.all(jobs).then(reRenderBrowse);
     })
-    .catch(function(){ body.innerHTML = '<div class="f-card"><h3>Properties could not be loaded</h3><p>The backend did not answer. Check the connection and try again.</p></div>'; });
+    .catch(function(){ body.innerHTML = '<div class="f-card"><h3>Properties could not be loaded</h3><p>The backend did not answer. Check the connection and try again.</p></div>'; reRenderTrending(); });
 }
 function reCurrentFilters(){
   var f = {
@@ -11500,6 +11633,7 @@ function reBindCards(root){
 function reRenderBrowse(){
   var body = document.getElementById('reBrowseBody');
   rePaintFilterUI();
+  reRenderTrending();
   if(!reClient()) return;
   var items = reFilteredProps();
   document.getElementById('reResultCount').textContent = items.length + (items.length === 1 ? ' property' : ' properties');
@@ -11519,6 +11653,140 @@ function reRenderBrowse(){
     : mpEmptyHTML('No properties match', 'Try a wider price or area range, or a different property type. New Khammam properties appear here the moment the founder approves them.', '', ''));
   reBindCards(body);
 }
+/* ---------- TRENDING REELS ----------
+   Creator Instagram Reels attached to property listings. PUBLISHING
+   IS FOUNDER-ONLY: an agent/seller may attach a Reel link while
+   drafting a listing, but the listing (and its Reel) stays in
+   Pending Review until the founder approves it in the review queue
+   — approval transitions are founder-only in the database (the same
+   rule as every property), and this shelf reads ONLY the public
+   statuses (active / reserved / sold) that reLoadBrowse loaded, so
+   a draft or pending Reel can never appear here. Creators never get
+   a publish control anywhere; they only give permission in DM.
+   Playback uses Instagram's official embed player — the exact PR #30
+   news pattern (iframe src = canonical post URL + "embed"). The
+   video is never downloaded, copied, scraped or re-hosted. */
+function reIgPostUrl(p){
+  if(!p) return '';
+  var raw = p.instagram_url || (p.details && p.details.reel_url) || '';
+  return (typeof nrIgPostUrl === 'function') ? nrIgPostUrl(raw) : '';
+}
+function reIgCreator(p){
+  /* The creator's handle comes from the seller's own linked Instagram
+     profile (profiles.instagram_url) when it names one. When it does
+     not, nothing is invented: the card links to the Reel itself. */
+  var prof = (typeof MP !== 'undefined' && MP.profiles) ? MP.profiles[p.seller_id] : null;
+  var v = prof && prof.instagram_url ? String(prof.instagram_url).trim() : '';
+  var handle = '';
+  if(v){
+    var m = v.match(/instagram\.com\/([A-Za-z0-9._]+)/i);
+    if(m && ['reel','reels','p','tv','explore','stories'].indexOf(m[1].toLowerCase()) < 0) handle = m[1];
+    else if(/^@[A-Za-z0-9._]+$/.test(v)) handle = v.slice(1);
+    else if(/^[A-Za-z0-9._]+$/.test(v)) handle = v;
+  }
+  if(handle) return { label:'@' + handle, url:'https://www.instagram.com/' + handle + '/' };
+  return { label:'Watch on Instagram', url:reIgPostUrl(p) };
+}
+function reIgEmbedHTML(post, p){
+  /* Click-to-load facade: the card renders ONLY the listing's own
+     cover photo as a poster (served from Mana Khammam's own storage —
+     Instagram is not contacted at all), with a play affordance and no
+     text asking the visitor to watch. The Instagram player iframe is
+     created only when this card itself is tapped (reIgLoadEmbed). */
+  var cover = '';
+  try{ cover = p ? reCoverOf(p) : ''; }catch(e){ cover = ''; }
+  return '<div class="ig-embed" data-ig-post="' + mkEsc(post) + '">'
+    + '<button type="button" class="ig-facade" data-ig-load aria-label="Play this Instagram Reel — it plays here on Mana Khammam">'
+    + (cover ? '<img class="ig-poster" src="' + mkEsc(cover) + '" alt="" loading="lazy"/>' : '')
+    + '<span class="ig-play">' + ((typeof NR_ICONS !== 'undefined' && NR_ICONS.playLg) || '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>') + '</span>'
+    + '</button></div>';
+}
+function reIgLoadEmbed(box){
+  /* Runs ONLY from a tap on this one card. Builds that Reel's official
+     Instagram player and nothing else — there is deliberately no
+     IntersectionObserver / scroll trigger anywhere for Reels, and no
+     other card is touched. A failure is contained to this card. */
+  if(!box || box.getAttribute('data-ig-loaded')) return;
+  var post = box.getAttribute('data-ig-post'); if(!post) return;
+  box.setAttribute('data-ig-loaded', '1');
+  box.classList.add('ig-frame');
+  try{
+    var frame = document.createElement('iframe');
+    frame.src = post + 'embed';
+    frame.title = 'Instagram Reel';
+    frame.setAttribute('frameborder', '0');
+    frame.setAttribute('scrolling', 'no');
+    frame.setAttribute('allowfullscreen', '');
+    frame.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture; web-share');
+    frame.addEventListener('error', function(){ reIgEmbedFailed(box, post); });
+    box.innerHTML = '';
+    box.appendChild(frame);
+  }catch(e){
+    reIgEmbedFailed(box, post);
+  }
+}
+function reIgEmbedFailed(box, post){
+  /* Per-card failure state: only this card changes; every other Reel
+     stays as its poster facade. */
+  if(!box) return;
+  box.classList.remove('ig-frame');
+  box.innerHTML = '<div class="ig-failed"><span>This Reel could not be loaded here.</span>'
+    + '<a href="' + mkEsc(post) + '" target="_blank" rel="noopener">Open it on Instagram</a></div>';
+}
+function reBindIgEmbeds(root){
+  /* Tap-only binding: no observer, no prefetch, no scroll trigger.
+     Nothing here — or anywhere on page load — requests a Reel player
+     from Instagram. */
+  if(!root) return;
+  var boxes = root.querySelectorAll('[data-ig-post]');
+  boxes.forEach(function(box){
+    if(box.getAttribute('data-ig-bound')) return;
+    box.setAttribute('data-ig-bound', '1');
+    var btn = box.querySelector('[data-ig-load]');
+    if(btn) btn.addEventListener('click', function(){ reIgLoadEmbed(box); });
+  });
+}
+function reTrendingItems(){
+  return (RE.props || []).filter(function(p){ return !!reIgPostUrl(p); })
+    .slice().sort(function(a, b){ return new Date(b.created_at) - new Date(a.created_at); });
+}
+function reRenderTrending(){
+  var shelf = document.getElementById('reTrendingShelf');
+  var body = document.getElementById('reTrendingBody');
+  if(!shelf || !body) return;
+  shelf.style.display = (RE.viewMode && RE.viewMode !== 'list') ? 'none' : '';
+  if(RE.viewMode && RE.viewMode !== 'list') return;
+  var items = reTrendingItems();
+  var head = '<div class="tr-head"><h3>Trending Reels</h3>'
+    + (items.length ? '<span class="tr-count">' + items.length + (items.length === 1 ? ' Reel' : ' Reels') + '</span>' : '')
+    + '</div>'
+    + '<p class="tr-sub">Property Reels from Khammam creators, published by the founder with the creator’s permission. The video stays on the creator’s Instagram and plays here through Instagram’s own player.</p>';
+  if(!items.length){
+    body.innerHTML = head
+      + '<div class="tr-empty"><div class="tr-empty-ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/><circle cx="12" cy="12" r="4.3"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg></div>'
+      + '<h4>Trending Reels coming soon</h4>'
+      + '<p>No creator Reel has been published yet. Reels appear here only after a creator gives permission and the founder publishes the approved listing — nothing is shown until then.</p></div>';
+    return;
+  }
+  body.innerHTML = head + '<div class="tr-track">' + items.map(function(p){
+    var post = reIgPostUrl(p);
+    var creator = reIgCreator(p);
+    return '<article class="tr-card">'
+      + reIgEmbedHTML(post, p)
+      + '<div class="cb">'
+      + '<div class="tr-badges"><span class="tr-badge creator">Creator listing</span><span class="tr-badge">Not Mana-verified</span></div>'
+      + '<div class="tr-price">' + reFmtINR(p.price) + (p.negotiable ? ' <span style="font-size:12px;color:var(--accent);font-weight:700">Negotiable</span>' : '') + '</div>'
+      + '<div class="tr-title">' + mkEsc(p.title) + '</div>'
+      + '<div class="tr-meta">' + mkEsc(p.locality) + ', Khammam · ' + mkEsc(reTypeLabel(p.property_type)) + '</div>'
+      + '<a class="tr-creator" href="' + mkEsc(creator.url) + '" target="_blank" rel="noopener">' + NR_IG_ICON + '<span>' + mkEsc(creator.label) + (creator.label.charAt(0) === '@' ? ' on Instagram' : '') + '</span></a>'
+      + '<div class="tr-open"><button class="btn-ghost" data-re-open="' + p.id + '">View property</button></div>'
+      + '</div></article>';
+  }).join('') + '</div>'
+    + '<p class="f-note" style="margin:2px 2px 0">Reels play through Instagram’s official player — Mana Khammam never downloads or re-uploads a creator’s video. Contact on every listing stays in-app chat only.</p>';
+  reBindCards(body);
+  reBindIgEmbeds(body);
+}
+
 function reMapFsBarHTML(withArea){
   var back = '<button class="remap-fs-back" data-remap-list aria-label="Back to list view"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>List</button>';
   if(!withArea){
@@ -12180,8 +12448,12 @@ function reRenderDetail(){
         ? '<div class="re-mapwrap"><iframe title="Approximate location map (OpenStreetMap)" loading="lazy" src="https://www.openstreetmap.org/export/embed.html?bbox=' + encodeURIComponent((loc.lng - 0.02) + ',' + (loc.lat - 0.02) + ',' + (loc.lng + 0.02) + ',' + (loc.lat + 0.02)) + '&layer=mapnik&marker=' + encodeURIComponent(loc.lat + ',' + loc.lng) + '"></iframe></div><p class="f-note" style="margin-top:7px">Approximate area only, shared with the seller’s consent. Map © OpenStreetMap contributors.</p>'
         : '<p class="f-note" style="margin-top:6px">The seller has not shared a map location. The exact address is private and is shared by the seller in chat when you arrange a visit.</p>')
     + (tour ? '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">360° tour</h2></div><p style="font-size:14px;line-height:1.6;color:var(--ink-2);margin:0 0 8px">The seller has provided a 360° tour captured from this property.</p><button class="btn-ghost" id="reTourBtn" style="width:100%">Open the 360° tour</button>' : '')
-    + ((p.details && p.details.reel_url && /instagram\.com/.test(p.details.reel_url))
-        ? '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">Seller’s Instagram Reel</h2></div><p style="font-size:14px;line-height:1.6;color:var(--ink-2);margin:0 0 8px">The seller linked their own Reel for this property. It opens on Instagram — Mana Khammam does not copy, embed or republish Reel content.</p><a class="btn-ghost" style="display:block;text-align:center;text-decoration:none" target="_blank" rel="noopener" href="' + mkEsc(p.details.reel_url) + '">Watch the Reel on Instagram</a>'
+    + (reIgPostUrl(p)
+        ? '<div class="sec-head" style="margin:20px 0 4px"><h2 style="font-size:16.5px">Instagram Reel</h2></div>'
+          + '<div class="tr-badges" style="margin:0 0 8px"><span class="tr-badge creator">Creator listing</span><span class="tr-badge">Not Mana-verified</span></div>'
+          + '<p style="font-size:14px;line-height:1.6;color:var(--ink-2);margin:0 0 10px">Published by the founder with the creator’s permission. It plays here through Instagram’s official player — the video stays on the creator’s Instagram and is never downloaded or copied to Mana Khammam.</p>'
+          + reIgEmbedHTML(reIgPostUrl(p), p)
+          + '<a class="nr-ig-btn" style="border:1px solid var(--line);border-radius:12px;margin-top:10px" target="_blank" rel="noopener" href="' + mkEsc(reIgCreator(p).url) + '">' + NR_IG_ICON + '<span>' + mkEsc(reIgCreator(p).label.charAt(0) === '@' ? reIgCreator(p).label + ' on Instagram' : 'Watch on Instagram') + '</span></a>'
         : '')
     + '<button class="mp-seller-card" id="reSellerCard">'
     + '<span class="avatar">' + mkEsc((seller.display_name || 'M').charAt(0).toUpperCase()) + '</span>'
@@ -12215,6 +12487,7 @@ function reRenderDetail(){
     + '</div>';
   body.innerHTML = html;
   body.scrollTop = 0;
+  reBindIgEmbeds(body);
   reRenderCompleteness(p);
   var reGalIdx = 0;
   function reGalShow(i){
@@ -13173,6 +13446,7 @@ function reRenderPostStep(){
       + reField('Listing', reSeg('rpKind', [['new','New construction'],['resale','Resale']], s.kind))
       + reField('Availability', reSelect('rpAvail', [['ready_to_move','Ready to move'],['under_construction','Under construction'],['available','Available (land / commercial)']], s.availability), 'rpAvail')
       + reField('Description', '<textarea class="f-input" id="rpDesc" placeholder="What makes this property worth a visit? Layout, light, water, road, neighbourhood — facts, not hype.">' + mkEsc(s.desc) + '</textarea>', 'rpDesc')
+      + reField('Instagram Reel link (optional)', '<input class="f-input" id="rpReelUrl" type="text" placeholder="https://www.instagram.com/reel/…" value="' + mkEsc(s.reelUrl || '') + '"/><p class="f-note" style="margin-top:6px">Draft only: link a Reel you own, or one the creator has given permission to feature. The video stays on Instagram and plays on the listing through Instagram’s own player — it is never copied. Attaching a link publishes nothing: this listing stays <b>Pending Review</b>, and its Reel appears in Trending Reels only if the <b>founder approves</b> it. Creators never publish here themselves.</p>', 'rpReelUrl')
       + '<div class="f-err" id="rpErr"></div>';
   } else if(s.step === 3){
     inner = '<h3 class="mp-step-title">Price &amp; location</h3><p class="mp-step-sub">Set your asking price, then give the exact location. The exact address and pin stay <b>private</b> — they help our review team verify the listing. Buyers only ever see the locality and landmark.</p>'
@@ -13202,6 +13476,7 @@ function reRenderPostStep(){
       { ok:reParseMoney(s.price) > 0, label:'Price added — ' + (reParseMoney(s.price) ? reFmtINR(reParseMoney(s.price)) : 'missing') },
       { ok:isFinite(sq2) && sq2 > 0, label:'Area added — ' + (isFinite(sq2) && sq2 > 0 ? reFmtNum(parseFloat(s.areaValue)) + ' ' + RE_UNITS[s.areaUnit] + ' (' + RE_MEASURES[s.areaMeasure] + ') = ' + reFmtNum(sq2) + ' sq ft' : 'missing') },
       { ok:!!s.locality, label:'Locality: ' + s.locality + ', Khammam' },
+      { ok:true, label:(s.reelUrl && s.reelUrl.trim()) ? 'Instagram Reel linked as a draft — it shows in Trending Reels only after the founder approves this listing' : 'No Instagram Reel linked (optional)' },
       { ok:!!(isFinite(parseFloat(s.lat)) && isFinite(parseFloat(s.lng)) && s.locConfirmed), label:(isFinite(parseFloat(s.lat)) && s.locConfirmed) ? 'Exact location pinned & confirmed (private): ' + (s.pinnedAddress || s.exactAddress || '').trim().slice(0, 70) : 'Pin the exact location in step 3 and tick the confirmation' },
       { ok:true, label:'Buyers see only the locality and landmark — your exact address, phone number and email are never published' }
     ];
@@ -13262,6 +13537,7 @@ function rePostCollect(){
     s.kind = seg('rpKind') || s.kind;
     s.availability = g('rpAvail') || s.availability;
     s.desc = g('rpDesc') != null ? g('rpDesc') : s.desc;
+    var ru = g('rpReelUrl'); if(ru != null) s.reelUrl = ru;
   } else if(s.step === 3){
     s.price = g('rpPrice') != null ? g('rpPrice') : s.price;
     s.negotiable = seg('rpNeg') === 'yes';
@@ -13278,6 +13554,7 @@ function rePostValidateStep(){
     if((s.title || '').trim().length < 4) return 'Give the property a title (at least 4 characters).';
     var v = parseFloat(s.areaValue);
     if(!(isFinite(v) && v > 0)) return 'Enter the property area exactly as in your documents.';
+    if((s.reelUrl || '').trim() && !(typeof nrIgPostUrl === 'function' && nrIgPostUrl(s.reelUrl))) return 'That Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…), or clear the box.';
     return '';
   }
   if(s.step === 3){
@@ -13501,6 +13778,15 @@ function rePostSave(submit){
   var areaSqft = reToSqft(areaVal, s.areaUnit);
   if(!isFinite(areaSqft) || areaSqft <= 0){ fail('Enter the property area exactly as in your documents.'); return; }
   if(!s.locality){ fail('Choose the locality.'); return; }
+  /* Instagram Reel draft link: validated here again (failure path is a
+     visible error, never a silent drop), then stored normalized in the
+     listing's own details record (details.reel_url) — no extra column
+     needed for properties. It publishes ONLY through founder approval:
+     submit below moves the listing to pending_review, never live. */
+  var rpIgUrl = (typeof nrIgPostUrl === 'function') ? nrIgPostUrl(s.reelUrl || '') : '';
+  if((s.reelUrl || '').trim() && !rpIgUrl){ fail('That Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…), or clear the box.'); return; }
+  s.details = Object.assign({}, s.details || {});
+  if(rpIgUrl) s.details.reel_url = rpIgUrl; else delete s.details.reel_url;
   s.busy = true;
   var busyBtn = document.getElementById(submit ? 'rpSubmit' : 'rpDraft');
   if(busyBtn){ busyBtn.disabled = true; busyBtn.textContent = 'Saving…'; }
@@ -13746,6 +14032,8 @@ function reLoadQueue(){
   var rbody = document.getElementById('reReportsBody');
   var hbody = document.getElementById('reHistoryBody');
   if(!reClient()){ body.innerHTML = reNotConnectedHTML(); fbody.innerHTML = ''; rbody.innerHTML = ''; hbody.innerHTML = ''; return; }
+  var igNote = document.getElementById('reIgSetupNote');
+  if(igNote) igNote.style.display = RE.isFounder ? '' : 'none';
   if(!RE.isFounder){
     body.innerHTML = '<div class="f-card"><h3>Founder only</h3><p>The property review queue is restricted to the founder account — the database enforces this, not just this screen.</p></div>';
     fbody.innerHTML = ''; rbody.innerHTML = ''; hbody.innerHTML = ''; return;
@@ -13837,6 +14125,10 @@ function reRenderQueue(){
           + (sp.registration_checked_at ? ' · checked ' + newsTimeLabel(sp.registration_checked_at) : ' · not checked')
           + (sp.registration_checked_at ? '' : ' <button class="chip" style="margin-left:6px" data-re-rera-check="' + p.seller_id + '">Record manual check</button>') + '</div>' : '')
       + (dup ? '<div class="mp-reject-note" style="background:#FBF0DC;color:#7A5410">' + mkEsc(dup) + '</div>' : '')
+      + '<div class="f-field" style="margin-top:12px"><label>Instagram Reel link — founder publishing</label>'
+      + '<div class="mp-price-row"><input class="f-input" data-re-reel-input="' + p.id + '" type="text" value="' + mkEsc((p.details && p.details.reel_url) || p.instagram_url || '') + '" placeholder="https://www.instagram.com/reel/…"/><button class="btn-solid" style="flex:none;padding:11px 16px" data-re-reel-save="' + p.id + '">Save Reel link</button></div>'
+      + '<p class="f-note" style="margin-top:6px">Only you, the founder, can publish a Reel: approving this property below publishes its saved Reel link to Trending Reels (played through Instagram’s official player). An agent may have attached the link while drafting — it stays unpublished until your approval. Clear the box and save to remove the link before approving.</p>'
+      + '<div class="f-err" data-re-reel-err="' + p.id + '"></div></div>'
       + '<div class="mp-big-acts"><button class="ap" data-re-approve="' + p.id + '">Approve</button><button class="rj" data-re-reject="' + p.id + '">Reject</button></div>'
       + '<div class="dash-acts"><button data-re-changes="' + p.id + '">Request changes</button></div>'
       + '<div class="confirm-bar" data-re-rej-bar="' + p.id + '">Reject this property? The seller sees your reason and can fix and resubmit.'
@@ -13881,6 +14173,33 @@ function reRenderQueue(){
       var note = (body.querySelector('[data-re-chg-note="' + id + '"]').value || '').trim();
       if(!note){ showToast('<b>Say what must change</b> so the seller can fix it in one pass.'); return; }
       reModerate(id, 'changes', note);
+    });
+  });
+  body.querySelectorAll('[data-re-reel-save]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var id = b.getAttribute('data-re-reel-save');
+      var p = RE.queue.filter(function(x){ return x.id === id; })[0]; if(!p) return;
+      var inp = body.querySelector('[data-re-reel-input="' + id + '"]');
+      var err = body.querySelector('[data-re-reel-err="' + id + '"]');
+      if(err){ err.textContent = ''; err.classList.remove('show'); }
+      var raw = inp ? inp.value.trim() : '';
+      var post = raw ? ((typeof nrIgPostUrl === 'function') ? nrIgPostUrl(raw) : '') : '';
+      if(raw && !post){
+        /* Failure path is visible, never silent — and nothing is saved. */
+        if(err){ err.textContent = 'That Instagram link is not a link to an Instagram post or Reel — paste the full link (instagram.com/reel/… or instagram.com/p/…), or clear the box to remove the link.'; err.classList.add('show'); }
+        return;
+      }
+      var details = Object.assign({}, p.details || {});
+      if(post) details.reel_url = post; else delete details.reel_url;
+      b.disabled = true;
+      reClient().from('properties').update({ details:details }).eq('id', id)
+        .then(function(r){
+          b.disabled = false;
+          if(r.error){ if(err){ err.textContent = 'The Reel link could not be saved: ' + (r.error.message || 'the backend did not answer.'); err.classList.add('show'); } return; }
+          p.details = details;
+          if(inp) inp.value = post || '';
+          showToast(post ? '<b>Reel link saved.</b> It publishes to Trending Reels only when you approve this property.' : '<b>Reel link removed.</b> This property will not appear in Trending Reels.');
+        }, function(){ b.disabled = false; if(err){ err.textContent = 'The Reel link could not be saved — the backend did not answer.'; err.classList.add('show'); } });
     });
   });
   body.querySelectorAll('[data-re-rera-check]').forEach(function(b){
@@ -20330,9 +20649,23 @@ function deLatestObs(rows){
   return Object.keys(byKey).map(function(k){ return byKey[k]; });
 }
 function deMktSegHTML(){
-  var tabs = [['veg','Vegetables'],['ess','Essentials'],['fuel','Fuel'],['bullion','Gold & Silver']];
-  return '<div class="de-seg" role="tablist" aria-label="Market sections">'
-    + tabs.map(function(t){ return '<button data-de-mtab="' + t[0] + '"' + (DE.mkt.tab === t[0] ? ' class="on"' : '') + '>' + t[1] + '</button>'; }).join('') + '</div>';
+  var tabs = [['veg','Vegetables',true],['ess','Essentials',true],['fuel','Fuel',true],['bullion','Gold & Silver',false]];
+  return '<div class="de-seg de-seg-mkt" role="tablist" aria-label="Market sections">'
+    + tabs.map(function(t){ return '<button data-de-mtab="' + t[0] + '"' + (DE.mkt.tab === t[0] ? ' class="on"' : '') + '>' + t[1] + (t[2] ? '<span class="soon-pill soon-pill-sm">Soon</span>' : '') + '</button>'; }).join('') + '</div>';
+}
+/* Public "Coming Soon" state for the Vegetables, Essentials and Fuel rate
+   groups. These groups show no rate list, no empty state and no previously
+   published value in the public view. Founder data entry (Daily Essentials
+   Control Center) and its Publish flow are unaffected by this display. */
+function deMktSoonHTML(tab){
+  var copy = {
+    veg: ['Vegetables', 'Daily vegetable rates for Khammam are on the way. When this section opens, every rate will be a documented, founder-verified local report — never an estimate.'],
+    ess: ['Essentials', 'Daily essential-commodity rates for Khammam are on the way. When this section opens, every rate will be a documented, founder-verified local report — never an estimate.'],
+    fuel: ['Fuel', 'Khammam petrol and diesel prices are on the way. When this section opens, every price will be a manually verified update published by the founder with its source — other cities’ rates are never shown as Khammam’s.']
+  };
+  var c = copy[tab] || copy.veg;
+  return '<div class="de-soon"><span class="soon-pill">Coming Soon</span><h4>' + c[0] + '</h4><p>' + c[1] + '</p></div>'
+    + '<p class="de-note">Mana Khammam publishes market rates only from documented sources: official datasets, or founder-verified local reports collected at the market. No rate is ever estimated or carried over silently.</p>';
 }
 function deMktStateHTML(title, msg, officialLinks){
   var links = '';
@@ -20348,6 +20681,13 @@ function deMktStateHTML(title, msg, officialLinks){
 function deRenderMarkets(){
   var body = document.getElementById('deMktBody');
   if(!body) return;
+  /* Vegetables, Essentials and Fuel are "Coming Soon" in the public view —
+     checked before loading/error states so these groups never flash a list,
+     an empty state or a stale value. Gold & Silver keeps its live view. */
+  if(DE.mkt.tab === 'veg' || DE.mkt.tab === 'ess' || DE.mkt.tab === 'fuel'){
+    body.innerHTML = deMktSegHTML() + deMktSoonHTML(DE.mkt.tab);
+    return;
+  }
   if(DE.mkt.loading){ body.innerHTML = deMktSegHTML() + '<p class="de-fresh">Loading verified rates…</p>'; return; }
   if(DE.mkt.err === 'noconn'){
     body.innerHTML = deMktStateHTML('Market rates are not connected yet',
@@ -21520,33 +21860,11 @@ function deHomeSummaries(){
   }
   var c = deClient();
   if(c){
-    /* Fuel first: when the founder has published a Khammam fuel price,
-       the home card shows the latest petrol/diesel value with its date.
-       Until then it keeps the honest fallback below — never invented. */
-    c.from('de_fuel_observations').select('fuel_type, price_per_litre, observed_at').order('observed_at', { ascending:false }).limit(12)
-      .then(function(r){
-        var el = document.getElementById('deSumMarket');
-        if(!el || !r.data || !r.data.length) return;
-        var latest = {};
-        r.data.forEach(function(row){ if(!latest[row.fuel_type]) latest[row.fuel_type] = row; });
-        var parts = [], newest = null;
-        ['Petrol','Diesel'].forEach(function(f){
-          var row = latest[f];
-          if(!row) return;
-          parts.push(f + ' <b>' + deFmtINR(row.price_per_litre) + '/L</b>');
-          var t = new Date(row.observed_at).getTime();
-          if(newest == null || t > newest) newest = t;
-        });
-        if(parts.length && newest != null){
-          el.innerHTML = parts.join(' · ') + ' · ' + deFmtDateKey(deMsToKeyIST(newest));
-          el.setAttribute('data-fuel-live', '1');
-        }
-      }).catch(function(){});
-    c.from('de_price_observations').select('observed_date').order('observed_date', { ascending:false }).limit(1)
-      .then(function(r){
-        var el = document.getElementById('deSumMarket');
-        if(el && !el.getAttribute('data-fuel-live') && r.data && r.data[0]) el.innerHTML = 'Latest report · <b>' + deFmtDateKey(r.data[0].observed_date) + '</b>';
-      }).catch(function(){});
+    /* The Market Rates tile summary is intentionally NOT overwritten with
+       fuel prices or the latest vegetable/essential report date:
+       Vegetables, Essentials and Fuel are "Coming Soon" in the public
+       view, so no public surface shows their values. The tile keeps its
+       static summary text from the markup. */
     c.from('de_utility_notices').select('title, starts_at').in('status', ['scheduled','updated'])
       .order('starts_at', { ascending:false }).limit(1)
       .then(function(r){
@@ -24079,12 +24397,14 @@ function pnVideoCardHTML(p, m, creatorName){
    Cinematic vertical feed: one card per genuine tour on the SAME property
    records the List and Map use. Standard HTML5 video, lazy-loaded as cards
    approach the screen, played only when the viewer presses play — no
-   autoplay, no adaptive-streaming claims. Seller-linked Instagram Reels
-   appear as link-out cards only; Reel content is never copied or embedded. */
+   autoplay, no adaptive-streaming claims. Founder-published Instagram
+   Reels appear here on the same approved listings and play through
+   Instagram's official embed player; Reel content is never downloaded,
+   copied or re-hosted. */
 function pnRenderVideos(body, items){
   var vids = [];
   items.forEach(function(p){ reMediaOf(p).forEach(function(m){ if(m.kind === 'video' && m.storage_path) vids.push({ p:p, m:m }); }); });
-  var reels = items.filter(function(p){ return p.details && p.details.reel_url && /instagram\.com/.test(p.details.reel_url); });
+  var reels = items.filter(function(p){ return !!reIgPostUrl(p); });
   var total = vids.length + reels.length;
   pnEl('reResultCount').textContent = total + (total === 1 ? ' tour video' : ' tour videos');
   if(!total){
@@ -24097,6 +24417,7 @@ function pnRenderVideos(body, items){
     + '</div>'
     + '<p class="f-note" style="text-align:center;margin-top:16px">Standard video playback — a tour loads only when its card reaches your screen and plays only when you press play.</p>';
   pnBindLocal(body);
+  reBindIgEmbeds(body);
   if(typeof ngBindFeed === 'function') ngBindFeed(body);
 }
 function ngFeedCardHTML(p, m){
@@ -24123,18 +24444,19 @@ function ngFeedCardHTML(p, m){
     + '</div></article>';
 }
 function ngReelCardHTML(p){
-  var cover = reCoverOf(p);
+  var post = reIgPostUrl(p);
+  var creator = reIgCreator(p);
   return '<article class="ng-vcard" id="ng-vid-' + p.id + '">'
     + '<div class="ng-vstage"><div class="ng-reel-stage">'
-    + (cover ? '<img src="' + mkEsc(cover) + '" alt="' + mkEsc(p.title) + '" loading="lazy"/>' : '<div style="flex:1"></div>')
-    + '<div class="ng-reel-bar"><span class="ng-avail">Instagram Reel · Seller’s link</span>'
+    + reIgEmbedHTML(post, p)
+    + '<div class="ng-reel-bar"><span class="ng-avail">Instagram Reel · Creator listing · Not Mana-verified</span>'
     + '<div class="p" style="font-size:23px;font-weight:800;letter-spacing:-.02em">' + reFmtINR(p.price) + '</div>'
     + '<div class="m" style="font-size:13px;color:#D8E6DC">' + mkEsc(reTypeLabel(p.property_type)) + ' · ' + reFmtNum(Number(p.area_value)) + ' ' + mkEsc(RE_UNITS[p.area_unit] || '') + '<br/>' + mkEsc(p.locality) + ', Khammam</div></div>'
     + '</div></div>'
     + '<div class="ng-vmeta"><h4>' + mkEsc(p.title) + '</h4>'
-    + '<p>The seller linked their own authorized Reel for this property. It opens on Instagram — Mana Khammam never copies, scrapes or republishes Reel content.</p></div>'
+    + '<p>Published by the founder with the creator’s permission. It plays here through Instagram’s official player — the video stays on Instagram and is never downloaded, copied or re-hosted by Mana Khammam.</p></div>'
     + '<div class="ng-vacts">'
-    + '<a href="' + mkEsc(p.details.reel_url) + '" target="_blank" rel="noopener" style="flex:1 1 auto;text-align:center;font-size:12.5px;font-weight:700;padding:9px 10px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none">Watch on Instagram</a>'
+    + '<a href="' + mkEsc(creator.url) + '" target="_blank" rel="noopener" style="flex:1 1 auto;text-align:center;font-size:12.5px;font-weight:700;padding:9px 10px;border-radius:10px;background:var(--accent);color:#fff;text-decoration:none">' + mkEsc(creator.label.charAt(0) === '@' ? creator.label + ' on Instagram' : 'Watch on Instagram') + '</a>'
     + '<button type="button" data-ng-feed-save="' + p.id + '" class="' + (RE.savedIds[p.id] ? 'on' : '') + '">' + (RE.savedIds[p.id] ? 'Saved' : 'Save') + '</button>'
     + '<button type="button" data-ng-feed-map="' + p.id + '">View on Map</button>'
     + '<button type="button" data-ng-feed-open="' + p.id + '">Full details</button>'
@@ -24884,7 +25206,6 @@ function ngSubmitAppeal(){
   if(cancel) cancel.addEventListener('click', function(){ closeSheets(); });
 })();
 </script>
-
 </body>
 
 </html>
